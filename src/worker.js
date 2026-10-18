@@ -147,7 +147,6 @@ async function api(request, env, ctx, cfg, url) {
   if (path === '/api/giris-sifre' && method === 'POST') return enterWithPassword(request, env, cfg);
   if (path === '/api/isim' && method === 'POST') return checkNameRoute(request, env, cfg);
   if (path === '/api/yukle' && method === 'POST') return upload(request, env, ctx, cfg);
-  if (path === '/api/teshis-konu' && method === 'GET') return diagnosticTopics(env, cfg, url);
   if (path === '/api/yonetici/giris' && method === 'POST') return adminLogin(request, env, cfg);
   if (path === '/api/yonetici/cikis' && method === 'POST') return adminLogout();
 
@@ -1758,55 +1757,6 @@ function topicInput(model, prompt) {
     input.max_tokens = 48;
   }
   return input;
-}
-
-// GEÇİCİ: müfredattaki yer sınıflandırmasını canlı sayfalarda denemek için. Ayar veritabanındaki 'teshis'
-// anahtarıyla korunur; sayfalara yazmaz, sonuçları teshis_konu tablosuna yazar. Deneme bitince kaldırılır.
-async function diagnosticTopics(env, cfg, url) {
-  let expected = null;
-  try {
-    const row = env.AYAR && (await env.AYAR.prepare("SELECT deger FROM ayarlar WHERE anahtar = 'teshis'").first());
-    expected = row && row.deger;
-  } catch {
-    expected = null;
-  }
-  const key = url.searchParams.get('k') || '';
-  if (!expected || !key || !(await safeEqual(await sha256hex(key), expected))) return json({ error: 'Bulunamadı.' }, 404);
-  const model = url.searchParams.get('m') || cfg.topicModel;
-  const limit = clampInt(url.searchParams.get('n') || 100, 1, 100);
-  const { results } = await env.AYAR.prepare("SELECT id, bolum, baslik, metin FROM sayfalar WHERE metin != '' ORDER BY olusturma LIMIT ?").bind(limit).all();
-  const out = [];
-  const one = async (r) => {
-    const t0 = Date.now();
-    let raw = '';
-    let err = '';
-    let usage = null;
-    try {
-      const res = await env.AI.run(model, topicInput(model, buildTopicPrompt(r.bolum, r.baslik, r.metin)));
-      raw = extractText(res);
-      usage = (res && (res.usage || (res.result && res.result.usage))) || null;
-    } catch (e) {
-      err = String(e && (e.message || e));
-    }
-    const ms = Date.now() - t0;
-    const ans = raw ? topicAnswer(r.bolum, raw) : { understood: false, hit: null };
-    const h = ans.hit;
-    const kod = h ? `${h.sinif}.${h.unite}.${h.konu}` : '';
-    const ad = h ? `${h.sinif}. sınıf / ${h.uniteEtiket}: ${h.uniteAdi} / ${h.konu}. ${h.konuAdi}` : '';
-    try {
-      await env.AYAR.prepare(
-        'INSERT INTO teshis_konu (zaman, sayfa, bolum, baslik, model, ms, hata, ham, anlasildi, kod, ad, kullanim) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      )
-        .bind(Date.now(), r.id, r.bolum, r.baslik || '', model, ms, err, raw.slice(0, 2000), ans.understood ? 1 : 0, kod, ad, JSON.stringify(usage))
-        .run();
-    } catch (e) {
-      err += ' | kayıt: ' + (e && e.message);
-    }
-    out.push({ id: r.id, kod, err: err.slice(0, 200) });
-  };
-  const rows = results || [];
-  for (let i = 0; i < rows.length; i += 4) await Promise.all(rows.slice(i, i + 4).map(one));
-  return json({ ok: true, model, n: out.length, out });
 }
 
 // Yazıdan konuyu belirler; yazı yoksa ya da yapay zekâ çalışmazsa null (sayfa yine kaydedilir, konu sonra belirlenir)
