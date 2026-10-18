@@ -1270,13 +1270,66 @@ export function cleanTranscript(t) {
     if ((c < 32 && c !== 10 && c !== 9) || c === 127 || (c >= 0x200b && c <= 0x200f) || (c >= 0x2028 && c <= 0x202e) || (c >= 0x2066 && c <= 0x2069) || c === 0xfeff) continue;
     out += c === 9 ? '    ' : ch;
   }
-  out = out
-    .split('\n')
-    .map((l) => l.replace(/\s+$/, ''))
-    .join('\n')
+  out = collapseLoops(
+    out
+      .split('\n')
+      .map((l) => l.replace(/\s+$/, ''))
+      .join('\n'),
+  )
     .replace(/\n{3,}/g, '\n\n')
     .trim();
   return Array.from(out).slice(0, TEXT_MAX_CHARS).join('').trim();
+}
+
+// Okuma modeli bazen bir kelimeye ya da satıra takılıp aynı şeyi sayfanın sonuna kadar yazar
+// ("[?] [?] [?] …", "iyi, iyi, iyi, …", aynı satır art arda). Art arda en az 6 kez gelen 1-3 kelimelik
+// kalıp tek kopyaya, art arda en az 3 kez gelen aynı satır tek satıra indirilir; sondaki yarım tekrar atılır.
+const LOOP_WORDS = 6;
+const LOOP_LINES = 3;
+function collapseWordLoops(line) {
+  const w = line.split(' ');
+  if (w.length < LOOP_WORDS) return line;
+  const same = (a, b, p) => {
+    for (let k = 0; k < p; k++) if (w[a + k] !== w[b + k]) return false;
+    return true;
+  };
+  const out = [];
+  let i = 0;
+  while (i < w.length) {
+    let done = false;
+    for (let p = 1; p <= 3 && !done; p++) {
+      if (!w[i]) break;
+      let reps = 1;
+      while (i + (reps + 1) * p <= w.length && same(i, i + reps * p, p)) reps++;
+      if (reps < LOOP_WORDS) continue;
+      out.push(...w.slice(i, i + p));
+      i += reps * p;
+      // Satır sonundaki yarım tekrar ("iyi, iy" ya da "[?] /" kalıbının yarısı)
+      const rest = w.slice(i).join(' ');
+      if (rest && w.slice(i - p, i).join(' ').startsWith(rest)) i = w.length;
+      done = true;
+    }
+    if (!done) out.push(w[i++]);
+  }
+  return out.join(' ');
+}
+
+export function collapseLoops(text) {
+  const lines = String(text ?? '').split('\n').map(collapseWordLoops);
+  const out = [];
+  for (let i = 0; i < lines.length; ) {
+    let j = i + 1;
+    while (j < lines.length && lines[i].trim() && lines[j] === lines[i]) j++;
+    if (j - i >= LOOP_LINES) {
+      out.push(lines[i]);
+      // Tekrarın sonundaki yarım kalmış satır
+      if (j < lines.length && lines[j].trim() && lines[i].startsWith(lines[j])) j++;
+    } else {
+      out.push(...lines.slice(i, j));
+    }
+    i = j;
+  }
+  return out.join('\n');
 }
 
 // ---- Kopya tespiti: yazının 5 harflik parçalarından küçük bir parmak izi (en küçük 32 özet) ----
@@ -1690,7 +1743,7 @@ function hasText(text) {
 }
 
 export function buildTopicPrompt(section, title, text) {
-  const excerpt = Array.from(String(text || '')).slice(0, TOPIC_EXCERPT).join('');
+  const excerpt = Array.from(collapseLoops(text || '')).slice(0, TOPIC_EXCERPT).join('');
   return `You match a Turkish high-school student's class notes to the official MEB curriculum. Grades 9-11 follow the Türkiye Yüzyılı Maarif Modeli programs, grade 12 follows the 2018 program.
 
 Here is the curriculum of the course. Every topic line starts with its code "grade.unit.topic". Words in parentheses are examples of what the topic covers.
@@ -1810,7 +1863,7 @@ async function adminGetText(env, id) {
   return json({
     ok: true,
     item,
-    text: row ? row.metin || '' : '',
+    text: row ? collapseLoops(row.metin || '') : '',
     title: (row && row.baslik) || item.title,
     legible: row ? Number(row.okunakli) === 1 : item.legible,
     copies: await copiesOf(env, id),
@@ -1976,7 +2029,7 @@ async function adminTexts(env, url) {
       section: r.bolum,
       name: r.isim || '',
       title: r.baslik || '',
-      text: r.metin || '',
+      text: collapseLoops(r.metin || ''),
       createdAt: Number(r.olusturma) || 0,
       editedAt: Number(r.duzenleme) || 0,
       figures: readFigures(r.sekiller),
