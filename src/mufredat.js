@@ -149,8 +149,8 @@ const KAYNAK = {
 - Dil Bilgisi: Cümle Yapıları ve Ekler [bağdaşıklık, tutarlılık]
 ## 10 | ${MAARIF}
 ### 1. Tema: Sözün Ezgisi
-- Sözlü Kültür ve Anonim Halk Edebiyatı [koşuk, sagu, destan, sav, ninni, türkü, tekerleme]
-- Halk Şiiri: Koşma ve Âşık Atışması
+- Sözlü Kültür ve Anonim Halk Edebiyatı [Türk edebiyatının dönemleri, İslamiyet öncesi sözlü edebiyat, koşuk, sagu, destan, sav, ninni, türkü, mâni, tekerleme]
+- Halk Şiiri: Koşma ve Âşık Atışması [âşık edebiyatı, mahlas, hece ölçüsü, dörtlük]
 - Masal [masalın bölümleri, olağanüstülük, varyant]
 - Dil Bilgisi: İsim ve İsim Tamlamaları [isim çeşitleri, hâl ekleri, iyelik ekleri]
 - Dil Bilgisi: Sıfat ve Sıfat Tamlamaları [niteleme sıfatı, belirtme sıfatı, işaret sıfatı]
