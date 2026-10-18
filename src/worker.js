@@ -143,7 +143,6 @@ async function api(request, env, ctx, cfg, url) {
   if (path === '/api/giris-sifre' && method === 'POST') return enterWithPassword(request, env, cfg);
   if (path === '/api/isim' && method === 'POST') return checkNameRoute(request, env, cfg);
   if (path === '/api/yukle' && method === 'POST') return upload(request, env, ctx, cfg);
-  if (path === '/api/teshis' && method === 'GET') return diagnostic(env, cfg, url);
   if (path === '/api/yonetici/giris' && method === 'POST') return adminLogin(request, env, cfg);
   if (path === '/api/yonetici/cikis' && method === 'POST') return adminLogout();
 
@@ -1641,54 +1640,6 @@ async function adminNotebook(env, section) {
     console.warn('Defter okunamadı:', e && e.message);
     return json({ error: 'Defter şu an açılamıyor. Biraz sonra tekrar dene.' }, 503);
   }
-}
-
-// GEÇİCİ: okuma modellerini canlıda denemek için. Ayar veritabanındaki 'teshis' anahtarıyla korunur;
-// deneme bitince bu uç nokta kaldırılır.
-async function diagnostic(env, cfg, url) {
-  let expected = null;
-  try {
-    const row = env.AYAR && (await env.AYAR.prepare("SELECT deger FROM ayarlar WHERE anahtar = 'teshis'").first());
-    expected = row && row.deger;
-  } catch {
-    expected = null;
-  }
-  const key = url.searchParams.get('k') || '';
-  if (!expected || !key || !(await safeEqual(await sha256hex(key), expected))) return json({ error: 'Bulunamadı.' }, 404);
-  const src = url.searchParams.get('u') || '';
-  const model = url.searchParams.get('m') || cfg.readModel;
-  let bytes;
-  try {
-    if (!/^\/teshis\/[a-z0-9-]+\.(?:jpg|png)$/.test(src)) return json({ error: 'Kaynak geçersiz.' }, 400);
-    const res = await env.ASSETS.fetch(new Request(url.origin + src));
-    if (!res.ok) return json({ error: 'Görsel alınamadı: ' + res.status }, 502);
-    bytes = new Uint8Array(await res.arrayBuffer());
-  } catch (e) {
-    return json({ error: 'Görsel alınamadı: ' + (e && e.message) }, 502);
-  }
-  const type = sniffImage(bytes);
-  if (!type) return json({ error: 'Görsel türü tanınmadı.' }, 415);
-  const dataUrl = `data:${type};base64,` + Buffer.from(bytes).toString('base64');
-  const t0 = Date.now();
-  let r = null;
-  let err = '';
-  try {
-    r = await env.AI.run(model, readInput(model, dataUrl));
-  } catch (e) {
-    err = String(e && (e.message || e));
-  }
-  const ms = Date.now() - t0;
-  const raw = r ? extractText(r) : '';
-  const parsed = raw ? parseReading(raw) : null;
-  const usage = (r && (r.usage || (r.result && r.result.usage))) || null;
-  try {
-    await env.AYAR.prepare('INSERT INTO teshis (zaman, model, kaynak, ms, hata, ham, kullanim, sonuc) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-      .bind(Date.now(), model, src, ms, err, raw.slice(0, 20000), JSON.stringify(usage), JSON.stringify(parsed))
-      .run();
-  } catch (e) {
-    err += ' | kayıt: ' + (e && e.message);
-  }
-  return json({ ok: !err, model, ms, err, safe: parsed ? parsed.safe : null, legible: parsed ? parsed.legible : null, figures: parsed ? parsed.figures : null, usage });
 }
 
 /* ------------------------------------------------------------------ */

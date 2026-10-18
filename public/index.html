@@ -3797,7 +3797,7 @@ Reply with ONLY this JSON object and nothing else:
   async function loadText(it, force = false) {
     if (!force && state.archive.texts.has(it.id)) return state.archive.texts.get(it.id);
     const d = await api.getText(it.id);
-    const entry = { text: d.text || '', title: d.title || it.title || '', legible: !!d.legible };
+    const entry = { text: d.text || '', title: d.title || it.title || '', legible: !!d.legible, figures: d.figures || [] };
     state.archive.texts.set(it.id, entry);
     return entry;
   }
@@ -3821,10 +3821,11 @@ Reply with ONLY this JSON object and nothing else:
     const narrow = narrowScreen();
     const cached = state.archive.images.get(it.id);
     if (cached && cached.text === entry.text && cached.title === entry.title && cached.narrow === narrow) return cached;
-    const page = { id: it.id, section: it.section, title: entry.title, text: entry.text, name: it.name, createdAt: it.createdAt };
-    const wide = await canvasToBlob(await renderTextPage(page), 'image/png');
+    const page = { id: it.id, section: it.section, title: entry.title, text: entry.text, name: it.name, createdAt: it.createdAt, editedAt: it.editedAt, figures: entry.figures };
+    const figures = await pageFigures(page, () => api.photoBlob(it));
+    const wide = await canvasToBlob(await renderTextPage(page, { figures }), 'image/png');
     const dlUrl = URL.createObjectURL(wide);
-    const url = narrow ? URL.createObjectURL(await canvasToBlob(await renderTextPage(page, { narrow: true }), 'image/png')) : dlUrl;
+    const url = narrow ? URL.createObjectURL(await canvasToBlob(await renderTextPage(page, { narrow: true, figures }), 'image/png')) : dlUrl;
     dropImage(cached);
     const out = { url, dlUrl, text: entry.text, title: entry.title, narrow };
     state.archive.images.set(it.id, out);
@@ -3911,7 +3912,7 @@ Reply with ONLY this JSON object and nothing else:
       const kept = state.archive.items.find((i) => i.id === d.duplicateOf);
       if (kept) kept.copies = (kept.copies || 0) + 1 + (it.copies || 0);
     } else {
-      state.archive.texts.set(it.id, { text: d.text || '', title: d.title || '', legible: !!d.legible });
+      state.archive.texts.set(it.id, { text: d.text || '', title: d.title || '', legible: !!d.legible, figures: d.figures || [] });
       Object.assign(it, d.item);
       const gone = new Set(d.replaced || []);
       if (gone.size) {
@@ -3989,7 +3990,7 @@ Reply with ONLY this JSON object and nothing else:
     try {
       const d = await api.saveText(it.id, { text, title: $('#tdHead').value, legible });
       forgetText(it.id);
-      state.archive.texts.set(it.id, { text: d.text || '', title: d.title || '', legible: !!d.legible });
+      state.archive.texts.set(it.id, { text: d.text || '', title: d.title || '', legible: !!d.legible, figures: d.figures || [] });
       applyItemUpdate(it, d.item);
       $('#textDialog').close();
       toast(d.legible ? 'Yazı kaydedildi; defter güncellendi.' : 'Yazı kaydedildi.');
@@ -4127,7 +4128,8 @@ Reply with ONLY this JSON object and nothing else:
     const narrow = narrowScreen();
     const key = `${p.id}:${narrow ? 'dar' : 'genis'}`;
     if (r.urls.has(key)) return r.urls.get(key);
-    const canvas = await renderTextPage({ ...p, section: r.section, folio: i + 1 }, { narrow });
+    const figures = await pageFigures(p, () => api.photoBlob(p));
+    const canvas = await renderTextPage({ ...p, section: r.section, folio: i + 1 }, { narrow, figures });
     const blob = await canvasToBlob(canvas, 'image/png');
     const url = URL.createObjectURL(blob);
     r.urls.set(key, url);
@@ -4187,7 +4189,8 @@ Reply with ONLY this JSON object and nothing else:
     const btn = $('#rdDownload');
     setBusy(btn, true, 'Hazırlanıyor');
     try {
-      const blob = await canvasToBlob(await renderTextPage({ ...p, section: r.section, folio: r.index + 1 }), 'image/png');
+      const figures = await pageFigures(p, () => api.photoBlob(p));
+      const blob = await canvasToBlob(await renderTextPage({ ...p, section: r.section, folio: r.index + 1 }, { figures }), 'image/png');
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -4257,7 +4260,7 @@ Reply with ONLY this JSON object and nothing else:
   }
 
   // Yazıyı satırlara böler: başlık, madde, numaralı satır, şekil notu ve paragraf
-  function layoutTranscript(ctx, text, width) {
+  function layoutTranscript(ctx, text, width, figures = new Map(), maxFigH = 500) {
     const rows = [];
     let blank = true;
     for (const raw of String(text || '').split('\n')) {
@@ -4273,11 +4276,24 @@ Reply with ONLY this JSON object and nothing else:
       let indent = 0;
       let marker = '';
       let body = line;
+      const figLine = parseFigureLine(line);
+      if (figLine) {
+        const canvas = figLine.n ? figures.get(figLine.n) : null;
+        if (canvas) {
+          const scale = Math.min(width / canvas.width, maxFigH / canvas.height, 1.5);
+          const drawW = Math.round(canvas.width * scale);
+          const drawH = Math.round(canvas.height * scale);
+          rows.push({ figure: canvas, drawW, drawH, lines: Math.max(2, Math.ceil((drawH + 28) / RULE)) });
+        }
+        ctx.font = FONT_FIG;
+        wrapWords(ctx, figLine.caption, width).forEach((t) => rows.push({ text: t, indent: 0, font: FONT_FIG, color: FIG_INK, marker: '', center: !!canvas }));
+        continue;
+      }
       const head = line.match(/^#{1,4}\s*(.+)$/);
       const bullet = line.match(/^[-•*–]\s+(.+)$/);
       const num = line.match(/^((?:\d{1,3}|[a-zçğıöşü])[.)])\s+(.+)$/i);
       if (head) { body = head[1]; font = FONT_HEAD; }
-      else if (/^\[(?:şekil|sekil|çizim|cizim|resim|tablo|grafik)[^\]]*\]$/i.test(line)) { font = FONT_FIG; color = FIG_INK; }
+      else if (/^\[(?:tablo)[^\]]*\]$/i.test(line)) { font = FONT_FIG; color = FIG_INK; }
       else if (bullet) { marker = '•'; body = bullet[1]; indent = 36; }
       else if (num) {
         marker = num[1];
@@ -4298,7 +4314,167 @@ Reply with ONLY this JSON object and nothing else:
     return h >>> 0;
   }
 
-  async function renderTextPage(page, { narrow = false } = {}) {
+  /* ------------------------------------------------------------------ */
+  /* Şekiller: fotoğraftan kesilir, kâğıt zemini temizlenir, mürekkep     */
+  /* çizimi gibi defter sayfasına konur (hepsi tarayıcıda, ücretsiz)      */
+  /* ------------------------------------------------------------------ */
+
+  // Kâğıdın yerel parlaklığı: her bloktaki en parlak nokta, sonra yumuşatılarak büyütülür.
+  function paperLight(data, w, h, block) {
+    const bw = Math.ceil(w / block);
+    const bh = Math.ceil(h / block);
+    const small = makeCanvas(bw, bh);
+    const sctx = small.getContext('2d');
+    const simg = sctx.createImageData(bw, bh);
+    for (let by = 0; by < bh; by++) {
+      for (let bx = 0; bx < bw; bx++) {
+        let max = 0;
+        const y2 = Math.min(h, (by + 1) * block);
+        const x2 = Math.min(w, (bx + 1) * block);
+        for (let y = by * block; y < y2; y += 2) {
+          for (let x = bx * block; x < x2; x += 2) {
+            const i = (y * w + x) * 4;
+            const l = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+            if (l > max) max = l;
+          }
+        }
+        const o = (by * bw + bx) * 4;
+        simg.data[o] = simg.data[o + 1] = simg.data[o + 2] = max;
+        simg.data[o + 3] = 255;
+      }
+    }
+    sctx.putImageData(simg, 0, 0);
+    const big = makeCanvas(w, h);
+    const bctx = big.getContext('2d', { willReadFrequently: true });
+    bctx.imageSmoothingEnabled = true;
+    bctx.imageSmoothingQuality = 'high';
+    bctx.drawImage(small, 0, 0, w, h);
+    return bctx.getImageData(0, 0, w, h).data;
+  }
+
+  // Yapay zekânın kutusu bazen yandaki etiketleri dışarıda bırakır: kutuyu yanlara doğru,
+  // mürekkep bitip belirgin bir boşluk gelene kadar genişlet.
+  function widenFigureBox(src, fig) {
+    const sw = src.width || src.naturalWidth;
+    const sh = src.height || src.naturalHeight;
+    const W0 = 700;
+    const H0 = Math.max(1, Math.round((sh * W0) / sw));
+    const c = makeCanvas(W0, H0);
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(src, 0, 0, W0, H0);
+    const data = ctx.getImageData(0, 0, W0, H0).data;
+    const bg = paperLight(data, W0, H0, 16);
+    const y1 = Math.max(0, Math.floor((fig.y + fig.h * 0.03) * H0));
+    const y2 = Math.min(H0 - 1, Math.ceil((fig.y + fig.h * 0.97) * H0));
+    const inkCol = (x) => {
+      let n = 0;
+      for (let y = y1; y <= y2; y++) {
+        const i = (y * W0 + x) * 4;
+        const l = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+        if (l / (bg[i] || 1) < 0.62) n++;
+      }
+      return n;
+    };
+    const maxGap = Math.round(W0 * 0.035);
+    const reach = Math.round(W0 * 0.35);
+    let right = Math.min(W0 - 1, Math.ceil((fig.x + fig.w) * W0));
+    for (let x = right, gap = 0; x < W0 - 1 && x < right + reach; x++) {
+      if (inkCol(x) >= 2) { right = x; gap = 0; } else if (++gap > maxGap) break;
+    }
+    let left = Math.max(0, Math.floor(fig.x * W0));
+    for (let x = left, gap = 0; x > 0 && x > left - reach; x--) {
+      if (inkCol(x) >= 2) { left = x; gap = 0; } else if (++gap > maxGap) break;
+    }
+    const nx = Math.max(0, (left - 4) / W0);
+    const nr = Math.min(1, (right + 5) / W0);
+    return { ...fig, x: nx, w: nr - nx };
+  }
+
+  // Şekli keser ve kâğıdı saydamlaştırır: koyu kalem lacivert mürekkep olur, renkli kalem rengini korur.
+  function extractFigure(src, fig) {
+    const box = widenFigureBox(src, fig);
+    const sw = src.width || src.naturalWidth;
+    const sh = src.height || src.naturalHeight;
+    const cx = Math.round(box.x * sw);
+    const cy = Math.round(box.y * sh);
+    const cw = Math.max(8, Math.round(box.w * sw));
+    const ch = Math.max(8, Math.round(box.h * sh));
+    const scale = Math.min(1, 1100 / Math.max(cw, ch));
+    const w = Math.max(8, Math.round(cw * scale));
+    const h = Math.max(8, Math.round(ch * scale));
+    const c = makeCanvas(w, h);
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(src, cx, cy, cw, ch, 0, 0, w, h);
+    const img = ctx.getImageData(0, 0, w, h);
+    const d = img.data;
+    const bg = paperLight(d, w, h, Math.max(12, Math.round(Math.max(w, h) / 40)));
+    let inked = 0;
+    for (let i = 0; i < d.length; i += 4) {
+      const r = d[i];
+      const g = d[i + 1];
+      const b = d[i + 2];
+      const ratio = (0.299 * r + 0.587 * g + 0.114 * b) / (bg[i] || 1);
+      const mx = Math.max(r, g, b);
+      const sat = mx ? (mx - Math.min(r, g, b)) / mx : 0;
+      // Defterin kendi açık mavi/kırmızı çizgileri silinir; kalem ve kurşun kalem izleri kalır
+      let a = sat > 0.18 && ratio > 0.55 ? 0 : (0.72 - ratio) / 0.3;
+      a = a <= 0 ? 0 : a >= 1 ? 1 : a;
+      if (sat > 0.32 && mx > 50) {
+        d[i] = r * 0.82;
+        d[i + 1] = g * 0.82;
+        d[i + 2] = b * 0.82;
+      } else {
+        d[i] = 29;
+        d[i + 1] = 36;
+        d[i + 2] = 66;
+      }
+      d[i + 3] = Math.round(a * 255);
+      if (a > 0.5) inked++;
+    }
+    ctx.putImageData(img, 0, 0);
+    // Neredeyse boş bir kutu (yanlış yer) gösterilmez; yazıdaki açıklama kalır
+    if (inked < w * h * 0.004) return null;
+    return c;
+  }
+
+  const figureCache = new Map();
+  // Sayfadaki şekilleri hazırlar: Map(n → tuval). Fotoğraf alınamazsa şekiller yazı olarak kalır.
+  async function pageFigures(page, getPhoto) {
+    const out = new Map();
+    const figs = Array.isArray(page.figures) ? page.figures : [];
+    if (!figs.length) return out;
+    const key = `${page.id}:${page.editedAt || page.createdAt || 0}`;
+    if (figureCache.has(key)) return figureCache.get(key);
+    let src;
+    try {
+      src = await decodeImage(await getPhoto());
+    } catch {
+      return out;
+    }
+    for (const f of figs) {
+      try {
+        const canvas = extractFigure(src, f);
+        if (canvas) out.set(Number(f.n), canvas);
+      } catch (e) {
+        console.warn('Şekil hazırlanamadı', e);
+      }
+    }
+    if (src.close) src.close();
+    figureCache.set(key, out);
+    return out;
+  }
+
+  // "[Şekil 1: hücre çizimi; etiketler: Çekirdek, Mitokondri]" satırını çözer
+  function parseFigureLine(line) {
+    const m = String(line).match(/^\[\s*(?:şekil|sekil|çizim|cizim|grafik|resim)\s*(\d{1,2})?\s*[:.\-–]?\s*([\s\S]*?)\s*\]$/i);
+    if (!m) return null;
+    const [desc, labels] = m[2].split(/;\s*etiketler?\s*:\s*/i);
+    const main = (desc || '').trim();
+    const caption = `Şekil${m[1] ? ` ${m[1]}` : ''}${main ? `: ${main.charAt(0).toLocaleUpperCase('tr')}${main.slice(1)}` : ''}${labels ? ` (${labels.trim()})` : ''}`;
+    return { n: m[1] ? Number(m[1]) : 0, caption };
+  }
+
+  async function renderTextPage(page, { narrow = false, figures = new Map() } = {}) {
     await ensurePageFonts();
     const L = narrow ? LAYOUTS.dar : LAYOUTS.genis;
     const W = L.w;
@@ -4309,8 +4485,9 @@ Reply with ONLY this JSON object and nothing else:
     probe.font = L.titleFont;
     const titleLines = wrapWords(probe, page.title || `${secName(page.section)} notları`, bodyWidth).slice(0, 2);
     const top = L.top + (titleLines.length - 1) * L.titleStep;
-    const rows = layoutTranscript(probe, page.text, bodyWidth);
-    const H = Math.max(L.minH, top + (rows.length + 1) * RULE + 180);
+    const rows = layoutTranscript(probe, page.text, bodyWidth, figures, (narrow ? 8 : 9) * RULE);
+    const totalLines = rows.reduce((n, r) => n + (r && r.lines ? r.lines : 1), 0);
+    const H = Math.max(L.minH, top + (totalLines + 1) * RULE + 180);
     const c = makeCanvas(W, H);
     const ctx = c.getContext('2d');
     const rnd = mulberry32(seedFrom(page.id || page.title || 'sayfa'));
@@ -4380,18 +4557,27 @@ Reply with ONLY this JSON object and nothing else:
     ctx.fillStyle = gold;
     ctx.fillRect(BODY_LEFT, top - 44, W - BODY_LEFT - BODY_RIGHT, 3);
 
-    // Yazı: her satır bir çizginin üstünde
-    rows.forEach((row, i) => {
-      if (!row) return;
-      const y = top + (i + 1) * RULE - 13;
+    // Yazı her satırda bir çizginin üstünde; şekil, kapladığı satırların ortasında
+    let li = 0;
+    for (const row of rows) {
+      if (!row) { li++; continue; }
+      if (row.figure) {
+        const space = row.lines * RULE - 24;
+        ctx.drawImage(row.figure, BODY_LEFT + (bodyWidth - row.drawW) / 2, top + li * RULE + 12 + (space - row.drawH) / 2, row.drawW, row.drawH);
+        li += row.lines;
+        continue;
+      }
+      const y = top + (li + 1) * RULE - 13;
       ctx.fillStyle = row.color;
       if (row.marker) {
         ctx.font = FONT_BODY;
         ctx.fillText(row.marker, BODY_LEFT + (row.marker === '•' ? 8 : 0), y);
       }
       ctx.font = row.font;
-      ctx.fillText(row.text, BODY_LEFT + row.indent, y);
-    });
+      const x = row.center ? BODY_LEFT + (bodyWidth - ctx.measureText(row.text).width) / 2 : BODY_LEFT + row.indent;
+      ctx.fillText(row.text, x, y);
+      li++;
+    }
 
     // Alt bilgi
     ctx.font = FONT_SMALL;
@@ -4425,8 +4611,8 @@ Reply with ONLY this JSON object and nothing else:
       const updated = await api.replace(it.id, out, c.width, c.height);
       applyItemUpdate(it, updated);
       toast('Sayfa döndürüldü.');
-      // Yan çekilmiş fotoğrafın yazısı döndürünce okunabilir hâle gelebilir
-      if (!it.legible && api.mode === 'live') rereadCurrent();
+      // Döndürünce şekillerin yeri değişir; yan çekilmiş yazı da okunabilir hâle gelebilir: yeniden oku
+      if (api.mode === 'live') rereadCurrent();
     } catch (e) {
       if (e.auth) { lockedOut(); return; }
       toast(e.message || 'Sayfa döndürülemedi.', true);
