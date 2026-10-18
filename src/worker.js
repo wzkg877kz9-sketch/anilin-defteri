@@ -143,6 +143,7 @@ async function api(request, env, ctx, cfg, url) {
   if (path === '/api/giris-sifre' && method === 'POST') return enterWithPassword(request, env, cfg);
   if (path === '/api/isim' && method === 'POST') return checkNameRoute(request, env, cfg);
   if (path === '/api/yukle' && method === 'POST') return upload(request, env, ctx, cfg);
+  if (path === '/api/teshis' && method === 'GET') return diagnostic(env, cfg, url);
   if (path === '/api/yonetici/giris' && method === 'POST') return adminLogin(request, env, cfg);
   if (path === '/api/yonetici/cikis' && method === 'POST') return adminLogout();
 
@@ -384,7 +385,7 @@ async function upload(request, env, ctx, cfg) {
   });
   await env.DEFTER.put('p:' + id, bytes, { metadata: meta });
   await savePageRow(env, id, meta, {
-    text: verdict.text, title: verdict.title, legible: verdict.legible, reading: verdict.reading, sketch, photoHash,
+    text: verdict.text, title: verdict.title, legible: verdict.legible, reading: verdict.reading, sketch, photoHash, figures: verdict.figures || [],
     order: dup.inherit ? dup.inherit.order : now, copies: dup.inherit ? dup.inherit.copies : 0, created: now,
   });
   session.up = (session.up || 0) + 1;
@@ -1068,12 +1069,14 @@ STEP 1: SAFETY. "safe" is false if the image contains ANY of these:
 - clearly visible personal data such as ID cards, phone numbers or home addresses
 Normal school material is safe: notebook pages, handwriting, textbooks, worksheets, diagrams, formulas, maps, whiteboards and printed notes, even if blurry, dark or partly visible. Ordinary harmless photos are also safe.
 
-STEP 2: TRANSCRIPTION (only if safe). Copy ALL the text on the page exactly as it is written, in its original language (usually Turkish). Keep the Turkish letters ç ğ ı İ ö ş ü. Follow the order of the page from top to bottom. Write every heading, paragraph and list item on its own line and leave an empty line between sections. When a sentence continues on the next line of the paper, keep it on the same line. Do not translate, summarize, explain, correct spelling or add anything. Write formulas in plain text using symbols such as x², √, π, ∫, Δ, →, ≤, ≥, ≠ or ^ and / when needed. Write tables row by row with cells separated by " | ". For a drawing or diagram write one line such as [Şekil: hücre bölünmesi çizimi] and copy the labels written on it. Write [?] for a word you cannot read.
+STEP 2: TRANSCRIPTION (only if safe). Copy ALL the text on the page exactly as it is written, in its original language (usually Turkish). Keep the Turkish letters ç ğ ı İ ö ş ü. Follow the order of the page from top to bottom. Write every heading, paragraph and list item on its own line and leave an empty line between sections. When a sentence continues on the next line of the paper, keep it on the same line. Do not translate, summarize, explain, correct spelling or add anything. Write formulas in plain text using symbols such as x², √, π, ∫, Δ, →, ≤, ≥, ≠ or ^ and / when needed. Write tables row by row with cells separated by " | ". For every drawing, diagram, graph or picture on the page, write one line such as [Şekil 1: hücre çizimi] at its place in the text (number them 1, 2, 3 from top to bottom) and do not copy the labels written inside it. Write [?] for a word you cannot read.
 
 STEP 3: LEGIBILITY. "legible" is true only if you could read nearly all of the text with confidence and the page really contains notes or other text. It is false if the photo is too blurry or too dark, if much of the text is cut off or unreadable, or if there is almost no text.
 
+STEP 4: DRAWINGS. For every drawing, diagram, graph or picture you numbered in STEP 2, give its position in "figures" as box_2d = [ymin, xmin, ymax, xmax]: the smallest box that contains the whole drawing together with the labels written around it, with coordinates from 0 to 1000 relative to the full image. Use an empty list when there are no drawings.
+
 Answer in exactly this format and nothing else. First, a single line with this JSON object:
-{"safe": true or false, "category": "none" | "sexual" | "violence" | "weapon" | "drugs" | "hate" | "gesture" | "profanity" | "bullying" | "personal_data" | "disturbing" | "other", "subject": "matematik" | "edebiyat" | "felsefe" | "kimya" | "fizik" | "biyoloji" | "tarih" | "diger", "legible": true or false, "title_tr": "short Turkish title for the page, at most 8 words"}
+{"safe": true or false, "category": "none" | "sexual" | "violence" | "weapon" | "drugs" | "hate" | "gesture" | "profanity" | "bullying" | "personal_data" | "disturbing" | "other", "subject": "matematik" | "edebiyat" | "felsefe" | "kimya" | "fizik" | "biyoloji" | "tarih" | "diger", "legible": true or false, "title_tr": "short Turkish title for the page, at most 8 words", "figures": [{"n": 1, "box_2d": [ymin, xmin, ymax, xmax]}]}
 Then a line that contains only ---METIN---
 Then the full transcription. If the image is not safe, write nothing after ---METIN---.`;
 
@@ -1123,7 +1126,7 @@ async function readPage(env, cfg, bytes, type) {
   }
   try {
     const verdict = await moderateImage(env, cfg, bytes, type, [cfg.visionModel]);
-    return { ...verdict, legible: false, text: '', title: verdict.summary || '', reading: 'bekliyor', model: cfg.visionModel };
+    return { ...verdict, legible: false, text: '', title: verdict.summary || '', reading: 'bekliyor', figures: [], model: cfg.visionModel };
   } catch (e) {
     throw isQuotaError(e) ? e : lastError || e;
   }
@@ -1156,7 +1159,45 @@ export function parseReading(raw) {
   const said = p.legible ?? p.okunakli;
   const legible = verdict.safe && (said === true || said === 'true') && dedupeKey(text).length >= 40;
   const title = cleanText(p.title_tr || p.title || p.baslik || verdict.summary || firstLine(text), 80);
-  return { ...verdict, title, legible, text };
+  const figures = verdict.safe ? parseFigures(p.figures ?? p.sekiller) : [];
+  return { ...verdict, title, legible, text, figures };
+}
+
+// Şekillerin fotoğraftaki yeri: modelin verdiği [ymin, xmin, ymax, xmax] (0-1000) kutularını
+// 0-1 arası {n, x, y, w, h} biçimine çevirir; az bir pay bırakır, saçma kutuları atar.
+export function parseFigures(list) {
+  if (!Array.isArray(list)) return [];
+  const out = [];
+  const used = new Set();
+  for (const f of list.slice(0, 12)) {
+    if (!f || typeof f !== 'object') continue;
+    const box = f.box_2d ?? f.box ?? f.bbox;
+    if (!Array.isArray(box) || box.length !== 4) continue;
+    const v = box.map(Number);
+    if (v.some((x) => !Number.isFinite(x) || x < 0 || x > 1000)) continue;
+    const [ymin, xmin, ymax, xmax] = v;
+    if (ymax - ymin < 15 || xmax - xmin < 15) continue;
+    if ((ymax - ymin) * (xmax - xmin) > 960000) continue; // neredeyse bütün fotoğraf: şekil değil
+    let n = Math.floor(Number(f.n ?? f.no ?? out.length + 1));
+    if (!Number.isFinite(n) || n < 1 || n > 50 || used.has(n)) n = out.length + 1;
+    while (used.has(n)) n++;
+    used.add(n);
+    const pad = 0.012;
+    const x = Math.max(0, xmin / 1000 - pad);
+    const y = Math.max(0, ymin / 1000 - pad);
+    const r = (k) => Math.round(k * 10000) / 10000;
+    out.push({ n, x: r(x), y: r(y), w: r(Math.min(1, xmax / 1000 + pad) - x), h: r(Math.min(1, ymax / 1000 + pad) - y) });
+  }
+  return out.sort((a, b) => a.n - b.n);
+}
+
+function readFigures(json) {
+  try {
+    const list = JSON.parse(json || '[]');
+    return Array.isArray(list) ? list.filter((f) => f && [f.x, f.y, f.w, f.h].every((v) => Number.isFinite(v) && v >= 0 && v <= 1)) : [];
+  } catch {
+    return [];
+  }
 }
 
 function firstLine(text) {
@@ -1358,7 +1399,8 @@ const PAGES_SCHEMA = [
     kopya INTEGER NOT NULL DEFAULT 0,
     sira INTEGER NOT NULL DEFAULT 0,
     olusturma INTEGER NOT NULL DEFAULT 0,
-    duzenleme INTEGER NOT NULL DEFAULT 0
+    duzenleme INTEGER NOT NULL DEFAULT 0,
+    sekiller TEXT NOT NULL DEFAULT ''
   )`,
   'CREATE INDEX IF NOT EXISTS sayfalar_defter ON sayfalar (bolum, okunakli, sira)',
   'CREATE INDEX IF NOT EXISTS sayfalar_foto ON sayfalar (foto_ozeti)',
@@ -1369,7 +1411,15 @@ function ensurePages(env) {
   if (!env.AYAR) return Promise.resolve(false);
   if (!pagesReady) {
     pagesReady = env.AYAR.batch(PAGES_SCHEMA.map((sql) => env.AYAR.prepare(sql)))
-      .then(() => true)
+      .then(async () => {
+        // Şekiller sütunu sonradan eklendi; eski tabloda yoksa ekle (varsa hata verir, yok sayılır)
+        try {
+          await env.AYAR.prepare("ALTER TABLE sayfalar ADD COLUMN sekiller TEXT NOT NULL DEFAULT ''").run();
+        } catch {
+          /* sütun zaten var */
+        }
+        return true;
+      })
       .catch((e) => {
         console.warn('Sayfa tablosu hazırlanamadı:', e && e.message);
         pagesReady = null;
@@ -1403,13 +1453,15 @@ async function savePageRow(env, id, meta, p) {
   const sketch = p.sketch || textSketch(p.text);
   const now = Date.now();
   try {
+    // Şekiller verilmezse (elle düzeltme) kayıttaki şekiller korunur.
     await env.AYAR.prepare(
-      `INSERT INTO sayfalar (id, bolum, isim, baslik, metin, okunakli, okuma, iz, iz_sayisi, foto_ozeti, kopya, sira, olusturma, duzenleme)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `INSERT INTO sayfalar (id, bolum, isim, baslik, metin, okunakli, okuma, iz, iz_sayisi, foto_ozeti, kopya, sira, olusturma, duzenleme, sekiller)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, COALESCE(?15, ''))
        ON CONFLICT(id) DO UPDATE SET bolum = excluded.bolum, isim = excluded.isim, baslik = excluded.baslik, metin = excluded.metin,
          okunakli = excluded.okunakli, okuma = excluded.okuma, iz = excluded.iz, iz_sayisi = excluded.iz_sayisi,
          foto_ozeti = CASE WHEN excluded.foto_ozeti != '' THEN excluded.foto_ozeti ELSE sayfalar.foto_ozeti END,
-         duzenleme = excluded.duzenleme`,
+         duzenleme = excluded.duzenleme,
+         sekiller = CASE WHEN ?15 IS NULL THEN sayfalar.sekiller ELSE ?15 END`,
     )
       .bind(
         id,
@@ -1426,6 +1478,7 @@ async function savePageRow(env, id, meta, p) {
         p.order || meta.t || now,
         p.created || meta.t || now,
         p.edited || 0,
+        Array.isArray(p.figures) ? JSON.stringify(p.figures) : null,
       )
       .run();
     return true;
@@ -1472,7 +1525,7 @@ async function pageCopies(env) {
 async function getPageRow(env, id) {
   if (!(await ensurePages(env))) return null;
   try {
-    return await env.AYAR.prepare('SELECT id, bolum, isim, baslik, metin, okunakli, okuma, kopya, sira, olusturma FROM sayfalar WHERE id = ?').bind(id).first();
+    return await env.AYAR.prepare('SELECT id, bolum, isim, baslik, metin, okunakli, okuma, kopya, sira, olusturma, sekiller FROM sayfalar WHERE id = ?').bind(id).first();
   } catch (e) {
     console.warn('Sayfa kaydı okunamadı:', e && e.message);
     return null;
@@ -1494,6 +1547,7 @@ async function adminGetText(env, id) {
     title: (row && row.baslik) || item.title,
     legible: row ? Number(row.okunakli) === 1 : item.legible,
     copies: row ? Number(row.kopya) || 0 : 0,
+    figures: row ? readFigures(row.sekiller) : [],
   });
 }
 
@@ -1512,7 +1566,7 @@ async function adminSaveText(request, env, id) {
   await env.DEFTER.put('p:' + id, value, { metadata: meta });
   const saved = await savePageRow(env, id, meta, { text, title, legible, reading: text ? 'tamam' : row.okuma || 'yok', edited: now });
   if (!saved) return json({ error: 'Yazı kaydedilemedi. Biraz sonra tekrar dene.' }, 503);
-  return json({ ok: true, item: toItem(id, meta), text, title, legible });
+  return json({ ok: true, item: toItem(id, meta), text, title, legible, figures: readFigures(row.sekiller) });
 }
 
 // Sayfayı yeniden okur (yeni özellikten önce yüklenen sayfalar için "Yazıya dök" de budur).
@@ -1547,7 +1601,7 @@ async function adminReread(env, ctx, cfg, id) {
   const meta = fitMeta({ ...(metadata || {}), d: page.title || (metadata && metadata.d) || '', g: page.legible ? 1 : 0, r: 't', e: now });
   await env.DEFTER.put('p:' + id, value, { metadata: meta });
   await savePageRow(env, id, meta, {
-    text: page.text, title: page.title, legible: page.legible, reading: 'tamam', sketch, photoHash: await sha256hexBytes(bytes), edited: now,
+    text: page.text, title: page.title, legible: page.legible, reading: 'tamam', sketch, photoHash: await sha256hexBytes(bytes), edited: now, figures: page.figures || [],
   });
   const replaced = [];
   if (dup.replace.length) {
@@ -1562,7 +1616,7 @@ async function adminReread(env, ctx, cfg, id) {
     }
     ctx.waitUntil(adjustCounts(env, deltas));
   }
-  return json({ ok: true, item: { ...toItem(id, meta), copies: await copiesOf(env, id) }, text: page.text, title: page.title, legible: page.legible, replaced });
+  return json({ ok: true, item: { ...toItem(id, meta), copies: await copiesOf(env, id) }, text: page.text, title: page.title, legible: page.legible, figures: page.figures || [], replaced });
 }
 
 async function copiesOf(env, id) {
@@ -1575,16 +1629,66 @@ async function adminNotebook(env, section) {
   if (!(await ensurePages(env))) return json({ error: 'Defterler şu an açılamıyor. Biraz sonra tekrar dene.' }, 503);
   try {
     const { results } = await env.AYAR.prepare(
-      "SELECT id, isim, baslik, metin, olusturma FROM sayfalar WHERE bolum = ? AND okunakli = 1 AND metin != '' ORDER BY sira, olusturma",
+      "SELECT id, isim, baslik, metin, olusturma, duzenleme, sekiller FROM sayfalar WHERE bolum = ? AND okunakli = 1 AND metin != '' ORDER BY sira, olusturma",
     )
       .bind(section)
       .all();
-    const pages = (results || []).map((r) => ({ id: r.id, name: r.isim || '', title: r.baslik || '', text: r.metin || '', createdAt: Number(r.olusturma) || 0 }));
+    const pages = (results || []).map((r) => ({
+      id: r.id, name: r.isim || '', title: r.baslik || '', text: r.metin || '', createdAt: Number(r.olusturma) || 0, editedAt: Number(r.duzenleme) || 0, figures: readFigures(r.sekiller),
+    }));
     return json({ ok: true, section, pages });
   } catch (e) {
     console.warn('Defter okunamadı:', e && e.message);
     return json({ error: 'Defter şu an açılamıyor. Biraz sonra tekrar dene.' }, 503);
   }
+}
+
+// GEÇİCİ: okuma modellerini canlıda denemek için. Ayar veritabanındaki 'teshis' anahtarıyla korunur;
+// deneme bitince bu uç nokta kaldırılır.
+async function diagnostic(env, cfg, url) {
+  let expected = null;
+  try {
+    const row = env.AYAR && (await env.AYAR.prepare("SELECT deger FROM ayarlar WHERE anahtar = 'teshis'").first());
+    expected = row && row.deger;
+  } catch {
+    expected = null;
+  }
+  const key = url.searchParams.get('k') || '';
+  if (!expected || !key || !(await safeEqual(await sha256hex(key), expected))) return json({ error: 'Bulunamadı.' }, 404);
+  const src = url.searchParams.get('u') || '';
+  const model = url.searchParams.get('m') || cfg.readModel;
+  let bytes;
+  try {
+    if (!/^\/teshis\/[a-z0-9-]+\.(?:jpg|png)$/.test(src)) return json({ error: 'Kaynak geçersiz.' }, 400);
+    const res = await env.ASSETS.fetch(new Request(url.origin + src));
+    if (!res.ok) return json({ error: 'Görsel alınamadı: ' + res.status }, 502);
+    bytes = new Uint8Array(await res.arrayBuffer());
+  } catch (e) {
+    return json({ error: 'Görsel alınamadı: ' + (e && e.message) }, 502);
+  }
+  const type = sniffImage(bytes);
+  if (!type) return json({ error: 'Görsel türü tanınmadı.' }, 415);
+  const dataUrl = `data:${type};base64,` + Buffer.from(bytes).toString('base64');
+  const t0 = Date.now();
+  let r = null;
+  let err = '';
+  try {
+    r = await env.AI.run(model, readInput(model, dataUrl));
+  } catch (e) {
+    err = String(e && (e.message || e));
+  }
+  const ms = Date.now() - t0;
+  const raw = r ? extractText(r) : '';
+  const parsed = raw ? parseReading(raw) : null;
+  const usage = (r && (r.usage || (r.result && r.result.usage))) || null;
+  try {
+    await env.AYAR.prepare('INSERT INTO teshis (zaman, model, kaynak, ms, hata, ham, kullanim, sonuc) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+      .bind(Date.now(), model, src, ms, err, raw.slice(0, 20000), JSON.stringify(usage), JSON.stringify(parsed))
+      .run();
+  } catch (e) {
+    err += ' | kayıt: ' + (e && e.message);
+  }
+  return json({ ok: !err, model, ms, err, safe: parsed ? parsed.safe : null, legible: parsed ? parsed.legible : null, figures: parsed ? parsed.figures : null, usage });
 }
 
 /* ------------------------------------------------------------------ */
