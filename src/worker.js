@@ -5,7 +5,8 @@
  * otomatik içerik denetimi (Workers AI) ve QR + parola korumalı erişim.
  *
  * Güvenlik özeti
- * - Siteye giriş yalnızca geçerli bir QR bağlantısıyla (/?giris=KOD) açılır.
+ * - Siteye giriş geçerli bir QR bağlantısıyla (/?giris=KOD) açılır. QR okutamayanlar için ayrı bir
+ *   giriş şifresi de tanımlanabilir (yalnızca yüklemeye izin verir, arşivi açmaz).
  *   Sunucu imzalı, HttpOnly bir oturum çerezi verir; çerez yoksa yükleme API'si çalışmaz.
  * - Fotoğrafları görmek için parola gerekir. Parola kodda ya da depoda yoktur: Cloudflare hesabındaki
  *   ayar veritabanında (D1) yalnızca tuzlu PBKDF2 özeti durur. ADMIN_PASSWORD gizli değişkeni tanımlanırsa o geçer.
@@ -135,6 +136,7 @@ async function api(request, env, ctx, cfg, url) {
 
   if (path === '/api/durum' && method === 'GET') return status(request, env, cfg);
   if (path === '/api/giris' && method === 'POST') return enterWithToken(request, env, cfg);
+  if (path === '/api/giris-sifre' && method === 'POST') return enterWithPassword(request, env, cfg);
   if (path === '/api/isim' && method === 'POST') return checkNameRoute(request, env, cfg);
   if (path === '/api/yukle' && method === 'POST') return upload(request, env, ctx, cfg);
   if (path === '/api/yonetici/giris' && method === 'POST') return adminLogin(request, env, cfg);
@@ -191,6 +193,7 @@ async function status(request, env, cfg) {
     counts,
     total: SECTIONS.reduce((sum, s) => sum + counts[s], 0),
     passwordSet: await passwordConfigured(env),
+    entryPassword: await entryPasswordConfigured(env),
   });
 }
 
@@ -210,6 +213,29 @@ async function enterWithToken(request, env, cfg) {
   const qrId = await findQr(env, token);
   if (!qrId) return json({ error: 'Bu QR kod geçersiz ya da kaldırılmış. Anıl\'dan yeni bir kod iste.' }, 400);
   const session = await startSession(request, env, cfg, qrId);
+  const res = json({ ok: true });
+  res.headers.append('Set-Cookie', await sessionCookie(env, session));
+  return res;
+}
+
+// QR okutamayanlar için: Anıl'ın verdiği giriş şifresiyle aynı oturum açılır (arşivi açmaz).
+async function enterWithPassword(request, env, cfg) {
+  if (await isBanned(request, env)) return json({ kicked: true, reason: 'Bu cihazdan siteye erişimin kapatıldı.' }, 403);
+  if (!(await entryPasswordConfigured(env))) return json({ error: 'Şifreyle giriş şu an kapalı. QR kodu okut.' }, 503);
+  // Okul ağında pek çok kişi aynı adresi paylaşır; sınır bu yüzden geniş tutuldu.
+  const ip = request.headers.get('CF-Connecting-IP') || 'yerel';
+  const rlKey = 'rl:sifre:' + (await sha256hex(ip)).slice(0, 24);
+  const tries = Number(await env.DEFTER.get(rlKey)) || 0;
+  if (tries >= 20) return json({ error: 'Çok fazla yanlış deneme yapıldı. 15 dakika sonra tekrar dene.' }, 429);
+
+  const body = await readJson(request);
+  const pw = typeof body?.sifre === 'string' ? body.sifre : '';
+  const ok = pw.length > 0 && pw.length <= 256 && (await verifyEntryPassword(env, pw));
+  if (!ok) {
+    await env.DEFTER.put(rlKey, String(tries + 1), { expirationTtl: 900 });
+    return json({ error: 'Şifre yanlış. Anıl’ın verdiği şifreyi kontrol et.' }, 401);
+  }
+  const session = await startSession(request, env, cfg, 'sifre');
   const res = json({ ok: true });
   res.headers.append('Set-Cookie', await sessionCookie(env, session));
   return res;
@@ -337,19 +363,21 @@ async function upload(request, env, ctx, cfg) {
 /* Yönetici (parolayı bilen)                                           */
 /* ------------------------------------------------------------------ */
 
-// Parolanın özeti Cloudflare'deki ayar veritabanında (D1, AYAR bağlantısı) durur.
-let storedHash = { at: 0, value: null, ok: false };
-async function storedPasswordHash(env) {
+// Parolaların yalnızca tuzlu PBKDF2 özetleri Cloudflare'deki ayar veritabanında (D1, AYAR bağlantısı) durur:
+// 'parola' arşiv parolası, 'giris-parola' QR okutamayanlar için giriş şifresi.
+const hashCache = new Map();
+async function storedHash(env, key) {
   if (!env.AYAR) return null;
-  if (storedHash.ok && Date.now() - storedHash.at < 60000) return storedHash.value;
+  const cached = hashCache.get(key);
+  if (cached && Date.now() - cached.at < 60000) return cached.value;
   try {
-    const row = await env.AYAR.prepare("SELECT deger FROM ayarlar WHERE anahtar = 'parola'").first();
+    const row = await env.AYAR.prepare('SELECT deger FROM ayarlar WHERE anahtar = ?').bind(key).first();
     let value = null;
     if (row && row.deger) {
       const p = JSON.parse(row.deger);
       if (p && p.salt && p.hash && Number(p.iterations) > 0) value = p;
     }
-    storedHash = { at: Date.now(), value, ok: true };
+    hashCache.set(key, { at: Date.now(), value });
     return value;
   } catch (e) {
     console.warn('Ayar veritabanı okunamadı:', e && e.message);
@@ -357,15 +385,7 @@ async function storedPasswordHash(env) {
   }
 }
 
-async function passwordConfigured(env) {
-  return !!env.ADMIN_PASSWORD || !!(await storedPasswordHash(env));
-}
-
-async function verifyAdminPassword(env, pw) {
-  const input = pw.normalize('NFC');
-  if (env.ADMIN_PASSWORD) return safeEqual(input, String(env.ADMIN_PASSWORD).normalize('NFC'));
-  const stored = await storedPasswordHash(env);
-  if (!stored) return false;
+async function pbkdf2Matches(stored, input) {
   const iterations = Math.min(100000, Math.max(1000, Math.floor(Number(stored.iterations))));
   const key = await crypto.subtle.importKey('raw', enc.encode(input), 'PBKDF2', false, ['deriveBits']);
   const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: Buffer.from(stored.salt, 'base64'), iterations }, key, 256));
@@ -374,6 +394,38 @@ async function verifyAdminPassword(env, pw) {
   let diff = 0;
   for (let i = 0; i < bits.length; i++) diff |= bits[i] ^ expected[i];
   return diff === 0;
+}
+
+async function passwordConfigured(env) {
+  return !!env.ADMIN_PASSWORD || !!(await storedHash(env, 'parola'));
+}
+
+async function verifyAdminPassword(env, pw) {
+  const input = pw.normalize('NFC');
+  if (env.ADMIN_PASSWORD) return safeEqual(input, String(env.ADMIN_PASSWORD).normalize('NFC'));
+  const stored = await storedHash(env, 'parola');
+  return stored ? pbkdf2Matches(stored, input) : false;
+}
+
+// Giriş şifresi telefonda kolay yazılsın diye büyük-küçük harfe, boşluklara ve ı/i farkına takılmaz.
+export function entryPasswordKey(pw) {
+  return String(pw ?? '')
+    .normalize('NFC')
+    .replace(/\s+/g, '')
+    .replace(/[İIı]/g, 'i')
+    .toLowerCase();
+}
+
+async function entryPasswordConfigured(env) {
+  return !!env.ENTRY_PASSWORD || !!(await storedHash(env, 'giris-parola'));
+}
+
+async function verifyEntryPassword(env, pw) {
+  const input = entryPasswordKey(pw);
+  if (!input) return false;
+  if (env.ENTRY_PASSWORD) return safeEqual(input, entryPasswordKey(env.ENTRY_PASSWORD));
+  const stored = await storedHash(env, 'giris-parola');
+  return stored ? pbkdf2Matches(stored, input) : false;
 }
 
 // Sitenin kendi adresini ayar veritabanına bir kez yazar (sahibin adresi kaybetmemesi için).

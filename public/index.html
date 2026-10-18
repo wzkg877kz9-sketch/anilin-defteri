@@ -802,6 +802,14 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
 @keyframes breathe { 50% { inset: 15%; } }
 .scan-frame .placeholder { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; font: 500 .95rem/1.4 var(--font-ui); color: rgb(244 238 226 / .8); }
 .scan-msg { min-height: 1.4em; }
+.scan-alt { margin: -4px 0 0; font: 500 .95rem/1.4 var(--font-ui); color: var(--murekkep-2); }
+.link-btn {
+  appearance: none; border: 0; background: none; padding: 2px 0; margin: 0; cursor: pointer;
+  font: 700 .95rem/1.4 var(--font-ui); color: var(--lacivert-700);
+  text-decoration: underline; text-decoration-color: rgb(134 98 31 / .6); text-underline-offset: 3px;
+}
+.link-btn:hover { color: var(--lacivert-500); }
+.link-btn:focus-visible { outline: 2px solid var(--yaldiz-koyu); outline-offset: 2px; border-radius: 2px; }
 
 /* ---------- Bildirim ---------- */
 .toast {
@@ -1039,12 +1047,13 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
 
       <div class="state-panel" id="panelGate" hidden>
         <div class="panel-card">
-          <h2>Bu defter yalnızca QR kodla açılır</h2>
-          <p>Anıl’ın paylaştığı QR kodu telefonunun kamerasıyla okut; defter kendiliğinden açılır. Zaten bu sayfadaysan kodu buradan da tarayabilirsin.</p>
+          <h2 id="gateTitle">Bu defter yalnızca QR kodla açılır</h2>
+          <p id="gateText">Anıl’ın paylaştığı QR kodu telefonunun kamerasıyla okut; defter kendiliğinden açılır. Zaten bu sayfadaysan kodu buradan da tarayabilirsin.</p>
         </div>
         <p class="inline-error" id="gateError" role="alert" hidden></p>
         <div class="actions">
           <button class="btn gold" id="ctaScan" type="button">QR kodu tara</button>
+          <button class="btn ghost" id="ctaPassword" type="button" hidden>Şifreyle gir</button>
           <button class="btn ghost" id="ctaPreview" type="button" hidden>Önizlemede QR’sız aç</button>
         </div>
       </div>
@@ -1164,6 +1173,27 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
   </form>
 </dialog>
 
+<dialog class="sheet" id="entryDialog" aria-labelledby="entryTitle">
+  <form id="entryForm" novalidate>
+    <svg class="lock-art" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+      <circle cx="50" cy="50" r="48" fill="url(#gLacivert)"/>
+      <circle cx="50" cy="50" r="44" class="sedef-ring"/>
+      <g class="morph-gold" id="entryMorph" transform="translate(12 12) scale(.76)"><path/><path/><path/><path/></g>
+    </svg>
+    <h2 id="entryTitle">Şifreyle gir</h2>
+    <p>QR kodu okutamıyorsan Anıl’ın verdiği giriş şifresini yaz.</p>
+    <div class="field">
+      <label for="entryInput">Giriş şifresi</label>
+      <input type="password" id="entryInput" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" required>
+    </div>
+    <p class="field-error" id="entryError" role="alert" hidden></p>
+    <div class="row">
+      <button type="button" class="btn ghost" data-close>Vazgeç</button>
+      <button type="submit" class="btn ink" id="entrySubmit">Defteri aç</button>
+    </div>
+  </form>
+</dialog>
+
 <dialog class="viewer" id="viewer" aria-labelledby="vTitle">
   <div class="v-wrap">
     <figure class="v-fig"><img id="vImg" alt=""></figure>
@@ -1222,6 +1252,7 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
     <div class="placeholder" id="scanPlaceholder">Kamera açılıyor…</div>
   </div>
   <p class="scan-msg" id="scanMsg" role="status" aria-live="polite">QR kodu çerçevenin içine getir.</p>
+  <p class="scan-alt" id="scanAlt" hidden>Kodu okutamıyor musun? <button class="link-btn" type="button" id="scanToPassword">Şifreyle gir</button></p>
   <div class="row">
     <button class="btn ghost small" type="button" data-close>Kapat</button>
     <label class="btn ink small" for="scanFile">Fotoğraftan tara</label>
@@ -2244,6 +2275,7 @@ Reply with ONLY this JSON object and nothing else:
       canPrint: true,
       async status() { const r = await call('GET', '/api/durum'); if (!r.ok) throw new Error(r.data.error || 'Durum alınamadı.'); return r.data; },
       async enter(code) { const r = await call('POST', '/api/giris', { kod: code }); return r.ok ? { ok: true } : r.data; },
+      async enterWithPassword(pw) { const r = await call('POST', '/api/giris-sifre', { sifre: pw }); return r.ok ? { ok: true } : r.data; },
       async checkName(name) { const r = await call('POST', '/api/isim', { isim: name }); return r.data; },
       async upload(item) {
         const f = new FormData();
@@ -2376,6 +2408,9 @@ Reply with ONLY this JSON object and nothing else:
           return { ok: true };
         }
         return { error: 'Bu QR kod bu önizlemeye ait değil. Arşivden oluşturduğun bir kodu okut.' };
+      },
+      async enterWithPassword() {
+        return { error: 'Önizlemede şifreyle giriş yok; asıl sitede çalışır.' };
       },
       enterPreview() {
         mem.entered = true;
@@ -2578,6 +2613,7 @@ Reply with ONLY this JSON object and nothing else:
   let coverMorph;
   let miniMorph;
   let lockMorph;
+  let entryMorph;
   let thanksMorph = null;
   let loopTimer = 0;
 
@@ -2590,9 +2626,11 @@ Reply with ONLY this JSON object and nothing else:
     coverMorph = new Morph([$('#coverMorphShadow'), $('#coverMorph')]);
     miniMorph = new Morph([$('#miniMorph')]);
     lockMorph = new Morph([$('#lockMorph')]);
+    entryMorph = new Morph([$('#entryMorph')]);
     coverMorph.set('kitap');
     miniMorph.set('kitap');
     lockMorph.set('kilit');
+    entryMorph.set('kilit');
   }
 
   function setCoverSubject(text) {
@@ -2649,6 +2687,13 @@ Reply with ONLY this JSON object and nothing else:
         err.textContent = opts.error || '';
         err.hidden = !opts.error;
         $('#ctaPreview').hidden = !IS_DEMO;
+        const withPassword = entryPasswordAvailable();
+        $('#ctaPassword').hidden = !withPassword;
+        $('#scanAlt').hidden = !withPassword;
+        $('#gateTitle').textContent = withPassword ? 'Bu defter QR kodla açılır' : 'Bu defter yalnızca QR kodla açılır';
+        $('#gateText').textContent = withPassword
+          ? 'Anıl’ın paylaştığı QR kodu telefonunun kamerasıyla okut; defter kendiliğinden açılır. Kodu okutamıyorsan Anıl’ın verdiği giriş şifresiyle de girebilirsin.'
+          : 'Anıl’ın paylaştığı QR kodu telefonunun kamerasıyla okut; defter kendiliğinden açılır. Zaten bu sayfadaysan kodu buradan da tarayabilirsin.';
       } else if (view === 'kicked') {
         coverMorph.to('carpi', 900);
         setCoverSubject('Kapandı');
@@ -3280,6 +3325,43 @@ Reply with ONLY this JSON object and nothing else:
     $('#scanDialog').close();
     await enterSite();
   }
+  /* QR okutamayanlar için giriş şifresi (arşivi açmaz, yalnızca deftere sayfa eklemeye izin verir) */
+  function entryPasswordAvailable() {
+    return !!(state.status && state.status.entryPassword);
+  }
+  function openEntryDialog() {
+    showFieldError($('#entryError'), '');
+    $('#entryInput').value = '';
+    entryMorph.set('kilit');
+    $('#entryDialog').showModal();
+    setTimeout(() => $('#entryInput').focus(), 60);
+  }
+  async function submitEntry(e) {
+    e.preventDefault();
+    const form = $('#entryForm');
+    const err = $('#entryError');
+    const btn = $('#entrySubmit');
+    const pw = $('#entryInput').value;
+    if (!pw.trim()) { showFieldError(err, 'Giriş şifresini yaz.'); return; }
+    setBusy(btn, true, 'Açılıyor');
+    let r;
+    try { r = await api.enterWithPassword(pw); } catch (ex) { r = { error: ex.message }; }
+    setBusy(btn, false, 'Defteri aç');
+    if (r.kicked) { kick(r.reason); return; }
+    if (!r.ok) {
+      showFieldError(err, r.error || 'Şifre yanlış.');
+      form.classList.remove('shake');
+      void form.offsetWidth;
+      form.classList.add('shake');
+      $('#entryInput').select();
+      return;
+    }
+    await entryMorph.to('acik', 650);
+    await sleep(220);
+    $('#entryDialog').close();
+    await enterSite();
+  }
+
   async function enterSite() {
     try { state.status = await api.status(); } catch { /* durum alınamadı */ }
     if (state.status && state.status.banned) { setView('kicked', { reason: 'Bu cihazdan siteye erişimin kapatıldı.' }); return; }
@@ -3704,6 +3786,12 @@ Reply with ONLY this JSON object and nothing else:
     ui.cover.addEventListener('click', openBook);
     $('#ctaAdd').addEventListener('click', openBook);
     $('#ctaScan').addEventListener('click', openScanner);
+    $('#ctaPassword').addEventListener('click', openEntryDialog);
+    $('#scanToPassword').addEventListener('click', () => {
+      $('#scanDialog').close();
+      openEntryDialog();
+    });
+    $('#entryForm').addEventListener('submit', submitEntry);
     $('#ctaPreview').addEventListener('click', async () => {
       if (api.enterPreview) api.enterPreview();
       await enterSite();
