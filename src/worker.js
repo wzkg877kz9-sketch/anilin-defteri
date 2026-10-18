@@ -513,6 +513,11 @@ async function liftBans(env) {
   return json({ ok: true });
 }
 
+// Giriş kodları fotoğraf deposunda ('qr:<özet>') durur. Cloudflare'deki ayar veritabanına da
+// (ayarlar tablosu) anahtarı 'qr:<özet>', değeri {"label","t","token"} olan bir satır eklenerek
+// kod tanımlanabilir; bu kodlar da girişte geçerlidir, arşivde listelenir ve oradan kaldırılır.
+const QR_TOKEN_RE = /^[A-Za-z0-9_-]{16,64}$/;
+
 async function qrList(env, url) {
   const items = [];
   let cursor;
@@ -525,8 +530,52 @@ async function qrList(env, url) {
     }
     cursor = page.list_complete ? null : page.cursor;
   } while (cursor);
+  const seen = new Set(items.map((i) => i.id));
+  for (const q of await storedQrCodes(env)) {
+    if (seen.has(q.id) || !q.token || (await sha256hex(q.token)) !== q.id) continue;
+    seen.add(q.id);
+    items.push({ id: q.id, label: q.label, createdAt: q.t, url: url.origin + '/?giris=' + q.token });
+  }
   items.sort((a, b) => b.createdAt - a.createdAt);
   return json({ items });
+}
+
+async function storedQrCodes(env) {
+  if (!env.AYAR) return [];
+  try {
+    const { results } = await env.AYAR.prepare("SELECT anahtar, deger, guncelleme FROM ayarlar WHERE anahtar LIKE 'qr:%'").all();
+    const out = [];
+    for (const row of results || []) {
+      const id = String(row.anahtar).slice(3);
+      if (!/^[a-f0-9]{64}$/.test(id)) continue;
+      let m = {};
+      try {
+        m = JSON.parse(row.deger) || {};
+      } catch {
+        /* yalnızca özet */
+      }
+      out.push({
+        id,
+        label: cleanText(m.label, 60) || 'Genel',
+        t: Number(m.t) || Number(row.guncelleme) * 1000 || 0,
+        token: typeof m.token === 'string' && QR_TOKEN_RE.test(m.token) ? m.token : '',
+      });
+    }
+    return out;
+  } catch (e) {
+    console.warn('Ayar veritabanındaki QR kodları okunamadı:', e && e.message);
+    return [];
+  }
+}
+
+async function storedQrExists(env, id) {
+  if (!env.AYAR) return false;
+  try {
+    return !!(await env.AYAR.prepare('SELECT 1 AS var FROM ayarlar WHERE anahtar = ?').bind('qr:' + id).first());
+  } catch (e) {
+    console.warn('Ayar veritabanında QR kodu aranamadı:', e && e.message);
+    return false;
+  }
 }
 
 async function qrCreate(request, env, url) {
@@ -542,14 +591,22 @@ async function qrCreate(request, env, url) {
 async function qrRevoke(env, id) {
   if (!/^[a-f0-9]{64}$/.test(id)) return json({ error: 'Geçersiz kod.' }, 400);
   await env.DEFTER.delete('qr:' + id);
+  if (env.AYAR) {
+    try {
+      await env.AYAR.prepare('DELETE FROM ayarlar WHERE anahtar = ?').bind('qr:' + id).run();
+    } catch (e) {
+      console.warn('Ayar veritabanından QR kodu silinemedi:', e && e.message);
+      return json({ error: 'Kod kaldırılamadı. Biraz sonra yeniden dene.' }, 503);
+    }
+  }
   return json({ ok: true });
 }
 
 async function findQr(env, token) {
-  if (!token || typeof token !== 'string' || !/^[A-Za-z0-9_-]{16,64}$/.test(token)) return null;
+  if (!token || typeof token !== 'string' || !QR_TOKEN_RE.test(token)) return null;
   const id = await sha256hex(token);
-  const rec = await env.DEFTER.get('qr:' + id);
-  return rec ? id : null;
+  if (await env.DEFTER.get('qr:' + id)) return id;
+  return (await storedQrExists(env, id)) ? id : null;
 }
 
 /* ------------------------------------------------------------------ */

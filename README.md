@@ -30,7 +30,7 @@ Site ilk açıldığında kendi adresini de aynı veritabanına yazar; adresi ka
 
 ## Nasıl çalışır
 
-- **Giriş:** Her QR kodun içinde gizli bir anahtar vardır. Kod okutulunca sunucu 12 saat geçerli, imzalı bir oturum çerezi verir. Kodsuz kimse fotoğraf yükleyemez. Birden çok kod oluşturabilirsin (örneğin sınıf başına bir tane); arşivden kaldırdığın kod çalışmaz.
+- **Giriş:** Her QR kodun içinde gizli bir anahtar vardır. Kod okutulunca sunucu 12 saat geçerli, imzalı bir oturum çerezi verir. Kodsuz kimse fotoğraf yükleyemez. Birden çok kod oluşturabilirsin (örneğin sınıf başına bir tane); arşivden kaldırdığın kod çalışmaz. Kodlar fotoğraf deposunda durur; Cloudflare’deki ayar veritabanının `ayarlar` tablosuna anahtarı `qr:<kodun SHA-256 özeti>`, değeri `{"label": "…", "token": "<kod>"}` olan bir satır eklenerek de kod tanımlanabilir. Bu kodlar da arşivde görünür ve oradan kaldırılabilir.
 - **Yükleme:** İsim → bölüm (Matematik, Edebiyat, Felsefe, Kimya, Fizik, Biyoloji, Tarih) → fotoğraflar. Fotoğraflar telefonda küçültülerek gönderilir (en uzun kenar 1600 piksel).
 - **Denetim:** İsim ve not önce yerel küfür listesinden, ardından yapay zekâdan geçer. Uygunsuz isim giren kişi siteden atılır ve cihazı 30 gün engellenir. Her fotoğraf yapay zekâyla incelenir; uygunsuzsa kabul edilmez, üçüncü uygunsuz fotoğrafta kişi siteden atılır. Denetim herhangi bir nedenle çalışmazsa fotoğraf kabul edilmez.
 - **Arşiv:** Fotoğrafları yalnızca parolayı bilen görür. Her sayfayı büyütüp döndürebilir, bölümünü değiştirebilir, başka fotoğrafla değiştirebilir, indirebilir ya da silebilirsin. Yanlışlıkla atılan biri olursa **Engelleri kaldır** düğmesi herkesin engelini kaldırır.
