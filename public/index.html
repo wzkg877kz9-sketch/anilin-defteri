@@ -2798,7 +2798,7 @@ Reply with ONLY this JSON object and nothing else:
       notebooks: {}, texts: new Map(), images: new Map(), mode: 'foto',
     },
     reader: { section: null, pages: [], index: 0, urls: new Map(), busy: false },
-    bulk: { active: false, stop: false, total: 0, done: 0, removed: 0, failed: 0 },
+    bulk: { active: false, stop: false, total: 0, done: 0, removed: 0, failed: 0, verb: 'yazıya döküldü' },
   };
 
   const ui = {
@@ -3913,7 +3913,7 @@ Reply with ONLY this JSON object and nothing else:
       if (kept) kept.copies = (kept.copies || 0) + 1 + (it.copies || 0);
     } else {
       state.archive.texts.set(it.id, { text: d.text || '', title: d.title || '', legible: !!d.legible, figures: d.figures || [] });
-      Object.assign(it, d.item);
+      Object.assign(it, d.item, { figuresPending: false });
       const gone = new Set(d.replaced || []);
       if (gone.size) {
         state.archive.items = state.archive.items.filter((i) => !gone.has(i.id));
@@ -3991,7 +3991,7 @@ Reply with ONLY this JSON object and nothing else:
       const d = await api.saveText(it.id, { text, title: $('#tdHead').value, legible });
       forgetText(it.id);
       state.archive.texts.set(it.id, { text: d.text || '', title: d.title || '', legible: !!d.legible, figures: d.figures || [] });
-      applyItemUpdate(it, d.item);
+      applyItemUpdate(it, { ...d.item, figuresPending: false }); // elle düzeltilen yazı toplu okumada ezilmez
       $('#textDialog').close();
       toast(d.legible ? 'Yazı kaydedildi; defter güncellendi.' : 'Yazı kaydedildi.');
       setViewerMode('yazi');
@@ -4003,9 +4003,11 @@ Reply with ONLY this JSON object and nothing else:
     }
   }
 
-  /* Yazıya dökülmemiş sayfaları (özellik gelmeden önce yüklenenler) sırayla okut */
+  /* Yazıya dökülmemiş sayfaları (özellik gelmeden önce yüklenenler) ve şekiller deftere
+     geçmeden önce okunmuş sayfaları sırayla okut */
+  const needsReading = (i) => i.reading !== 'tamam' || !!i.figuresPending;
   function pendingItems() {
-    return state.archive.items.filter((i) => !i.example && i.reading !== 'tamam');
+    return state.archive.items.filter((i) => !i.example && needsReading(i));
   }
 
   function renderBulk() {
@@ -4013,14 +4015,23 @@ Reply with ONLY this JSON object and nothing else:
     const run = state.bulk;
     if (run.active) {
       el.hidden = false;
-      $('#bulkText').textContent = `${run.done} / ${run.total} sayfa yazıya döküldü…${run.removed ? ` ${run.removed} kopya ayıklandı.` : ''}`;
+      $('#bulkText').textContent = `${run.done} / ${run.total} sayfa ${run.verb}…${run.removed ? ` ${run.removed} kopya ayıklandı.` : ''}`;
       $('#bulkRun').textContent = 'Durdur';
       return;
     }
-    const n = pendingItems().length;
+    const list = pendingItems();
+    const n = list.length;
+    const again = list.filter((i) => i.reading === 'tamam').length; // okunmuş ama şekilleri deftere geçmemiş
+    const fresh = n - again;
     el.hidden = !n || state.archive.tab === 'qr' || api.mode !== 'live';
-    $('#bulkText').textContent = `${n} sayfa henüz yazıya dökülmedi. Yazıya dökülünce okunaklı olanlar defterlere yazılır, aynı sayfanın kopyaları ayıklanır.`;
-    $('#bulkRun').textContent = n === 1 ? 'Yazıya dök' : 'Hepsini yazıya dök';
+    $('#bulkText').textContent = !again
+      ? `${n} sayfa henüz yazıya dökülmedi. Yazıya dökülünce okunaklı olanlar defterlere yazılır, aynı sayfanın kopyaları ayıklanır.`
+      : !fresh
+        ? `${again} sayfa, şekiller deftere geçmeden önce okunmuştu. Yeniden okununca çizimleri de deftere geçer.`
+        : `${fresh} sayfa henüz yazıya dökülmedi; ${again} sayfanın da çizimleri için yeniden okunması gerekiyor. Okunaklı olanlar defterlere yazılır, aynı sayfanın kopyaları ayıklanır.`;
+    $('#bulkRun').textContent = fresh
+      ? (n === 1 ? 'Yazıya dök' : 'Hepsini yazıya dök')
+      : (again === 1 ? 'Yeniden oku' : 'Hepsini yeniden oku');
   }
 
   async function runBulk() {
@@ -4030,15 +4041,17 @@ Reply with ONLY this JSON object and nothing else:
       $('#bulkRun').disabled = true;
       return;
     }
-    const queue = pendingItems().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)).map((i) => i.id);
+    const list = pendingItems();
+    const queue = list.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)).map((i) => i.id);
     if (!queue.length) return;
-    Object.assign(run, { active: true, stop: false, total: queue.length, done: 0, removed: 0, failed: 0 });
+    const verb = list.some((i) => i.reading !== 'tamam') ? 'yazıya döküldü' : 'yeniden okundu';
+    Object.assign(run, { active: true, stop: false, total: queue.length, done: 0, removed: 0, failed: 0, verb });
     renderBulk();
     let lastError = '';
     for (const id of queue) {
       if (run.stop || !state.archive.open) break;
       const it = state.archive.items.find((i) => i.id === id);
-      if (it && it.reading !== 'tamam') {
+      if (it && needsReading(it)) {
         try {
           const d = await api.reread(id);
           applyReread(it, d);
@@ -4062,7 +4075,7 @@ Reply with ONLY this JSON object and nothing else:
     if (state.archive.tab === 'books') renderBooks();
     renderBulk();
     refreshCounts();
-    const parts = [`${run.done - run.failed} sayfa yazıya döküldü`];
+    const parts = [`${run.done - run.failed} sayfa ${run.verb}`];
     if (run.removed) parts.push(`${run.removed} kopya otomatik ayıklandı`);
     if (run.failed) parts.push(`${run.failed} sayfa şu an okunamadı`);
     toast(`${parts.join(', ')}.${stopped && lastError ? ` ${lastError}` : ''}`, !!run.failed);

@@ -521,9 +521,12 @@ async function adminList(env) {
     cursor = page.list_complete ? null : page.cursor;
   } while (cursor);
 
-  // Kaç kez kopyası gönderildiği (ayar veritabanından)
-  const copies = await pageCopies(env);
-  for (const it of items) it.copies = copies.get(it.id) || 0;
+  // Kaç kez kopyası gönderildiği; şekiller gelmeden okunmuş sayfalar (ayar veritabanından)
+  const { copies, oldReads } = await pageFlags(env);
+  for (const it of items) {
+    it.copies = copies.get(it.id) || 0;
+    if (oldReads.has(it.id)) it.figuresPending = true;
+  }
 
   // Sayaçlar bozulduysa kendiliğinden düzelt
   const counts = zeroCounts();
@@ -1406,7 +1409,7 @@ const PAGES_SCHEMA = [
 ];
 
 let pagesReady = null;
-function ensurePages(env) {
+export function ensurePages(env) {
   if (!env.AYAR) return Promise.resolve(false);
   if (!pagesReady) {
     pagesReady = env.AYAR.batch(PAGES_SCHEMA.map((sql) => env.AYAR.prepare(sql)))
@@ -1509,16 +1512,23 @@ async function deletePageRow(env, id) {
   }
 }
 
-async function pageCopies(env) {
-  const map = new Map();
-  if (!(await ensurePages(env))) return map;
+// Arşiv listesi için: kaç kez kopyası gönderildiği ve şekiller deftere geçmeden önce okunmuş
+// okunaklı sayfalar (şekil kaydı boş; yeniden okununca çizimleri de deftere geçer).
+const OLD_READ = "okunakli = 1 AND okuma = 'tamam' AND sekiller = ''";
+async function pageFlags(env) {
+  const copies = new Map();
+  const oldReads = new Set();
+  if (!(await ensurePages(env))) return { copies, oldReads };
   try {
-    const { results } = await env.AYAR.prepare('SELECT id, kopya FROM sayfalar WHERE kopya > 0').all();
-    for (const r of results || []) map.set(r.id, Number(r.kopya) || 0);
+    const { results } = await env.AYAR.prepare(`SELECT id, kopya, (${OLD_READ}) AS eski FROM sayfalar WHERE kopya > 0 OR (${OLD_READ})`).all();
+    for (const r of results || []) {
+      if (Number(r.kopya) > 0) copies.set(r.id, Number(r.kopya));
+      if (Number(r.eski) === 1) oldReads.add(r.id);
+    }
   } catch (e) {
-    console.warn('Kopya sayıları okunamadı:', e && e.message);
+    console.warn('Sayfa kayıtları okunamadı:', e && e.message);
   }
-  return map;
+  return { copies, oldReads };
 }
 
 async function getPageRow(env, id) {
@@ -1563,7 +1573,11 @@ async function adminSaveText(request, env, id) {
   const now = Date.now();
   const meta = fitMeta({ ...(metadata || {}), d: title, g: legible ? 1 : 0, r: text ? 't' : metadata && metadata.r, e: now });
   await env.DEFTER.put('p:' + id, value, { metadata: meta });
-  const saved = await savePageRow(env, id, meta, { text, title, legible, reading: text ? 'tamam' : row.okuma || 'yok', edited: now });
+  // Şekil kaydı olan sayfada şekiller korunur. Olmayanda (elle girilen ya da şekillerden önce okunan
+  // yazı) boş liste yazılır: elle düzeltilen yazı toplu yeniden okumayla ezilmesin.
+  const saved = await savePageRow(env, id, meta, {
+    text, title, legible, reading: text ? 'tamam' : row.okuma || 'yok', edited: now, figures: row.sekiller ? undefined : [],
+  });
   if (!saved) return json({ error: 'Yazı kaydedilemedi. Biraz sonra tekrar dene.' }, 503);
   return json({ ok: true, item: toItem(id, meta), text, title, legible, figures: readFigures(row.sekiller) });
 }
