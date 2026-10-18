@@ -16,6 +16,11 @@
   // Fotoğraflar, QR kodları ve ayarlar burada saklanır (Cloudflare hesabındaki "anilin-defteri" KV deposu).
   "kv_namespaces": [{ "binding": "DEFTER", "id": "54b37e5a58d547a8876449b540747d11" }],
 
+  // Ayarlar (arşiv parolasının şifreli özeti ve sitenin adresi) burada saklanır.
+  "d1_databases": [
+    { "binding": "AYAR", "database_name": "anilin-defteri-ayar", "database_id": "f87c3e41-327e-4b38-8a7b-f5c4553871cd" }
+  ],
+
   // Otomatik içerik denetimi (Workers AI)
   "ai": { "binding": "AI" },
 

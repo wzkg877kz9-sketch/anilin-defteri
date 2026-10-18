@@ -4,7 +4,7 @@ Arkadaşlarının ders notu fotoğraflarını yüklediği, yalnızca QR kodla gi
 
 ## Yayınlama
 
-Bu depo Cloudflare **Workers Builds** ile bağlanır. Bağlantıdan sonra depoya gönderilen her değişiklik siteyi kendiliğinden günceller. Depoda hiçbir sır yoktur; parola Cloudflare’de gizli değişken olarak durur.
+Bu depo Cloudflare **Workers Builds** ile bağlanır. Bağlantıdan sonra depoya gönderilen her değişiklik siteyi kendiliğinden günceller. Depoda hiçbir sır yoktur; parolanın yalnızca şifreli özeti Cloudflare hesabındaki ayar veritabanında durur.
 
 İlk bağlantı (bir kez, telefondan da olur):
 
@@ -12,12 +12,11 @@ Bu depo Cloudflare **Workers Builds** ile bağlanır. Bağlantıdan sonra depoya
 2. **GitHub**’ı seç. İstenirse Cloudflare’in GitHub uygulamasına bu depo için izin ver.
 3. Listeden **anilin-defteri** deposunu seç. Proje adını değiştirme (`wrangler.jsonc` içindeki adla aynı olmalı).
 4. **Save and Deploy**’a dokun. İlk Worker’ın buysa Cloudflare senden bir `workers.dev` alt alan adı seçmeni ister.
-5. Kurulum bitince Worker’ın sayfasında **Settings → Variables and Secrets → Add**’e dokun. Tür olarak **Secret** seç, ad olarak `ADMIN_PASSWORD` yaz, değer olarak parolanı gir ve **Deploy**’a bas.
-6. Sitenin adresi Worker’ın sayfasında görünür: `https://anilin-defteri.<alt-alan-adın>.workers.dev`
+5. Sitenin adresi Worker’ın sayfasında görünür: `https://anilin-defteri.<alt-alan-adın>.workers.dev`
 
-Fotoğraf deposu (KV) Cloudflare hesabında hazır; `wrangler.jsonc` içinde kimliği yazılı.
+Fotoğraf deposu (KV, `anilin-defteri`) ve ayar veritabanı (D1, `anilin-defteri-ayar`) Cloudflare hesabında hazır; kimlikleri `wrangler.jsonc` içinde yazılı.
 
-Bilgisayardan yayınlamak istersen: `npm install`, `npm run giris`, `npm run yayinla`, `npm run parola`.
+Bilgisayardan yayınlamak istersen: `npm install`, `npm run giris`, `npm run yayinla`.
 
 ## İlk kullanım
 
@@ -25,7 +24,9 @@ Siteyi aç, sağ üstteki lacivert mühre dokun, parolanı gir. **Giriş QR kodl
 
 ## Parola
 
-Parola depoda ya da kodda yer almaz; Cloudflare’de `ADMIN_PASSWORD` adlı **Secret** olarak saklanır. Değiştirmek için aynı yerden yeni değeri gir (Settings → Variables and Secrets) ya da bilgisayardan `npm run parola` çalıştır. Parola tanımlanmadan arşiv açılmaz.
+Parolanın kendisi depoda ya da kodda yer almaz. Cloudflare hesabındaki `anilin-defteri-ayar` veritabanında yalnızca tuzlu PBKDF2 özeti durur. Parolayı değiştirmek için Worker’ın **Settings → Variables and Secrets** bölümüne `ADMIN_PASSWORD` adlı bir **Secret** ekleyebilirsin; tanımlanırsa veritabanındaki özetin yerine o geçerli olur. Bilgisayardan aynısı: `npm run parola`.
+
+Site ilk açıldığında kendi adresini de aynı veritabanına yazar; adresi kaybedersen oradan bulunabilir.
 
 ## Nasıl çalışır
 

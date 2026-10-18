@@ -7,8 +7,8 @@
  * Güvenlik özeti
  * - Siteye giriş yalnızca geçerli bir QR bağlantısıyla (/?giris=KOD) açılır.
  *   Sunucu imzalı, HttpOnly bir oturum çerezi verir; çerez yoksa yükleme API'si çalışmaz.
- * - Fotoğrafları görmek için parola gerekir. Parola kodda ya da depoda yoktur; Cloudflare'de
- *   ADMIN_PASSWORD adlı gizli değişken (Secret) olarak saklanır.
+ * - Fotoğrafları görmek için parola gerekir. Parola kodda ya da depoda yoktur: Cloudflare hesabındaki
+ *   ayar veritabanında (D1) yalnızca tuzlu PBKDF2 özeti durur. ADMIN_PASSWORD gizli değişkeni tanımlanırsa o geçer.
  * - Her isim ve fotoğraf sunucuda denetlenir. Denetim çalışmazsa fotoğraf kabul edilmez.
  * - Uygunsuz isim giren kişi siteden çıkarılır ve cihazı engellenir.
  */
@@ -80,6 +80,7 @@ function config(env) {
 async function handle(request, env, ctx) {
   const url = new URL(request.url);
   const cfg = config(env);
+  recordOrigin(env, ctx, url);
 
   // QR kodun içindeki bağlantı: https://site/?giris=KOD
   if ((request.method === 'GET' || request.method === 'HEAD') && url.pathname === '/' && url.searchParams.has('giris')) {
@@ -189,7 +190,7 @@ async function status(request, env, cfg) {
     maxRejections: cfg.maxRejections,
     counts,
     total: SECTIONS.reduce((sum, s) => sum + counts[s], 0),
-    passwordSet: passwordConfigured(env),
+    passwordSet: await passwordConfigured(env),
   });
 }
 
@@ -336,17 +337,61 @@ async function upload(request, env, ctx, cfg) {
 /* Yönetici (parolayı bilen)                                           */
 /* ------------------------------------------------------------------ */
 
-function passwordConfigured(env) {
-  return !!env.ADMIN_PASSWORD;
+// Parolanın özeti Cloudflare'deki ayar veritabanında (D1, AYAR bağlantısı) durur.
+let storedHash = { at: 0, value: null, ok: false };
+async function storedPasswordHash(env) {
+  if (!env.AYAR) return null;
+  if (storedHash.ok && Date.now() - storedHash.at < 60000) return storedHash.value;
+  try {
+    const row = await env.AYAR.prepare("SELECT deger FROM ayarlar WHERE anahtar = 'parola'").first();
+    let value = null;
+    if (row && row.deger) {
+      const p = JSON.parse(row.deger);
+      if (p && p.salt && p.hash && Number(p.iterations) > 0) value = p;
+    }
+    storedHash = { at: Date.now(), value, ok: true };
+    return value;
+  } catch (e) {
+    console.warn('Ayar veritabanı okunamadı:', e && e.message);
+    return null;
+  }
+}
+
+async function passwordConfigured(env) {
+  return !!env.ADMIN_PASSWORD || !!(await storedPasswordHash(env));
 }
 
 async function verifyAdminPassword(env, pw) {
-  if (!env.ADMIN_PASSWORD) return false;
-  return safeEqual(pw.normalize('NFC'), String(env.ADMIN_PASSWORD).normalize('NFC'));
+  const input = pw.normalize('NFC');
+  if (env.ADMIN_PASSWORD) return safeEqual(input, String(env.ADMIN_PASSWORD).normalize('NFC'));
+  const stored = await storedPasswordHash(env);
+  if (!stored) return false;
+  const iterations = Math.min(100000, Math.max(1000, Math.floor(Number(stored.iterations))));
+  const key = await crypto.subtle.importKey('raw', enc.encode(input), 'PBKDF2', false, ['deriveBits']);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: Buffer.from(stored.salt, 'base64'), iterations }, key, 256));
+  const expected = new Uint8Array(Buffer.from(stored.hash, 'base64'));
+  if (bits.length !== expected.length) return false;
+  let diff = 0;
+  for (let i = 0; i < bits.length; i++) diff |= bits[i] ^ expected[i];
+  return diff === 0;
+}
+
+// Sitenin kendi adresini ayar veritabanına bir kez yazar (sahibin adresi kaybetmemesi için).
+let originRecorded = false;
+function recordOrigin(env, ctx, url) {
+  if (originRecorded || !env.AYAR || !ctx) return;
+  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') return;
+  originRecorded = true;
+  ctx.waitUntil(
+    env.AYAR.prepare("INSERT INTO ayarlar (anahtar, deger) VALUES ('adres', ?) ON CONFLICT(anahtar) DO UPDATE SET deger = excluded.deger, guncelleme = unixepoch()")
+      .bind(url.origin)
+      .run()
+      .catch(() => { originRecorded = false; }),
+  );
 }
 
 async function adminLogin(request, env, cfg) {
-  if (!passwordConfigured(env)) {
+  if (!(await passwordConfigured(env))) {
     return json({ error: 'Parola henüz ayarlanmadı. Cloudflare panelinde ADMIN_PASSWORD gizli değişkenini tanımla.' }, 503);
   }
   const ip = request.headers.get('CF-Connecting-IP') || 'yerel';
