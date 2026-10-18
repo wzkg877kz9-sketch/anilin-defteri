@@ -35,15 +35,18 @@ Site ilk açıldığında kendi adresini de aynı veritabanına yazar; adresi ka
 - **Giriş:** Her QR kodun içinde gizli bir anahtar vardır. Kod okutulunca sunucu 12 saat geçerli, imzalı bir oturum çerezi verir. Kod ya da giriş şifresi olmadan kimse fotoğraf yükleyemez. Birden çok kod oluşturabilirsin (örneğin sınıf başına bir tane); arşivden kaldırdığın kod çalışmaz. Kodlar fotoğraf deposunda durur; Cloudflare’deki ayar veritabanının `ayarlar` tablosuna anahtarı `qr:<kodun SHA-256 özeti>`, değeri `{"label": "…", "token": "<kod>"}` olan bir satır eklenerek de kod tanımlanabilir. Bu kodlar da arşivde görünür ve oradan kaldırılabilir.
 - **Yükleme:** İsim → bölüm (Matematik, Edebiyat, Felsefe, Kimya, Fizik, Biyoloji, Tarih) → fotoğraflar. Fotoğraflar telefonda küçültülerek gönderilir (en uzun kenar 1600 piksel).
 - **Denetim:** İsim ve not önce yerel küfür listesinden, ardından yapay zekâdan geçer. Uygunsuz isim giren kişi siteden atılır ve cihazı 30 gün engellenir. Her fotoğraf yapay zekâyla incelenir; uygunsuzsa kabul edilmez, üçüncü uygunsuz fotoğrafta kişi siteden atılır. Denetim herhangi bir nedenle çalışmazsa fotoğraf kabul edilmez.
-- **Arşiv:** Fotoğrafları yalnızca parolayı bilen görür. Her sayfayı büyütüp döndürebilir, bölümünü değiştirebilir, başka fotoğrafla değiştirebilir, indirebilir ya da silebilirsin. Yanlışlıkla atılan biri olursa **Engelleri kaldır** düğmesi herkesin engelini kaldırır.
+- **Yazıya dökme:** Aynı inceleme sırasında sayfadaki tüm yazı (el yazısı dahil, Türkçe harfleri ve formülleriyle) çıkarılır. Yazı okunaklıysa sayfa, bölümünün **defterine** temiz bir sayfa olarak yazılır. Okunaksız sayfalar arşivde kalır ama deftere girmez; yükleyene daha net bir fotoğraf eklemesi söylenir.
+- **Kopyalar:** Aynı fotoğraf ya da aynı yazının başka bir fotoğrafı yeniden gelirse yükleyene “Var zaten” denir ve sayfa ikinci kez kaydedilmez. Aynı sayfanın daha eksiksiz ya da daha okunaklı bir kopyası gelirse eskisi otomatik silinir; yenisi defterde onun yerini alır. Arşivde aynı sayfadan iki tane kalmaz.
+- **Arşiv:** Fotoğrafları ve defterleri yalnızca parolayı bilen görür. Her sayfayı büyütüp döndürebilir, bölümünü değiştirebilir, başka fotoğrafla değiştirebilir, indirebilir ya da silebilirsin. **Yazı** görünümünde sayfanın yazıya dökülmüş hâlini temiz bir defter sayfası görseli olarak görür ve indirirsin; yanlış okunan yeri **Yazıyı düzelt** ile düzeltebilir, **Yeniden oku** ile yapay zekâya tekrar okutabilirsin. **Defterler** sekmesinde her bölümün defterini sayfa çevirerek okursun. Yanlışlıkla atılan biri olursa **Engelleri kaldır** düğmesi herkesin engelini kaldırır.
 
 ## Ücretsiz plan sınırları (yaklaşık)
 
 | Ne | Sınır |
 | --- | --- |
 | Fotoğraf yükleme | Günde ~450 (depolama: günde 1.000 yazma) |
-| Fotoğraf denetimi | Günde ~700 (Workers AI: günde 10.000 nöron) |
+| Denetim ve yazıya dökme | Günde ~600 sayfa (Workers AI: günde 10.000 nöron, sayfa başına ~15) |
 | Toplam fotoğraf | ~2.000 (1 GB depolama) |
+| Yazılar ve defterler | Ayar veritabanında (D1, 5 GB; günde 100.000 satır yazma) |
 
 Günlük sınır dolarsa site bunu ziyaretçiye söyler; sınırlar her gün UTC gece yarısı sıfırlanır. Daha fazlası gerekirse Cloudflare Workers Paid planına (aylık 5 $) geçebilirsin.
 
@@ -53,9 +56,9 @@ Günlük sınır dolarsa site bunu ziyaretçiye söyler; sınırlar her gün UTC
 
 ## Bilmen gerekenler
 
-- Görsel denetim Workers AI üzerindeki Meta Llama 3.2 Vision modeliyle yapılır. Bu model ilk kullanımda bir kez lisans onayı ister; site onayı senin hesabın adına kendiliğinden gönderir. Model kullanılamazsa Llama 4 Scout yedek olarak devreye girer.
+- Denetim ve yazıya dökme Workers AI üzerindeki Google Gemma 4 modeliyle yapılır; çalışmazsa Llama 4 Scout devreye girer. İkisi de çalışmazsa fotoğraf yalnızca Meta Llama 3.2 Vision ile denetlenip eklenir, yazısı daha sonra arşivden **Yazıya dök** ile çıkarılır. Llama 3.2 Vision ilk kullanımda bir kez lisans onayı ister; site onayı senin hesabın adına kendiliğinden gönderir.
 - Engelleme, cihazdaki imzalı çereze dayanır. Tarayıcı verilerini silen biri QR kodu yeniden okutarak girebilir. Okul ağında herkes aynı IP adresini paylaştığı için IP’ye göre engelleme bilerek kullanılmadı.
-- Yapay zekâ denetimi hatasız değildir. Kabul edilen her fotoğrafı arşivde görüp silebilirsin.
+- Yapay zekâ denetimi ve okuması hatasız değildir. Kabul edilen her fotoğrafı arşivde görüp silebilir, yanlış okunan yazıyı düzeltebilirsin.
 - Site arama motorlarına kapalıdır.
 
 ## Dosyalar

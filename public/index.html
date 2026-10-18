@@ -638,6 +638,27 @@ main { max-width: 1080px; margin: 0 auto; }
 .thumb.rejected img, .thumb.failed img { filter: grayscale(1) blur(2px); opacity: .6; }
 .thumb.rejected .st { background: var(--mum); }
 .thumb.failed .st { background: var(--murekkep-2); }
+.thumb.duplicate img { filter: sepia(.35) saturate(.6); opacity: .78; }
+.thumb.duplicate .st { background: var(--deri-500); }
+/* "Var zaten" mühür damgası */
+.thumb .stamp {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  padding: 5px 9px 4px;
+  border: 3px double var(--mum);
+  border-radius: 7px;
+  font: 700 .95rem/1 var(--font-ui);
+  letter-spacing: .02em;
+  color: var(--mum);
+  background: rgb(255 249 238 / .86);
+  white-space: nowrap;
+  transform: translate(-50%, -50%) rotate(-13deg);
+  box-shadow: 0 0 0 1px rgb(142 36 34 / .15), 0 6px 12px -8px rgb(var(--golge) / .6);
+  animation: stampIn .42s var(--ease-out) both;
+  pointer-events: none;
+}
+@keyframes stampIn { 0% { opacity: 0; transform: translate(-50%, -50%) rotate(-13deg) scale(2.2); } 70% { opacity: 1; transform: translate(-50%, -50%) rotate(-13deg) scale(.94); } }
 .results-note { display: grid; gap: 8px; }
 
 /* Teşekkür */
@@ -722,6 +743,89 @@ main { max-width: 1080px; margin: 0 auto; }
 .card-cap time { flex: none; font: 500 .8rem/1.2 var(--font-ui); color: var(--murekkep-2); }
 .card-note { font: italic .9rem/1.3 var(--font-body); color: var(--murekkep-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .badge { position: absolute; top: 14px; left: 14px; padding: 3px 8px; border-radius: 999px; font: 700 .72rem/1.2 var(--font-ui); color: var(--lacivert-900); background: var(--yaldiz-acik); box-shadow: 0 2px 4px rgb(var(--golge) / .4); }
+.badge.copy { color: var(--fildisi); background: var(--deri-500); }
+.card-state { justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px 3px 7px; border-radius: 999px; font: 700 .76rem/1.2 var(--font-ui); }
+.card-state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.card-state.cs-book { color: var(--onay); background: rgb(46 106 76 / .1); }
+.card-state.cs-faint { color: var(--deri-500); background: rgb(107 66 36 / .1); }
+.card-state.cs-wait { color: var(--lacivert-700); background: rgb(27 44 82 / .08); }
+
+/* Defterler: bölüm bölüm deri ciltli küçük defterler */
+.books-help { margin: 0; max-width: 46rem; font: 500 .98rem/1.5 var(--font-ui); color: rgb(244 238 226 / .75); }
+.books { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 22px 18px; }
+.bookcard { display: grid; gap: 10px; justify-items: center; padding: 0; border: 0; background: none; cursor: pointer; color: var(--fildisi); font: inherit; }
+.bk-cover {
+  position: relative;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 170px;
+  aspect-ratio: 3 / 4;
+  border-radius: 4px 10px 10px 4px;
+  background:
+    radial-gradient(120% 80% at 24% 12%, rgb(var(--isik) / .16), transparent 55%),
+    radial-gradient(150% 120% at 55% 50%, transparent 52%, rgb(var(--golge) / .55)),
+    var(--tex-leather),
+    linear-gradient(160deg, var(--deri-500), var(--deri-700) 60%, var(--deri-900));
+  background-size: auto, auto, 120px 120px, auto;
+  box-shadow: inset 0 0 0 5px rgb(0 0 0 / .08), inset 0 0 0 6px rgb(198 160 82 / .55), inset 9px 0 12px -6px rgb(var(--golge) / .7), 0 18px 26px -16px rgb(var(--golge));
+  transition: transform .3s var(--ease-out), box-shadow .3s;
+}
+.bk-cover::before { content: ""; position: absolute; inset: 12px 10px 12px 16px; border-radius: 3px; border: 1px dotted rgb(241 222 164 / .6); }
+.bk-sym svg { width: 64px; height: 64px; display: block; filter: drop-shadow(0 3px 4px rgb(var(--golge) / .6)); }
+.bk-name { position: relative; padding: 0 10px; font: 400 1.15rem/1.15 var(--font-display); letter-spacing: .04em; text-align: center; color: var(--yaldiz-acik); text-shadow: 0 1px 0 rgb(0 0 0 / .45); }
+.bk-count { font: 600 .9rem/1.2 var(--font-ui); color: rgb(244 238 226 / .78); }
+.bookcard:hover .bk-cover { transform: translateY(-4px) rotate(-1deg); box-shadow: inset 0 0 0 5px rgb(0 0 0 / .08), inset 0 0 0 6px rgb(198 160 82 / .7), inset 9px 0 12px -6px rgb(var(--golge) / .7), 0 26px 30px -16px rgb(var(--golge)); }
+.bookcard:focus-visible { outline: none; }
+.bookcard:focus-visible .bk-cover { outline: 2px solid var(--yaldiz-acik); outline-offset: 4px; }
+.bookcard.empty-book .bk-cover { filter: saturate(.55) brightness(.75); }
+.bookcard.empty-book .bk-count { color: rgb(244 238 226 / .5); }
+
+/* Defter okuyucu */
+.reader { width: min(980px, calc(100vw - 16px)); height: min(960px, calc(100dvh - 16px)); }
+.rd-wrap { height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; border-radius: 16px; overflow: hidden; background: radial-gradient(80% 60% at 50% 30%, var(--lacivert-800), var(--lacivert-950)); box-shadow: 0 0 0 1px rgb(198 160 82 / .3); }
+.rd-head { position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 64px 12px 16px; border-bottom: 1px solid rgb(198 160 82 / .25); }
+.rd-head h2 { margin: 0; font: 400 1.35rem/1.15 var(--font-display); color: var(--fildisi); }
+.rd-head p { margin: 2px 0 0; font: 500 .9rem/1.3 var(--font-ui); color: rgb(244 238 226 / .7); }
+.rd-sym svg { width: 44px; height: 44px; display: block; }
+.rd-close { top: 50%; transform: translateY(-50%); }
+.rd-stage { overflow: auto; padding: 18px 12px 24px; display: grid; justify-items: center; align-content: start; perspective: 1800px; touch-action: pan-y; overscroll-behavior: contain; }
+.rd-page { width: min(100%, 820px); height: auto; display: block; border-radius: 2px 6px 6px 2px; box-shadow: 0 30px 50px -26px #000, 0 0 0 1px rgb(255 255 255 / .06); background: #fbf7ee; }
+.rd-wait { margin: 40px 0 0; font: 500 1rem/1.4 var(--font-ui); color: rgb(244 238 226 / .8); text-align: center; }
+.rd-foot { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 12px 16px 14px; border-top: 1px solid rgb(198 160 82 / .25); }
+.rd-foot .btn.ghost { color: var(--fildisi); }
+.rd-page.turn-out-next { animation: turnOutNext .32s var(--ease-book) both; transform-origin: left center; }
+.rd-page.turn-out-prev { animation: turnOutPrev .32s var(--ease-book) both; transform-origin: right center; }
+.rd-page.turn-in-next { animation: turnInNext .5s var(--ease-out) both; transform-origin: right center; }
+.rd-page.turn-in-prev { animation: turnInPrev .5s var(--ease-out) both; transform-origin: left center; }
+@keyframes turnOutNext { to { transform: rotateY(-78deg) translateX(-4%); opacity: 0; filter: brightness(.7); } }
+@keyframes turnOutPrev { to { transform: rotateY(78deg) translateX(4%); opacity: 0; filter: brightness(.7); } }
+@keyframes turnInNext { from { transform: rotateY(32deg) translateX(6%); opacity: 0; filter: brightness(1.15); } }
+@keyframes turnInPrev { from { transform: rotateY(-32deg) translateX(-6%); opacity: 0; filter: brightness(1.15); } }
+
+/* Yazıyı düzeltme */
+.text-sheet { width: min(720px, calc(100vw - 24px)); }
+.text-sheet form { display: grid; gap: 12px; }
+.text-sheet p { margin: 0; }
+.sheet .field textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 16rem;
+  resize: vertical;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--lacivert-900);
+  background: rgb(255 255 255 / .55);
+  box-shadow: inset 0 0 0 1px rgb(28 26 43 / .25);
+  font: 400 1.08rem/1.6 var(--font-body);
+}
+.sheet .field textarea:focus { outline: none; box-shadow: inset 0 0 0 2px var(--yaldiz-koyu); background: rgb(255 255 255 / .75); }
+.sheet .field #tdHead { font: 400 1.35rem/1.25 var(--font-display); color: var(--lacivert-800); }
+.check { display: flex; gap: 10px; align-items: center; font: 600 .98rem/1.3 var(--font-ui); color: var(--murekkep); cursor: pointer; }
+.check input { width: 22px; height: 22px; accent-color: var(--lacivert-700); }
 .empty { display: grid; justify-items: center; gap: 10px; padding: 40px 16px; text-align: center; color: rgb(244 238 226 / .75); }
 .empty svg { width: 86px; height: 86px; opacity: .9; }
 .empty h3 { margin: 0; font: 400 1.4rem/1.2 var(--font-display); color: var(--fildisi); }
@@ -762,8 +866,16 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
 
 .viewer { width: min(1060px, calc(100vw - 16px)); height: min(820px, calc(100dvh - 16px)); }
 .v-wrap { position: relative; height: 100%; display: grid; grid-template-rows: minmax(0, 1fr) auto; border-radius: 16px; overflow: hidden; background: var(--lacivert-950); box-shadow: 0 0 0 1px rgb(198 160 82 / .3); }
-.v-fig { margin: 0; min-height: 0; display: grid; place-items: center; padding: 12px; background: radial-gradient(70% 70% at 50% 40%, var(--lacivert-800), var(--lacivert-950)); }
-.v-fig img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 3px; box-shadow: 0 20px 40px -20px #000; background: var(--fildisi-3); }
+.v-fig { position: relative; margin: 0; min-height: 0; display: grid; place-items: center; padding: 56px 12px 12px; background: radial-gradient(70% 70% at 50% 40%, var(--lacivert-800), var(--lacivert-950)); }
+.v-fig > img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 3px; box-shadow: 0 20px 40px -20px #000; background: var(--fildisi-3); }
+.v-modes { position: absolute; top: 10px; left: 10px; z-index: 2; display: inline-flex; padding: 4px; border-radius: 999px; background: rgb(6 12 25 / .72); box-shadow: inset 0 0 0 1px rgb(198 160 82 / .3); }
+.v-modes button { border: 0; cursor: pointer; padding: 8px 15px; border-radius: 999px; background: transparent; font: 700 .92rem/1 var(--font-ui); color: rgb(244 238 226 / .78); }
+.v-modes button[aria-selected="true"] { color: var(--lacivert-900); background: linear-gradient(180deg, var(--yaldiz-acik), var(--yaldiz)); }
+.v-modes button:focus-visible { outline: 2px solid var(--yaldiz-acik); outline-offset: 2px; }
+.v-text { align-self: stretch; justify-self: stretch; min-height: 0; overflow: auto; display: grid; justify-items: center; align-content: start; overscroll-behavior: contain; }
+.v-text img { width: min(100%, 720px); height: auto; display: block; border-radius: 2px 5px 5px 2px; box-shadow: 0 24px 40px -22px #000; }
+.v-blank { display: grid; gap: 14px; justify-items: center; max-width: 26rem; text-align: center; }
+.v-blank p { margin: 0; font: 500 1rem/1.5 var(--font-ui); color: rgb(244 238 226 / .85); }
 .v-side { padding: 14px 16px 16px; display: grid; gap: 10px; color: var(--murekkep); max-height: 52dvh; overflow: auto; }
 .v-side h3 { margin: 0; font: 400 1.4rem/1.2 var(--font-display); color: var(--lacivert-800); }
 .v-meta { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; font: 500 .95rem/1.35 var(--font-ui); }
@@ -1122,6 +1234,7 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
       <div class="arc-tools">
         <div class="tabs" role="tablist" aria-label="Arşiv">
           <button role="tab" id="tabBtnPages" aria-selected="true" aria-controls="tabPages" type="button">Sayfalar</button>
+          <button role="tab" id="tabBtnBooks" aria-selected="false" aria-controls="tabBooks" type="button" tabindex="-1">Defterler</button>
           <button role="tab" id="tabBtnQr" aria-selected="false" aria-controls="tabQr" type="button" tabindex="-1">Giriş QR kodları</button>
         </div>
         <button class="btn ghost small" id="arcClose" type="button">Siteye dön</button>
@@ -1132,6 +1245,11 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
     <div id="tabPages" role="tabpanel" aria-labelledby="tabBtnPages" class="arc-panel">
       <div class="chips" id="chips" role="toolbar" aria-label="Bölüme göre süz"></div>
       <div id="gallery"></div>
+    </div>
+
+    <div id="tabBooks" role="tabpanel" aria-labelledby="tabBtnBooks" class="arc-panel" hidden>
+      <p class="books-help">Yazısı okunaklı olan her sayfa, bölümünün defterine temiz bir sayfa olarak yazılır. Bir deftere dokun, sayfalarını çevirerek oku.</p>
+      <div class="books" id="books"></div>
     </div>
 
     <div id="tabQr" role="tabpanel" aria-labelledby="tabBtnQr" class="arc-panel" hidden>
@@ -1196,14 +1314,27 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
 
 <dialog class="viewer" id="viewer" aria-labelledby="vTitle">
   <div class="v-wrap">
-    <figure class="v-fig"><img id="vImg" alt=""></figure>
+    <figure class="v-fig">
+      <div class="v-modes" role="tablist" aria-label="Sayfanın görünümü">
+        <button role="tab" id="vModePhoto" aria-selected="true" type="button">Fotoğraf</button>
+        <button role="tab" id="vModeText" aria-selected="false" type="button" tabindex="-1">Yazı</button>
+      </div>
+      <img id="vImg" alt="">
+      <div class="v-text" id="vTextWrap" hidden><img id="vTextImg" alt=""></div>
+      <div class="v-blank" id="vTextBlank" hidden>
+        <p id="vTextMsg"></p>
+        <button class="btn gold small" id="vTextRead" type="button">Yazıya dök</button>
+      </div>
+    </figure>
     <div class="v-side">
       <h3 id="vTitle">Sayfa</h3>
       <dl class="v-meta">
         <dt>Bölüm</dt><dd id="vSec"></dd>
         <dt>Eklendi</dt><dd id="vDate"></dd>
         <dt>Not</dt><dd id="vNote"></dd>
-        <dt>Otomatik özet</dt><dd id="vSum"></dd>
+        <dt>Başlık</dt><dd id="vSum"></dd>
+        <dt>Defter</dt><dd id="vBook"></dd>
+        <dt id="vCopiesLbl" hidden>Kopyalar</dt><dd id="vCopies" hidden></dd>
       </dl>
       <p class="v-hint" id="vHint" hidden></p>
       <div class="v-controls">
@@ -1211,9 +1342,13 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
         <select id="vMove"></select>
       </div>
       <div class="v-controls">
-        <button class="btn ink small" id="vRotate" type="button">Döndür</button>
+        <button class="btn ink small" id="vEditText" type="button">Yazıyı düzelt</button>
+        <button class="btn ghost small" id="vReread" type="button">Yeniden oku</button>
+      </div>
+      <div class="v-controls">
+        <button class="btn ghost small" id="vRotate" type="button">Döndür</button>
         <button class="btn ghost small" id="vReplace" type="button">Fotoğrafı değiştir</button>
-        <a class="btn ghost small" id="vDownload" href="#" download hidden>İndir</a>
+        <a class="btn ghost small" id="vDownload" href="#" download hidden>Fotoğrafı indir</a>
         <button class="btn danger small" id="vDelete" type="button">Sil</button>
       </div>
       <div class="v-confirm" id="vConfirm" hidden>
@@ -1225,6 +1360,49 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
       <input type="file" id="vFile" accept="image/*" class="visually-hidden" tabindex="-1">
     </div>
     <button class="v-close" id="vClose" type="button" aria-label="Kapat">×</button>
+  </div>
+</dialog>
+
+<dialog class="sheet text-sheet" id="textDialog" aria-labelledby="tdTitle">
+  <form id="textForm" novalidate>
+    <h2 id="tdTitle">Yazıyı düzelt</h2>
+    <p>Yapay zekânın okuduğu yazıyı burada düzeltebilirsin. Defterde bu hâli görünür.</p>
+    <div class="field">
+      <label for="tdHead">Başlık</label>
+      <input id="tdHead" maxlength="80" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="tdText">Yazı</label>
+      <textarea id="tdText" rows="12" maxlength="12000" spellcheck="true"></textarea>
+    </div>
+    <label class="check"><input type="checkbox" id="tdLegible"> Bu sayfa defterde yer alsın</label>
+    <p class="field-error" id="tdError" role="alert" hidden></p>
+    <div class="row">
+      <button type="button" class="btn ghost" data-close>Vazgeç</button>
+      <button type="submit" class="btn ink" id="tdSave">Kaydet</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="reader" id="reader" aria-labelledby="rdTitle">
+  <div class="rd-wrap">
+    <header class="rd-head">
+      <span class="rd-sym" id="rdSym" aria-hidden="true"></span>
+      <div>
+        <h2 id="rdTitle">Defter</h2>
+        <p id="rdInfo" aria-live="polite"></p>
+      </div>
+      <button class="v-close rd-close" id="rdClose" type="button" aria-label="Defteri kapat">×</button>
+    </header>
+    <div class="rd-stage" id="rdStage">
+      <img class="rd-page" id="rdPage" alt="">
+      <p class="rd-wait" id="rdWait" hidden>Sayfa hazırlanıyor…</p>
+    </div>
+    <footer class="rd-foot">
+      <button class="btn ghost small" id="rdPrev" type="button" aria-label="Önceki sayfa">Önceki</button>
+      <button class="btn gold small" id="rdDownload" type="button" aria-label="Bu sayfayı görsel olarak indir">İndir</button>
+      <button class="btn ghost small" id="rdNext" type="button" aria-label="Sonraki sayfa">Sonraki</button>
+    </footer>
   </div>
 </dialog>
 
@@ -2301,6 +2479,10 @@ Reply with ONLY this JSON object and nothing else:
       async update(id, patch) { return (await admin('POST', `/api/yonetici/guncelle/${encodeURIComponent(id)}`, patch)).item; },
       async replace(id, blob, w, h) { return (await admin('POST', `/api/yonetici/degistir/${encodeURIComponent(id)}?w=${w}&h=${h}`, blob)).item; },
       async remove(id) { return admin('DELETE', `/api/yonetici/foto/${encodeURIComponent(id)}`); },
+      async getText(id) { return admin('GET', `/api/yonetici/metin/${encodeURIComponent(id)}`); },
+      async saveText(id, patch) { return admin('POST', `/api/yonetici/metin/${encodeURIComponent(id)}`, patch); },
+      async reread(id) { return admin('POST', `/api/yonetici/oku/${encodeURIComponent(id)}`, {}); },
+      async notebook(section) { return admin('GET', `/api/yonetici/defter/${encodeURIComponent(section)}`); },
       async qrList() { return admin('GET', '/api/yonetici/qr'); },
       async qrCreate(label) { return admin('POST', '/api/yonetici/qr', { label }); },
       async qrRevoke(id) { return admin('DELETE', `/api/yonetici/qr/${encodeURIComponent(id)}`); },
@@ -2473,8 +2655,12 @@ Reply with ONLY this JSON object and nothing else:
       async list() {
         if (!mem.admin) throw authError();
         await ensureExamples();
-        return { items: mem.items.map(copyItem), counts: countBy(mem.items) };
+        return { items: mem.items.map(copyItem), counts: countBy(mem.items), notebooks: {} };
       },
+      async getText(id) { find(id); return { text: '', title: '', legible: false }; },
+      async saveText() { throw new Error('Önizlemede yazı kaydedilmez; asıl sitede çalışır.'); },
+      async reread() { throw new Error('Önizlemede yazı okunmaz; asıl sitede çalışır.'); },
+      async notebook() { return { pages: [] }; },
       photoUrl(it) { const m = mem.items.find((x) => x.id === it.id); return (m && m.url) || ''; },
       async photoBlob(it) { return find(it.id).blob; },
       async update(id, patch) {
@@ -2598,7 +2784,11 @@ Reply with ONLY this JSON object and nothing else:
     status: null,
     adminUnlocked: false,
     flow: freshFlow(),
-    archive: { open: false, items: [], filter: 'tumu', current: null, tab: 'pages', qr: [], currentQr: null },
+    archive: {
+      open: false, items: [], filter: 'tumu', current: null, tab: 'pages', qr: [], currentQr: null,
+      notebooks: {}, texts: new Map(), images: new Map(), mode: 'foto',
+    },
+    reader: { section: null, pages: [], index: 0, urls: new Map(), busy: false },
   };
 
   const ui = {
@@ -2818,6 +3008,8 @@ Reply with ONLY this JSON object and nothing else:
     const msgs = state.flow.lastMessages || [];
     const rej = msgs.filter((m) => m.type === 'rejected').length;
     const failed = msgs.filter((m) => m.type === 'failed').length;
+    const dup = (msgs.find((m) => m.type === 'duplicate') || {}).count || 0;
+    const faint = (msgs.find((m) => m.type === 'unreadable') || {}).count || 0;
     return `
       <div class="thanks">
         <svg class="big-semse" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
@@ -2828,6 +3020,8 @@ Reply with ONLY this JSON object and nothing else:
         </svg>
         <h2 tabindex="-1">Teşekkürler, ${esc(state.flow.name)}!</h2>
         <p>${n} sayfa <strong>${esc(secName(state.flow.section))}</strong> bölümüne eklendi. Anıl’ın defteri senin sayende biraz daha tamamlandı.</p>
+        ${faint ? `<p class="notice calm">${faint === n ? (n === 1 ? 'Sayfanın' : 'Sayfaların') : `${faint} sayfanın`} yazısı tam okunamadı. Daha net bir fotoğraf eklersen yazısı da deftere geçer.</p>` : ''}
+        ${dup ? `<p class="notice calm">${dup} fotoğraf defterde zaten vardı (“Var zaten”), yeniden eklenmedi.</p>` : ''}
         ${rej ? `<p class="notice">${rej} fotoğraf uygunsuz bulunduğu için eklenmedi.</p>` : ''}
         ${failed ? `<p class="notice calm">${failed} fotoğraf denetlenemediği için eklenmedi. Daha sonra yeniden deneyebilirsin.</p>` : ''}
         <div class="page-actions wide">
@@ -2970,8 +3164,9 @@ Reply with ONLY this JSON object and nothing else:
   }
 
   function statusChip(p) {
-    if (p.status === 'checking') return '<span class="st">İnceleniyor…</span>';
+    if (p.status === 'checking') return '<span class="st">Okunuyor…</span>';
     if (p.status === 'done') return '<span class="st">Eklendi</span>';
+    if (p.status === 'duplicate') return '<span class="stamp" aria-hidden="true">Var zaten</span><span class="st">Defterde zaten var</span>';
     if (p.status === 'rejected') return '<span class="st">Kabul edilmedi</span>';
     if (p.status === 'failed') return '<span class="st">Eklenemedi</span>';
     return '';
@@ -2984,7 +3179,7 @@ Reply with ONLY this JSON object and nothing else:
     ul.innerHTML = state.flow.photos.map((p, i) => `
       <li class="thumb ${p.status}" style="--tilt:${((i * 37) % 7) - 3}deg">
         <img src="${p.url}" alt="Seçilen fotoğraf ${i + 1}">
-        ${!busy && (p.status === 'ready' || p.status === 'failed' || p.status === 'rejected') ? `<button type="button" class="rm" data-rm="${p.key}" aria-label="Bu fotoğrafı kaldır">×</button>` : ''}
+        ${!busy && (p.status === 'ready' || p.status === 'failed' || p.status === 'rejected' || p.status === 'duplicate') ? `<button type="button" class="rm" data-rm="${p.key}" aria-label="Bu fotoğrafı kaldır">×</button>` : ''}
         ${statusChip(p)}
       </li>`).join('');
     const send = $('#sendBtn');
@@ -2994,7 +3189,7 @@ Reply with ONLY this JSON object and nothing else:
       if (!busy) send.textContent = state.flow.photos.some((p) => p.status === 'failed') ? 'Yeniden dene' : 'Deftere işle';
     }
     const drop = $('#dropzone');
-    if (drop) drop.hidden = busy || state.flow.photos.filter((p) => p.status !== 'done').length >= MAX_PHOTOS;
+    if (drop) drop.hidden = busy || state.flow.photos.filter((p) => p.status !== 'done' && p.status !== 'duplicate').length >= MAX_PHOTOS;
   }
 
   function showResults(messages) {
@@ -3006,7 +3201,8 @@ Reply with ONLY this JSON object and nothing else:
         const warn = left === 1 ? ' Bir uyarı hakkın kaldı: bir daha uygunsuz içerik yüklersen siteden çıkarılırsın.' : '';
         return `<p class="notice">Bir fotoğraf kabul edilmedi. ${esc(m.text)}${warn}</p>`;
       }
-      if (m.type === 'info') return `<p class="notice calm">${esc(m.text)}</p>`;
+      if (m.type === 'info' || m.type === 'duplicate') return `<p class="notice calm">${esc(m.text)}</p>`;
+      if (m.type === 'unreadable') return '';
       return `<p class="notice calm">${esc(m.text)}</p>`;
     }).join('');
   }
@@ -3019,7 +3215,7 @@ Reply with ONLY this JSON object and nothing else:
       showResults([{ type: 'info', text: 'Yalnızca fotoğraf dosyaları eklenebilir.' }]);
       return;
     }
-    const room = MAX_PHOTOS - state.flow.photos.filter((p) => p.status !== 'done').length;
+    const room = MAX_PHOTOS - state.flow.photos.filter((p) => p.status !== 'done' && p.status !== 'duplicate').length;
     if (list.length > room) messages.push({ type: 'info', text: `En fazla ${MAX_PHOTOS} fotoğraf ekleyebilirsin; ilk ${Math.max(0, room)} tanesi alındı.` });
     for (const f of list.slice(0, Math.max(0, room))) {
       try {
@@ -3050,6 +3246,8 @@ Reply with ONLY this JSON object and nothing else:
     renderThumbs();
     const messages = [];
     let accepted = 0;
+    let duplicates = 0;
+    let unreadable = 0;
     let kicked = null;
     for (const p of queue) {
       p.status = 'checking';
@@ -3062,13 +3260,19 @@ Reply with ONLY this JSON object and nothing else:
       }
       if (r.kicked) { kicked = r.reason; break; }
       if (r.gate) { state.flow.busy = false; sessionExpired(); return; }
-      if (r.ok) { p.status = 'done'; accepted++; }
+      if (r.ok) {
+        p.status = 'done';
+        accepted++;
+        if (r.legible === false) unreadable++;
+      } else if (r.duplicate) { p.status = 'duplicate'; duplicates++; }
       else if (r.rejected) { p.status = 'rejected'; messages.push({ type: 'rejected', text: r.reason || REASONS.other, rejections: r.rejections, max: r.maxRejections }); }
       else { p.status = 'failed'; messages.push({ type: 'failed', text: r.error || 'Fotoğraf eklenemedi.' }); }
       renderThumbs();
     }
     state.flow.busy = false;
     if (kicked) { kick(kicked); return; }
+    if (duplicates) messages.push({ type: 'duplicate', count: duplicates, text: duplicates === 1 ? 'Bu sayfa defterde zaten var, yeniden eklenmedi. Yine de teşekkürler!' : `${duplicates} sayfa defterde zaten var, yeniden eklenmedi. Yine de teşekkürler!` });
+    if (unreadable) messages.push({ type: 'unreadable', count: unreadable });
     if (accepted > 0) {
       state.flow.lastAccepted = accepted;
       state.flow.lastMessages = messages;
@@ -3436,6 +3640,7 @@ Reply with ONLY this JSON object and nothing else:
     try {
       const data = await api.list();
       state.archive.items = data.items || [];
+      state.archive.notebooks = data.notebooks || {};
     } catch (e) {
       if (e.auth) { lockedOut(); return; }
       $('#gallery').innerHTML = `<div class="empty"><h3>Sayfalar alınamadı</h3><p>${esc(e.message)}</p></div>`;
@@ -3459,29 +3664,40 @@ Reply with ONLY this JSON object and nothing else:
     toast('Arşiv kilitlendi.');
   }
 
+  const ARCHIVE_TABS = [['pages', '#tabBtnPages', '#tabPages'], ['books', '#tabBtnBooks', '#tabBooks'], ['qr', '#tabBtnQr', '#tabQr']];
   function setArchiveTab(tab) {
     state.archive.tab = tab;
-    const pages = tab === 'pages';
-    $('#tabBtnPages').setAttribute('aria-selected', String(pages));
-    $('#tabBtnQr').setAttribute('aria-selected', String(!pages));
-    $('#tabBtnPages').tabIndex = pages ? 0 : -1;
-    $('#tabBtnQr').tabIndex = pages ? -1 : 0;
-    $('#tabPages').hidden = !pages;
-    $('#tabQr').hidden = pages;
-    if (!pages) loadQr();
+    for (const [id, btn, panel] of ARCHIVE_TABS) {
+      const on = id === tab;
+      $(btn).setAttribute('aria-selected', String(on));
+      $(btn).tabIndex = on ? 0 : -1;
+      $(panel).hidden = !on;
+    }
+    if (tab === 'qr') loadQr();
+    if (tab === 'books') renderBooks();
   }
 
   const emptyBlock = (title, text) => `<div class="empty">${symbolIcon('kitap', 3.2)}<h3>${esc(title)}</h3><p>${esc(text)}</p></div>`;
 
+  // Sayfanın yazısının durumu: deftere yazıldı / okunaksız / henüz yazıya dökülmedi
+  function readState(it) {
+    if (it.example) return { key: 'none', label: '' };
+    if (it.legible) return { key: 'book', label: 'Defterde' };
+    if (it.reading === 'tamam') return { key: 'faint', label: 'Okunaksız' };
+    return { key: 'wait', label: 'Yazıya dökülmedi' };
+  }
+
   function cardHtml(it) {
-    const note = it.note || it.summary;
+    const note = it.title || it.note || it.summary;
+    const rs = readState(it);
     return `
       <button type="button" class="card" data-id="${esc(it.id)}">
         <span class="mat"><img src="${esc(api.photoUrl(it))}" alt="${esc(it.name || 'İsimsiz')} tarafından eklenen ${esc(secName(it.section))} sayfası" loading="lazy" decoding="async"></span>
-        ${it.example ? '<span class="badge">Örnek</span>' : ''}
+        ${it.example ? '<span class="badge">Örnek</span>' : it.copies ? `<span class="badge copy">${it.copies} kopya geldi</span>` : ''}
         <span class="card-sym">${symbolIcon(it.section, 5.5)}</span>
         <span class="card-cap"><strong>${esc(it.name || 'İsimsiz')}</strong><time datetime="${new Date(it.createdAt || Date.now()).toISOString()}">${esc(relTime(it.createdAt))}</time></span>
         ${note ? `<span class="card-note">${esc(note)}</span>` : ''}
+        ${rs.label ? `<span class="card-state cs-${rs.key}">${rs.label}</span>` : ''}
       </button>`;
   }
 
@@ -3519,7 +3735,13 @@ Reply with ONLY this JSON object and nothing else:
     $('#vSec').textContent = secName(it.section);
     $('#vDate').textContent = formatDate(it.createdAt) + (it.editedAt ? ` (düzenlendi: ${relTime(it.editedAt)})` : '');
     $('#vNote').textContent = it.note || '—';
-    $('#vSum').textContent = it.summary || '—';
+    $('#vSum').textContent = it.title || it.summary || '—';
+    const rs = readState(it);
+    $('#vBook').textContent = rs.key === 'book' ? `${secName(it.section)} defterinde` : rs.key === 'faint' ? 'Yazısı tam okunamadı, deftere eklenmedi' : rs.key === 'wait' ? 'Henüz yazıya dökülmedi' : '—';
+    $('#vCopies').textContent = it.copies ? `Bu sayfa ${it.copies} kez daha gönderildi; kopyalar otomatik ayıklandı.` : '';
+    $('#vCopies').hidden = !it.copies;
+    $('#vCopiesLbl').hidden = !it.copies;
+    $('#vReread').textContent = it.reading === 'tamam' ? 'Yeniden oku' : 'Yazıya dök';
     const hint = $('#vHint');
     if (it.subject && SECTION_IDS.includes(it.subject) && it.subject !== it.section) {
       hint.hidden = false;
@@ -3528,14 +3750,7 @@ Reply with ONLY this JSON object and nothing else:
       hint.hidden = true;
     }
     $('#vMove').innerHTML = SECTIONS.map((s) => `<option value="${s.id}"${s.id === it.section ? ' selected' : ''}>${s.name}</option>`).join('');
-    const dl = $('#vDownload');
-    if (api.canDownload) {
-      dl.hidden = false;
-      dl.href = api.photoUrl(it);
-      dl.setAttribute('download', `anil-defteri-${it.section}-${slug(it.name)}.${(it.type || 'image/jpeg').split('/')[1].replace('jpeg', 'jpg')}`);
-    } else {
-      dl.hidden = true;
-    }
+    updateDownload();
   }
 
   function openViewer(id) {
@@ -3545,7 +3760,544 @@ Reply with ONLY this JSON object and nothing else:
     fillViewer(it);
     $('#vConfirm').hidden = true;
     $('#vStatus').textContent = '';
+    setViewerMode('foto');
     $('#viewer').showModal();
+  }
+
+  /* Görüntüleyici: fotoğraf ↔ yazıya dökülmüş hâli (temiz defter sayfası görseli) */
+  function setViewerMode(mode) {
+    state.archive.mode = mode;
+    const text = mode === 'yazi';
+    $('#vModePhoto').setAttribute('aria-selected', String(!text));
+    $('#vModeText').setAttribute('aria-selected', String(text));
+    $('#vModePhoto').tabIndex = text ? -1 : 0;
+    $('#vModeText').tabIndex = text ? 0 : -1;
+    $('#vImg').hidden = text;
+    if (!text) {
+      $('#vTextWrap').hidden = true;
+      $('#vTextBlank').hidden = true;
+      updateDownload();
+      return;
+    }
+    showTextImage();
+  }
+
+  async function loadText(it, force = false) {
+    if (!force && state.archive.texts.has(it.id)) return state.archive.texts.get(it.id);
+    const d = await api.getText(it.id);
+    const entry = { text: d.text || '', title: d.title || it.title || '', legible: !!d.legible };
+    state.archive.texts.set(it.id, entry);
+    return entry;
+  }
+
+  function dropImage(img) {
+    if (!img) return;
+    URL.revokeObjectURL(img.url);
+    if (img.dlUrl !== img.url) URL.revokeObjectURL(img.dlUrl);
+  }
+
+  function forgetText(id) {
+    state.archive.texts.delete(id);
+    dropImage(state.archive.images.get(id));
+    state.archive.images.delete(id);
+  }
+
+  // Ekranda gösterilecek görsel (telefonda dar düzen) ve indirilecek görsel (her zaman geniş düzen)
+  async function textImageFor(it) {
+    const entry = await loadText(it);
+    if (!entry.text) return null;
+    const narrow = narrowScreen();
+    const cached = state.archive.images.get(it.id);
+    if (cached && cached.text === entry.text && cached.title === entry.title && cached.narrow === narrow) return cached;
+    const page = { id: it.id, section: it.section, title: entry.title, text: entry.text, name: it.name, createdAt: it.createdAt };
+    const wide = await canvasToBlob(await renderTextPage(page), 'image/png');
+    const dlUrl = URL.createObjectURL(wide);
+    const url = narrow ? URL.createObjectURL(await canvasToBlob(await renderTextPage(page, { narrow: true }), 'image/png')) : dlUrl;
+    dropImage(cached);
+    const out = { url, dlUrl, text: entry.text, title: entry.title, narrow };
+    state.archive.images.set(it.id, out);
+    return out;
+  }
+
+  async function showTextImage() {
+    const it = state.archive.current;
+    if (!it || state.archive.mode !== 'yazi') return;
+    const wrap = $('#vTextWrap');
+    const blank = $('#vTextBlank');
+    const msg = $('#vTextMsg');
+    wrap.hidden = true;
+    blank.hidden = false;
+    msg.textContent = 'Yazı hazırlanıyor…';
+    $('#vTextRead').hidden = true;
+    try {
+      const img = await textImageFor(it);
+      if (state.archive.current !== it || state.archive.mode !== 'yazi') return;
+      if (!img) {
+        msg.textContent = it.reading === 'tamam'
+          ? 'Bu fotoğraftaki yazı okunamadı. Daha net bir fotoğrafla değiştirebilir ya da yazıyı elle girebilirsin.'
+          : 'Bu sayfanın yazısı henüz çıkarılmadı.';
+        const read = $('#vTextRead');
+        read.hidden = false;
+        read.textContent = it.reading === 'tamam' ? 'Yeniden oku' : 'Yazıya dök';
+        updateDownload();
+        return;
+      }
+      $('#vTextImg').src = img.url;
+      $('#vTextImg').alt = `${it.title || secName(it.section)} sayfasının yazıya dökülmüş hâli`;
+      blank.hidden = true;
+      wrap.hidden = false;
+      wrap.scrollTop = 0;
+    } catch (e) {
+      if (e.auth) { lockedOut(); return; }
+      msg.textContent = e.message || 'Yazı alınamadı.';
+    }
+    updateDownload();
+  }
+
+  function updateDownload() {
+    const it = state.archive.current;
+    const dl = $('#vDownload');
+    if (!it || !api.canDownload) { dl.hidden = true; return; }
+    if (state.archive.mode === 'yazi') {
+      const img = state.archive.images.get(it.id);
+      dl.hidden = !img;
+      if (img) {
+        dl.href = img.dlUrl;
+        dl.setAttribute('download', `anil-defteri-${it.section}-${slug(it.title || it.name || 'sayfa')}-yazi.png`);
+        dl.textContent = 'Yazı görselini indir';
+      }
+      return;
+    }
+    dl.hidden = false;
+    dl.href = api.photoUrl(it);
+    dl.setAttribute('download', `anil-defteri-${it.section}-${slug(it.name)}.${(it.type || 'image/jpeg').split('/')[1].replace('jpeg', 'jpg')}`);
+    dl.textContent = 'Fotoğrafı indir';
+  }
+
+  function recountNotebooks() {
+    const nb = {};
+    for (const i of state.archive.items) if (i.legible) nb[i.section] = (nb[i.section] || 0) + 1;
+    state.archive.notebooks = nb;
+  }
+
+  function applyItemUpdate(it, updated) {
+    Object.assign(it, updated);
+    recountNotebooks();
+    fillViewer(it);
+    renderArchive();
+    if (state.archive.tab === 'books') renderBooks();
+    state.reader.urls.forEach((u) => URL.revokeObjectURL(u));
+    state.reader.urls.clear();
+  }
+
+  async function rereadCurrent() {
+    const it = state.archive.current;
+    if (!it) return;
+    const btn = $('#vReread');
+    const label = btn.textContent;
+    setBusy(btn, true, 'Okunuyor');
+    $('#vTextRead').disabled = true;
+    $('#vStatus').textContent = 'Yazı yapay zekâyla okunuyor; birkaç saniye sürebilir…';
+    try {
+      const d = await api.reread(it.id);
+      forgetText(it.id);
+      state.archive.texts.set(it.id, { text: d.text || '', title: d.title || '', legible: !!d.legible });
+      applyItemUpdate(it, d.item);
+      $('#vStatus').textContent = '';
+      toast(d.legible ? 'Yazı okundu ve deftere yazıldı.' : d.text ? 'Yazı okundu ama tam okunaklı değil; deftere eklenmedi.' : 'Bu fotoğrafta okunabilir yazı bulunamadı.');
+      setViewerMode('yazi');
+    } catch (e) {
+      if (e.auth) { lockedOut(); return; }
+      $('#vStatus').textContent = '';
+      toast(e.message || 'Yazı okunamadı.', true);
+    } finally {
+      setBusy(btn, false, label);
+      $('#vTextRead').disabled = false;
+    }
+  }
+
+  async function openTextEditor() {
+    const it = state.archive.current;
+    if (!it) return;
+    const err = $('#tdError');
+    showFieldError(err, '');
+    let entry;
+    try {
+      entry = await loadText(it);
+    } catch (e) {
+      if (e.auth) { lockedOut(); return; }
+      toast(e.message || 'Yazı alınamadı.', true);
+      return;
+    }
+    $('#tdHead').value = entry.title || it.title || '';
+    $('#tdText').value = entry.text || '';
+    $('#tdLegible').checked = !!it.legible;
+    $('#textDialog').showModal();
+    setTimeout(() => $('#tdText').focus(), 60);
+  }
+
+  async function saveTextEdit(e) {
+    e.preventDefault();
+    const it = state.archive.current;
+    if (!it) return;
+    const err = $('#tdError');
+    const btn = $('#tdSave');
+    const text = $('#tdText').value;
+    const legible = $('#tdLegible').checked;
+    if (legible && !text.trim()) { showFieldError(err, 'Defterde yer alması için yazıyı da gir.'); return; }
+    setBusy(btn, true, 'Kaydediliyor');
+    try {
+      const d = await api.saveText(it.id, { text, title: $('#tdHead').value, legible });
+      forgetText(it.id);
+      state.archive.texts.set(it.id, { text: d.text || '', title: d.title || '', legible: !!d.legible });
+      applyItemUpdate(it, d.item);
+      $('#textDialog').close();
+      toast(d.legible ? 'Yazı kaydedildi; defter güncellendi.' : 'Yazı kaydedildi.');
+      setViewerMode('yazi');
+    } catch (ex) {
+      if (ex.auth) { lockedOut(); return; }
+      showFieldError(err, ex.message || 'Yazı kaydedilemedi.');
+    } finally {
+      setBusy(btn, false, 'Kaydet');
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Defterler: okunaklı sayfaların temiz yazımı, bölüm bölüm              */
+  /* ------------------------------------------------------------------ */
+
+  function renderBooks() {
+    const nb = state.archive.notebooks || {};
+    $('#books').innerHTML = SECTIONS.map((s) => {
+      const n = nb[s.id] || 0;
+      return `
+        <button type="button" class="bookcard${n ? '' : ' empty-book'}" data-book="${s.id}"${n ? '' : ' aria-disabled="true"'}>
+          <span class="bk-cover">
+            <span class="bk-sym">${symbolIcon(s.id, 5.2)}</span>
+            <span class="bk-name">${s.name}</span>
+          </span>
+          <span class="bk-count">${n ? `${n} sayfa` : 'Henüz sayfa yok'}</span>
+        </button>`;
+    }).join('');
+  }
+
+  async function openReader(section) {
+    const r = state.reader;
+    const d = $('#reader');
+    r.section = section;
+    r.pages = [];
+    r.index = 0;
+    r.urls.forEach((u) => URL.revokeObjectURL(u));
+    r.urls.clear();
+    $('#rdTitle').textContent = `${secName(section)} defteri`;
+    $('#rdSym').innerHTML = symbolIcon(section, 5);
+    $('#rdInfo').textContent = 'Defter açılıyor…';
+    $('#rdPage').hidden = true;
+    $('#rdWait').hidden = false;
+    $('#rdWait').textContent = 'Defter açılıyor…';
+    d.showModal();
+    try {
+      const data = await api.notebook(section);
+      if (r.section !== section) return;
+      r.pages = data.pages || [];
+    } catch (e) {
+      if (e.auth) { d.close(); lockedOut(); return; }
+      $('#rdWait').textContent = e.message || 'Defter açılamadı.';
+      $('#rdInfo').textContent = '';
+      return;
+    }
+    if (!r.pages.length) {
+      $('#rdWait').textContent = 'Bu defterde henüz okunaklı sayfa yok.';
+      $('#rdInfo').textContent = '';
+      updateReaderButtons();
+      return;
+    }
+    await showReaderPage(0, 0);
+  }
+
+  async function readerUrl(i) {
+    const r = state.reader;
+    const p = r.pages[i];
+    if (!p) return null;
+    const narrow = narrowScreen();
+    const key = `${p.id}:${narrow ? 'dar' : 'genis'}`;
+    if (r.urls.has(key)) return r.urls.get(key);
+    const canvas = await renderTextPage({ ...p, section: r.section, folio: i + 1 }, { narrow });
+    const blob = await canvasToBlob(canvas, 'image/png');
+    const url = URL.createObjectURL(blob);
+    r.urls.set(key, url);
+    return url;
+  }
+
+  async function showReaderPage(i, dir) {
+    const r = state.reader;
+    if (r.busy || i < 0 || i >= r.pages.length) return;
+    r.busy = true;
+    const img = $('#rdPage');
+    try {
+      const turning = dir && !prefersReduced && !img.hidden;
+      if (turning) {
+        img.classList.remove('turn-in-next', 'turn-in-prev');
+        img.classList.add(dir > 0 ? 'turn-out-next' : 'turn-out-prev');
+      }
+      const [url] = await Promise.all([readerUrl(i), turning ? sleep(320) : Promise.resolve()]);
+      r.index = i;
+      img.src = url;
+      img.alt = `${secName(r.section)} defteri, ${i + 1}. sayfa: ${r.pages[i].title || ''}`;
+      img.hidden = false;
+      $('#rdWait').hidden = true;
+      img.classList.remove('turn-out-next', 'turn-out-prev');
+      if (turning) {
+        void img.offsetWidth;
+        img.classList.add(dir > 0 ? 'turn-in-next' : 'turn-in-prev');
+      }
+      $('#rdStage').scrollTop = 0;
+      const p = r.pages[i];
+      $('#rdInfo').textContent = `Sayfa ${i + 1} / ${r.pages.length}${p.name ? `, ekleyen: ${p.name}` : ''}`;
+      updateReaderButtons();
+      readerUrl(i + 1).catch(() => {});
+    } finally {
+      r.busy = false;
+    }
+  }
+
+  function updateReaderButtons() {
+    const r = state.reader;
+    const prev = $('#rdPrev');
+    const next = $('#rdNext');
+    const focused = document.activeElement;
+    prev.disabled = r.index <= 0 || !r.pages.length;
+    next.disabled = r.index >= r.pages.length - 1 || !r.pages.length;
+    $('#rdDownload').disabled = !r.pages.length;
+    $('#rdDownload').hidden = !api.canDownload;
+    // Devre dışı kalan düğmedeki odak, diyaloğun içinde kalsın
+    if (focused === next && next.disabled && !prev.disabled) prev.focus();
+    else if (focused === prev && prev.disabled && !next.disabled) next.focus();
+  }
+
+  async function downloadReaderPage() {
+    const r = state.reader;
+    const p = r.pages[r.index];
+    if (!p) return;
+    const btn = $('#rdDownload');
+    setBusy(btn, true, 'Hazırlanıyor');
+    try {
+      const blob = await canvasToBlob(await renderTextPage({ ...p, section: r.section, folio: r.index + 1 }), 'image/png');
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `anil-defteri-${r.section}-${String(r.index + 1).padStart(2, '0')}-${slug(p.title || 'sayfa')}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch (e) {
+      toast(e.message || 'Sayfa indirilemedi.', true);
+    } finally {
+      setBusy(btn, false, 'İndir');
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Yazıya dökülmüş sayfa: çizgili defter kâğıdına temiz yazım (görsel)  */
+  /* ------------------------------------------------------------------ */
+
+  // Geniş düzen: indirilen görsel (A4 oranında, 1240 piksel). Dar düzen: telefonda ekranda okumak için,
+  // yazı aynı boyutta kalır ama sayfa daralır; böylece küçük ekranda da rahat okunur.
+  const LAYOUTS = {
+    genis: { w: 1240, minH: 1754, left: 196, right: 84, hole: 66, ruleFrom: 112, label: 104, title: 166, titleFont: '400 46px Marcellus, "Palatino Linotype", Georgia, serif', titleStep: 54, top: 250 },
+    dar: { w: 760, minH: 1075, left: 128, right: 40, hole: 40, ruleFrom: 70, label: 92, title: 148, titleFont: '400 40px Marcellus, "Palatino Linotype", Georgia, serif', titleStep: 48, top: 228 },
+  };
+  const RULE = 56;
+  const narrowScreen = () => !!(window.matchMedia && window.matchMedia('(max-width: 700px)').matches);
+  const INK = '#1d2442';
+  const FIG_INK = '#6b4224';
+  const FONT_BODY = '400 31px Alegreya, "Iowan Old Style", Georgia, serif';
+  const FONT_HEAD = '700 32px Alegreya, "Iowan Old Style", Georgia, serif';
+  const FONT_FIG = 'italic 400 30px Alegreya, "Iowan Old Style", Georgia, serif';
+  const FONT_TITLE = '400 46px Marcellus, "Palatino Linotype", Georgia, serif';
+  const FONT_SMALL = '500 23px "Alegreya Sans", "Segoe UI", sans-serif';
+
+  let pageFontsReady = null;
+  function ensurePageFonts() {
+    if (!pageFontsReady) {
+      pageFontsReady = Promise.all([
+        document.fonts.load(FONT_BODY),
+        document.fonts.load(FONT_HEAD),
+        document.fonts.load(FONT_FIG),
+        document.fonts.load(FONT_TITLE),
+        document.fonts.load(FONT_SMALL),
+      ]).catch(() => {});
+    }
+    return pageFontsReady;
+  }
+
+  function wrapWords(ctx, text, width) {
+    const words = String(text).split(/\s+/).filter(Boolean);
+    const lines = [];
+    let cur = '';
+    for (const w of words) {
+      const test = cur ? `${cur} ${w}` : w;
+      if (ctx.measureText(test).width <= width) { cur = test; continue; }
+      if (cur) lines.push(cur);
+      if (ctx.measureText(w).width <= width) { cur = w; continue; }
+      let part = '';
+      for (const ch of w) {
+        if (part && ctx.measureText(part + ch).width > width) { lines.push(part); part = ch; } else part += ch;
+      }
+      cur = part;
+    }
+    if (cur) lines.push(cur);
+    return lines.length ? lines : [''];
+  }
+
+  // Yazıyı satırlara böler: başlık, madde, numaralı satır, şekil notu ve paragraf
+  function layoutTranscript(ctx, text, width) {
+    const rows = [];
+    let blank = true;
+    for (const raw of String(text || '').split('\n')) {
+      const line = raw.trim();
+      if (!line) {
+        if (!blank) rows.push(null);
+        blank = true;
+        continue;
+      }
+      blank = false;
+      let font = FONT_BODY;
+      let color = INK;
+      let indent = 0;
+      let marker = '';
+      let body = line;
+      const head = line.match(/^#{1,4}\s*(.+)$/);
+      const bullet = line.match(/^[-•*–]\s+(.+)$/);
+      const num = line.match(/^((?:\d{1,3}|[a-zçğıöşü])[.)])\s+(.+)$/i);
+      if (head) { body = head[1]; font = FONT_HEAD; }
+      else if (/^\[(?:şekil|sekil|çizim|cizim|resim|tablo|grafik)[^\]]*\]$/i.test(line)) { font = FONT_FIG; color = FIG_INK; }
+      else if (bullet) { marker = '•'; body = bullet[1]; indent = 36; }
+      else if (num) {
+        marker = num[1];
+        body = num[2];
+        ctx.font = FONT_BODY;
+        indent = Math.max(40, ctx.measureText(`${marker} `).width + 8);
+      }
+      ctx.font = font;
+      wrapWords(ctx, body, width - indent).forEach((t, k) => rows.push({ text: t, indent, font, color, marker: k === 0 ? marker : '' }));
+    }
+    while (rows.length && rows[rows.length - 1] === null) rows.pop();
+    return rows;
+  }
+
+  function seedFrom(s) {
+    let h = 2166136261;
+    for (const ch of String(s)) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  }
+
+  async function renderTextPage(page, { narrow = false } = {}) {
+    await ensurePageFonts();
+    const L = narrow ? LAYOUTS.dar : LAYOUTS.genis;
+    const W = L.w;
+    const BODY_LEFT = L.left;
+    const BODY_RIGHT = L.right;
+    const bodyWidth = W - BODY_LEFT - BODY_RIGHT;
+    const probe = makeCanvas(8, 8).getContext('2d');
+    probe.font = L.titleFont;
+    const titleLines = wrapWords(probe, page.title || `${secName(page.section)} notları`, bodyWidth).slice(0, 2);
+    const top = L.top + (titleLines.length - 1) * L.titleStep;
+    const rows = layoutTranscript(probe, page.text, bodyWidth);
+    const H = Math.max(L.minH, top + (rows.length + 1) * RULE + 180);
+    const c = makeCanvas(W, H);
+    const ctx = c.getContext('2d');
+    const rnd = mulberry32(seedFrom(page.id || page.title || 'sayfa'));
+
+    // Kâğıt: sıcak fildişi, kenarlara doğru hafif koyulaşan
+    ctx.fillStyle = '#fbf7ee';
+    ctx.fillRect(0, 0, W, H);
+    const glow = ctx.createRadialGradient(W * 0.45, H * 0.35, H * 0.1, W * 0.5, H * 0.5, H * 0.85);
+    glow.addColorStop(0, 'rgba(255,255,252,0.55)');
+    glow.addColorStop(1, 'rgba(176,146,98,0.16)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 220; i++) {
+      const x = rnd() * W;
+      const y = rnd() * H;
+      const len = 8 + rnd() * 26;
+      const a = rnd() * Math.PI;
+      ctx.strokeStyle = `rgba(150,120,80,${(0.035 + rnd() * 0.05).toFixed(3)})`;
+      ctx.lineWidth = 0.6 + rnd() * 0.8;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.quadraticCurveTo(x + Math.cos(a) * len * 0.5 + (rnd() - 0.5) * 6, y + Math.sin(a) * len * 0.5, x + Math.cos(a) * len, y + Math.sin(a) * len);
+      ctx.stroke();
+    }
+
+    // Defter delikleri
+    for (let y = narrow ? 120 : 150; y < H - 80; y += narrow ? 120 : 132) {
+      ctx.beginPath();
+      ctx.arc(L.hole, y, 17, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(44,32,18,0.18)';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(L.hole, y + 2, 13, 0, Math.PI * 2);
+      ctx.fillStyle = '#e9e0cf';
+      ctx.fill();
+    }
+
+    // Satır ve kenar çizgileri
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(72,108,172,0.30)';
+    for (let y = top; y < H - 120; y += RULE) {
+      ctx.beginPath();
+      ctx.moveTo(L.ruleFrom, y);
+      ctx.lineTo(W - 40, y);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(196,72,72,0.45)';
+    ctx.beginPath();
+    ctx.moveTo(BODY_LEFT - 30, 40);
+    ctx.lineTo(BODY_LEFT - 30, H - 40);
+    ctx.stroke();
+
+    // Üst bilgi: bölüm ve başlık
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#86621f';
+    ctx.font = FONT_SMALL;
+    ctx.fillText(`${secName(page.section)} defteri`, BODY_LEFT, L.label);
+    ctx.fillStyle = '#13203d';
+    ctx.font = L.titleFont;
+    titleLines.forEach((t, k) => ctx.fillText(t, BODY_LEFT, L.title + k * L.titleStep));
+    const gold = ctx.createLinearGradient(BODY_LEFT, 0, W - BODY_RIGHT, 0);
+    gold.addColorStop(0, '#86621f');
+    gold.addColorStop(0.3, '#e9cf86');
+    gold.addColorStop(0.7, '#c6a052');
+    gold.addColorStop(1, 'rgba(198,160,82,0)');
+    ctx.fillStyle = gold;
+    ctx.fillRect(BODY_LEFT, top - 44, W - BODY_LEFT - BODY_RIGHT, 3);
+
+    // Yazı: her satır bir çizginin üstünde
+    rows.forEach((row, i) => {
+      if (!row) return;
+      const y = top + (i + 1) * RULE - 13;
+      ctx.fillStyle = row.color;
+      if (row.marker) {
+        ctx.font = FONT_BODY;
+        ctx.fillText(row.marker, BODY_LEFT + (row.marker === '•' ? 8 : 0), y);
+      }
+      ctx.font = row.font;
+      ctx.fillText(row.text, BODY_LEFT + row.indent, y);
+    });
+
+    // Alt bilgi
+    ctx.font = FONT_SMALL;
+    ctx.fillStyle = '#6b6478';
+    const foot = [page.name ? `Ekleyen: ${page.name}` : '', page.createdAt ? formatDate(page.createdAt) : ''].filter(Boolean).join(', ');
+    if (foot) ctx.fillText(foot, BODY_LEFT, H - 64);
+    if (page.folio) {
+      const f = String(page.folio);
+      ctx.fillText(f, W - BODY_RIGHT - ctx.measureText(f).width, H - 64);
+    }
+    return c;
   }
 
   async function rotateCurrent() {
@@ -3566,10 +4318,10 @@ Reply with ONLY this JSON object and nothing else:
       if (bmp.close) bmp.close();
       const out = await canvasToBlob(c, 'image/jpeg', 0.9);
       const updated = await api.replace(it.id, out, c.width, c.height);
-      Object.assign(it, updated);
-      fillViewer(it);
-      renderArchive();
+      applyItemUpdate(it, updated);
       toast('Sayfa döndürüldü.');
+      // Yan çekilmiş fotoğrafın yazısı döndürünce okunabilir hâle gelebilir
+      if (!it.legible && api.mode === 'live') rereadCurrent();
     } catch (e) {
       if (e.auth) { lockedOut(); return; }
       toast(e.message || 'Sayfa döndürülemedi.', true);
@@ -3583,9 +4335,8 @@ Reply with ONLY this JSON object and nothing else:
     if (!it || section === it.section) return;
     try {
       const updated = await api.update(it.id, { section });
-      Object.assign(it, updated);
-      fillViewer(it);
-      renderArchive();
+      applyItemUpdate(it, updated);
+      forgetText(it.id);
       refreshCounts();
       toast(`${secName(section)} bölümüne taşındı.`);
     } catch (e) {
@@ -3604,10 +4355,10 @@ Reply with ONLY this JSON object and nothing else:
       const p = await prepareImage(file);
       const updated = await api.replace(it.id, p.blob, p.w, p.h);
       URL.revokeObjectURL(p.url);
-      Object.assign(it, updated);
-      fillViewer(it);
-      renderArchive();
-      toast('Fotoğraf değiştirildi.');
+      applyItemUpdate(it, updated);
+      forgetText(it.id);
+      toast('Fotoğraf değiştirildi. Yazısı yeniden okunuyor…');
+      if (api.mode === 'live') rereadCurrent();
     } catch (e) {
       if (e.auth) { lockedOut(); return; }
       toast(e.message || 'Fotoğraf değiştirilemedi.', true);
@@ -3624,6 +4375,8 @@ Reply with ONLY this JSON object and nothing else:
       await api.remove(it.id);
       state.archive.items = state.archive.items.filter((i) => i !== it);
       state.archive.current = null;
+      forgetText(it.id);
+      recountNotebooks();
       $('#viewer').close();
       renderArchive();
       refreshCounts();
@@ -3881,13 +4634,66 @@ Reply with ONLY this JSON object and nothing else:
     $('#arcClose').addEventListener('click', closeArchive);
     $('#arcLock').addEventListener('click', lockArchive);
     $('#tabBtnPages').addEventListener('click', () => setArchiveTab('pages'));
+    $('#tabBtnBooks').addEventListener('click', () => setArchiveTab('books'));
     $('#tabBtnQr').addEventListener('click', () => setArchiveTab('qr'));
     $('.tabs').addEventListener('keydown', (e) => {
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-      const next = state.archive.tab === 'pages' ? 'qr' : 'pages';
+      const i = ARCHIVE_TABS.findIndex(([id]) => id === state.archive.tab);
+      const [next, btn] = ARCHIVE_TABS[(i + (e.key === 'ArrowRight' ? 1 : ARCHIVE_TABS.length - 1)) % ARCHIVE_TABS.length];
       setArchiveTab(next);
-      (next === 'pages' ? $('#tabBtnPages') : $('#tabBtnQr')).focus();
+      $(btn).focus();
     });
+    $('#books').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-book]');
+      if (!b) return;
+      if (b.getAttribute('aria-disabled') === 'true') {
+        toast(`${secName(b.dataset.book)} defterine henüz okunaklı sayfa yazılmadı.`);
+        return;
+      }
+      openReader(b.dataset.book);
+    });
+    $('#rdClose').addEventListener('click', () => $('#reader').close());
+    $('#rdPrev').addEventListener('click', () => showReaderPage(state.reader.index - 1, -1));
+    $('#rdNext').addEventListener('click', () => showReaderPage(state.reader.index + 1, 1));
+    $('#rdDownload').addEventListener('click', downloadReaderPage);
+    document.addEventListener('keydown', (e) => {
+      if (!$('#reader').open || e.target.closest('input, textarea, select')) return;
+      if (e.key === 'ArrowRight') { e.preventDefault(); showReaderPage(state.reader.index + 1, 1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); showReaderPage(state.reader.index - 1, -1); }
+    });
+    $('#reader').addEventListener('close', () => {
+      state.reader.section = null;
+      state.reader.urls.forEach((u) => URL.revokeObjectURL(u));
+      state.reader.urls.clear();
+    });
+    {
+      let sx = 0;
+      let sy = 0;
+      let tracking = false;
+      const stage = $('#rdStage');
+      stage.addEventListener('pointerdown', (e) => { tracking = true; sx = e.clientX; sy = e.clientY; });
+      stage.addEventListener('pointercancel', () => { tracking = false; });
+      stage.addEventListener('pointerup', (e) => {
+        if (!tracking) return;
+        tracking = false;
+        const dx = e.clientX - sx;
+        const dy = e.clientY - sy;
+        if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+        showReaderPage(state.reader.index + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+      });
+    }
+    $('#vModePhoto').addEventListener('click', () => setViewerMode('foto'));
+    $('#vModeText').addEventListener('click', () => setViewerMode('yazi'));
+    $('.v-modes').addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const next = state.archive.mode === 'foto' ? 'yazi' : 'foto';
+      setViewerMode(next);
+      (next === 'foto' ? $('#vModePhoto') : $('#vModeText')).focus();
+    });
+    $('#vEditText').addEventListener('click', openTextEditor);
+    $('#vReread').addEventListener('click', rereadCurrent);
+    $('#vTextRead').addEventListener('click', rereadCurrent);
+    $('#textForm').addEventListener('submit', saveTextEdit);
     $('#chips').addEventListener('click', (e) => {
       const chip = e.target.closest('[data-filter]');
       if (!chip) return;

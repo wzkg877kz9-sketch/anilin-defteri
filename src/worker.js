@@ -1073,10 +1073,10 @@ STEP 2: TRANSCRIPTION (only if safe). Copy ALL the text on the page exactly as i
 
 STEP 3: LEGIBILITY. "legible" is true only if you could read nearly all of the text with confidence and the page really contains notes or other text. It is false if the photo is too blurry or too dark, if much of the text is cut off or unreadable, or if there is almost no text.
 
-Answer in exactly this format and nothing else:
-Line 1: one JSON object: {"safe": true or false, "category": "none" | "sexual" | "violence" | "weapon" | "drugs" | "hate" | "gesture" | "profanity" | "bullying" | "personal_data" | "disturbing" | "other", "subject": "matematik" | "edebiyat" | "felsefe" | "kimya" | "fizik" | "biyoloji" | "tarih" | "diger", "legible": true or false, "title_tr": "short Turkish title for the page, at most 8 words"}
-Line 2: ---METIN---
-After that: the full transcription. If the image is not safe, write nothing after ---METIN---.`;
+Answer in exactly this format and nothing else. First, a single line with this JSON object:
+{"safe": true or false, "category": "none" | "sexual" | "violence" | "weapon" | "drugs" | "hate" | "gesture" | "profanity" | "bullying" | "personal_data" | "disturbing" | "other", "subject": "matematik" | "edebiyat" | "felsefe" | "kimya" | "fizik" | "biyoloji" | "tarih" | "diger", "legible": true or false, "title_tr": "short Turkish title for the page, at most 8 words"}
+Then a line that contains only ---METIN---
+Then the full transcription. If the image is not safe, write nothing after ---METIN---.`;
 
 const READ_MAX_TOKENS = 2048;
 const TEXT_MAX_CHARS = 12000;
@@ -1130,7 +1130,8 @@ async function readPage(env, cfg, bytes, type) {
   }
 }
 
-const TEXT_MARK = /^[ \t]*-{2,}[ \t]*MET[Iİıi]N[ \t]*-{2,}[ \t]*$/im;
+// "---METIN---" satırı (bazı modeller başına "Line 2:" gibi bir etiket ekliyor)
+const TEXT_MARK = /^[ \t]*(?:(?:line|satır)[ \t]*\d+[ \t]*:)?[ \t]*\**[ \t]*-{2,}[ \t]*MET[Iİıi]N[ \t]*-{2,}[ \t]*\**[ \t]*$/im;
 
 export function parseReading(raw) {
   const s = String(raw || '')
