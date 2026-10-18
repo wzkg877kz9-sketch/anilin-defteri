@@ -750,6 +750,10 @@ main { max-width: 1080px; margin: 0 auto; }
 .card-state.cs-faint { color: var(--deri-500); background: rgb(107 66 36 / .1); }
 .card-state.cs-wait { color: var(--lacivert-700); background: rgb(27 44 82 / .08); }
 
+/* Yazıya dökülmemiş sayfalar için toplu işlem */
+.bulk { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 14px; background: rgb(198 160 82 / .12); box-shadow: inset 0 0 0 1px rgb(198 160 82 / .35); }
+.bulk p { margin: 0; flex: 1 1 260px; min-width: 0; font: 500 .98rem/1.45 var(--font-ui); color: var(--fildisi); }
+
 /* Defterler: bölüm bölüm deri ciltli küçük defterler */
 .books-help { margin: 0; max-width: 46rem; font: 500 .98rem/1.5 var(--font-ui); color: rgb(244 238 226 / .75); }
 .books { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 22px 18px; }
@@ -1241,6 +1245,11 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
         <button class="btn ghost small" id="arcLock" type="button">Arşivi kilitle</button>
       </div>
     </header>
+
+    <div class="bulk" id="bulk" hidden>
+      <p id="bulkText" role="status" aria-live="polite"></p>
+      <button class="btn gold small" id="bulkRun" type="button">Hepsini yazıya dök</button>
+    </div>
 
     <div id="tabPages" role="tabpanel" aria-labelledby="tabBtnPages" class="arc-panel">
       <div class="chips" id="chips" role="toolbar" aria-label="Bölüme göre süz"></div>
@@ -2789,6 +2798,7 @@ Reply with ONLY this JSON object and nothing else:
       notebooks: {}, texts: new Map(), images: new Map(), mode: 'foto',
     },
     reader: { section: null, pages: [], index: 0, urls: new Map(), busy: false },
+    bulk: { active: false, stop: false, total: 0, done: 0, removed: 0, failed: 0 },
   };
 
   const ui = {
@@ -3675,6 +3685,7 @@ Reply with ONLY this JSON object and nothing else:
     }
     if (tab === 'qr') loadQr();
     if (tab === 'books') renderBooks();
+    renderBulk();
   }
 
   const emptyBlock = (title, text) => `<div class="empty">${symbolIcon('kitap', 3.2)}<h3>${esc(title)}</h3><p>${esc(text)}</p></div>`;
@@ -3702,6 +3713,7 @@ Reply with ONLY this JSON object and nothing else:
   }
 
   function renderArchive() {
+    renderBulk();
     const items = state.archive.items;
     const counts = countBy(items);
     const f = state.archive.filter;
@@ -3890,6 +3902,26 @@ Reply with ONLY this JSON object and nothing else:
     state.reader.urls.clear();
   }
 
+  // Yeniden okuma sonucunu arşive işler: sayfa kopya çıkıp silindiyse ya da başka kopyaların yerine geçtiyse listeyi düzeltir.
+  function applyReread(it, d) {
+    forgetText(it.id);
+    if (d.deleted) {
+      state.archive.items = state.archive.items.filter((i) => i.id !== it.id);
+      if (state.archive.current === it) state.archive.current = null;
+      const kept = state.archive.items.find((i) => i.id === d.duplicateOf);
+      if (kept) kept.copies = (kept.copies || 0) + 1 + (it.copies || 0);
+    } else {
+      state.archive.texts.set(it.id, { text: d.text || '', title: d.title || '', legible: !!d.legible });
+      Object.assign(it, d.item);
+      const gone = new Set(d.replaced || []);
+      if (gone.size) {
+        state.archive.items = state.archive.items.filter((i) => !gone.has(i.id));
+        gone.forEach((id) => forgetText(id));
+      }
+    }
+    recountNotebooks();
+  }
+
   async function rereadCurrent() {
     const it = state.archive.current;
     if (!it) return;
@@ -3900,10 +3932,18 @@ Reply with ONLY this JSON object and nothing else:
     $('#vStatus').textContent = 'Yazı yapay zekâyla okunuyor; birkaç saniye sürebilir…';
     try {
       const d = await api.reread(it.id);
-      forgetText(it.id);
-      state.archive.texts.set(it.id, { text: d.text || '', title: d.title || '', legible: !!d.legible });
-      applyItemUpdate(it, d.item);
+      applyReread(it, d);
       $('#vStatus').textContent = '';
+      if (d.deleted) {
+        $('#viewer').close();
+        renderArchive();
+        refreshCounts();
+        toast('Bu sayfa defterdeki başka bir sayfanın kopyasıydı; otomatik silindi.');
+        return;
+      }
+      fillViewer(it);
+      renderArchive();
+      if ((d.replaced || []).length) refreshCounts();
       toast(d.legible ? 'Yazı okundu ve deftere yazıldı.' : d.text ? 'Yazı okundu ama tam okunaklı değil; deftere eklenmedi.' : 'Bu fotoğrafta okunabilir yazı bulunamadı.');
       setViewerMode('yazi');
     } catch (e) {
@@ -3960,6 +4000,71 @@ Reply with ONLY this JSON object and nothing else:
     } finally {
       setBusy(btn, false, 'Kaydet');
     }
+  }
+
+  /* Yazıya dökülmemiş sayfaları (özellik gelmeden önce yüklenenler) sırayla okut */
+  function pendingItems() {
+    return state.archive.items.filter((i) => !i.example && i.reading !== 'tamam');
+  }
+
+  function renderBulk() {
+    const el = $('#bulk');
+    const run = state.bulk;
+    if (run.active) {
+      el.hidden = false;
+      $('#bulkText').textContent = `${run.done} / ${run.total} sayfa yazıya döküldü…${run.removed ? ` ${run.removed} kopya ayıklandı.` : ''}`;
+      $('#bulkRun').textContent = 'Durdur';
+      return;
+    }
+    const n = pendingItems().length;
+    el.hidden = !n || state.archive.tab === 'qr' || api.mode !== 'live';
+    $('#bulkText').textContent = `${n} sayfa henüz yazıya dökülmedi. Yazıya dökülünce okunaklı olanlar defterlere yazılır, aynı sayfanın kopyaları ayıklanır.`;
+    $('#bulkRun').textContent = n === 1 ? 'Yazıya dök' : 'Hepsini yazıya dök';
+  }
+
+  async function runBulk() {
+    const run = state.bulk;
+    if (run.active) {
+      run.stop = true;
+      $('#bulkRun').disabled = true;
+      return;
+    }
+    const queue = pendingItems().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)).map((i) => i.id);
+    if (!queue.length) return;
+    Object.assign(run, { active: true, stop: false, total: queue.length, done: 0, removed: 0, failed: 0 });
+    renderBulk();
+    let lastError = '';
+    for (const id of queue) {
+      if (run.stop || !state.archive.open) break;
+      const it = state.archive.items.find((i) => i.id === id);
+      if (it && it.reading !== 'tamam') {
+        try {
+          const d = await api.reread(id);
+          applyReread(it, d);
+          if (d.deleted) run.removed++;
+          run.removed += (d.replaced || []).length;
+        } catch (e) {
+          if (e.auth) { run.active = false; lockedOut(); return; }
+          run.failed++;
+          lastError = e.message || '';
+          if (/kapasite/i.test(lastError)) run.stop = true;
+        }
+        renderArchive();
+      }
+      run.done++;
+      renderBulk();
+    }
+    const stopped = run.stop && run.done < run.total;
+    run.active = false;
+    $('#bulkRun').disabled = false;
+    renderArchive();
+    if (state.archive.tab === 'books') renderBooks();
+    renderBulk();
+    refreshCounts();
+    const parts = [`${run.done - run.failed} sayfa yazıya döküldü`];
+    if (run.removed) parts.push(`${run.removed} kopya otomatik ayıklandı`);
+    if (run.failed) parts.push(`${run.failed} sayfa şu an okunamadı`);
+    toast(`${parts.join(', ')}.${stopped && lastError ? ` ${lastError}` : ''}`, !!run.failed);
   }
 
   /* ------------------------------------------------------------------ */
@@ -4643,6 +4748,7 @@ Reply with ONLY this JSON object and nothing else:
       setArchiveTab(next);
       $(btn).focus();
     });
+    $('#bulkRun').addEventListener('click', runBulk);
     $('#books').addEventListener('click', (e) => {
       const b = e.target.closest('[data-book]');
       if (!b) return;

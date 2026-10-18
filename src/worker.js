@@ -163,7 +163,7 @@ async function api(request, env, ctx, cfg, url) {
       if (kind === 'degistir' && id && method === 'POST') return adminReplace(request, env, url, id);
       if (kind === 'metin' && id && method === 'GET') return adminGetText(env, id);
       if (kind === 'metin' && id && method === 'POST') return adminSaveText(request, env, id);
-      if (kind === 'oku' && id && method === 'POST') return adminReread(env, cfg, id);
+      if (kind === 'oku' && id && method === 'POST') return adminReread(env, ctx, cfg, id);
       if (kind === 'defter' && id && method === 'GET') return adminNotebook(env, id);
       if (kind === 'qr' && !id && method === 'GET') return qrList(env, url);
       if (kind === 'qr' && !id && method === 'POST') return qrCreate(request, env, url);
@@ -1281,13 +1281,13 @@ export function textOverlap(a, b) {
 
 // Yeni sayfanın yazısını defterdeki sayfalarla karşılaştırır.
 // duplicateOf: yeni sayfa zaten var (kaydedilmez). replace: yeni sayfanın yerine geçeceği eski kopyalar.
-async function findDuplicates(env, cfg, page) {
+async function findDuplicates(env, cfg, page, excludeId = '') {
   const out = { duplicateOf: null, replace: [], inherit: null };
   if (!page.sketch || page.sketch.count < DUP.minShingles) return out;
   if (!(await ensurePages(env))) return out;
   let rows;
   try {
-    rows = (await env.AYAR.prepare('SELECT id, iz, iz_sayisi FROM sayfalar WHERE iz_sayisi >= ?').bind(DUP.minShingles).all()).results || [];
+    rows = (await env.AYAR.prepare('SELECT id, iz, iz_sayisi FROM sayfalar WHERE iz_sayisi >= ? AND id != ?').bind(DUP.minShingles, excludeId).all()).results || [];
   } catch (e) {
     console.warn('Kopya kontrolü yapılamadı:', e && e.message);
     return out;
@@ -1390,9 +1390,9 @@ async function findPageByPhoto(env, photoHash) {
   }
 }
 
-async function bumpCopies(env, id) {
+async function bumpCopies(env, id, n = 1) {
   try {
-    await env.AYAR.prepare('UPDATE sayfalar SET kopya = kopya + 1 WHERE id = ?').bind(id).run();
+    await env.AYAR.prepare('UPDATE sayfalar SET kopya = kopya + ? WHERE id = ?').bind(n, id).run();
   } catch (e) {
     console.warn('Kopya sayısı güncellenemedi:', e && e.message);
   }
@@ -1435,7 +1435,7 @@ async function savePageRow(env, id, meta, p) {
   }
 }
 
-const PAGE_COLUMNS = new Set(['bolum', 'isim', 'foto_ozeti', 'okuma']);
+const PAGE_COLUMNS = new Set(['bolum', 'isim', 'foto_ozeti', 'okuma', 'sira', 'kopya']);
 async function updatePageRow(env, id, fields) {
   const keys = Object.keys(fields).filter((k) => PAGE_COLUMNS.has(k));
   if (!keys.length || !(await ensurePages(env))) return;
@@ -1515,7 +1515,10 @@ async function adminSaveText(request, env, id) {
   return json({ ok: true, item: toItem(id, meta), text, title, legible });
 }
 
-async function adminReread(env, cfg, id) {
+// Sayfayı yeniden okur (yeni özellikten önce yüklenen sayfalar için "Yazıya dök" de budur).
+// Okunan yazı arşivdeki başka bir sayfanın kopyasıysa bu sayfa otomatik silinir; daha eksiksiz ya da
+// daha okunaklıysa öbür kopya silinir ve bu sayfa onun defterdeki yerini alır.
+async function adminReread(env, ctx, cfg, id) {
   if (!validId(id)) return json({ error: 'Geçersiz sayfa.' }, 400);
   const { value, metadata } = await env.DEFTER.getWithMetadata('p:' + id, { type: 'arrayBuffer' });
   if (!value) return json({ error: 'Sayfa bulunamadı.' }, 404);
@@ -1529,13 +1532,42 @@ async function adminReread(env, cfg, id) {
     return json({ error: aiErrorMessage(e, true) }, 503);
   }
   if (page.reading !== 'tamam') return json({ error: aiErrorMessage(null, true) }, 503);
+
+  const sketch = textSketch(page.text);
+  const dup = await findDuplicates(env, cfg, { text: page.text, legible: page.legible, sketch }, id);
+  if (dup.duplicateOf) {
+    const own = await getPageRow(env, id);
+    const removed = await removePage(env, id);
+    await bumpCopies(env, dup.duplicateOf, 1 + ((own && Number(own.kopya)) || 0));
+    if (removed && removed.s) ctx.waitUntil(adjustCounts(env, { [removed.s]: -1 }));
+    return json({ ok: true, deleted: true, duplicateOf: dup.duplicateOf, title: page.title });
+  }
+
   const now = Date.now();
   const meta = fitMeta({ ...(metadata || {}), d: page.title || (metadata && metadata.d) || '', g: page.legible ? 1 : 0, r: 't', e: now });
   await env.DEFTER.put('p:' + id, value, { metadata: meta });
   await savePageRow(env, id, meta, {
-    text: page.text, title: page.title, legible: page.legible, reading: 'tamam', photoHash: await sha256hexBytes(bytes), edited: now,
+    text: page.text, title: page.title, legible: page.legible, reading: 'tamam', sketch, photoHash: await sha256hexBytes(bytes), edited: now,
   });
-  return json({ ok: true, item: toItem(id, meta), text: page.text, title: page.title, legible: page.legible });
+  const replaced = [];
+  if (dup.replace.length) {
+    const own = await getPageRow(env, id);
+    const order = Math.min(Number(own && own.sira) || now, dup.inherit.order || now);
+    await updatePageRow(env, id, { sira: order, kopya: ((own && Number(own.kopya)) || 0) + dup.inherit.copies });
+    const deltas = {};
+    for (const old of dup.replace) {
+      const removed = await removePage(env, old.id);
+      replaced.push(old.id);
+      if (removed && removed.s) deltas[removed.s] = (deltas[removed.s] || 0) - 1;
+    }
+    ctx.waitUntil(adjustCounts(env, deltas));
+  }
+  return json({ ok: true, item: { ...toItem(id, meta), copies: await copiesOf(env, id) }, text: page.text, title: page.title, legible: page.legible, replaced });
+}
+
+async function copiesOf(env, id) {
+  const row = await getPageRow(env, id);
+  return row ? Number(row.kopya) || 0 : 0;
 }
 
 async function adminNotebook(env, section) {
