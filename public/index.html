@@ -638,8 +638,8 @@ main { max-width: 1080px; margin: 0 auto; }
 .thumb.rejected img, .thumb.failed img { filter: grayscale(1) blur(2px); opacity: .6; }
 .thumb.rejected .st { background: var(--mum); }
 .thumb.failed .st { background: var(--murekkep-2); }
-.thumb.duplicate img { filter: sepia(.35) saturate(.6); opacity: .78; }
-.thumb.duplicate .st { background: var(--deri-500); }
+.thumb.copy img { filter: sepia(.35) saturate(.6); opacity: .85; }
+.thumb.copy .st { background: var(--deri-500); }
 /* "Var zaten" mühür damgası */
 .thumb .stamp {
   position: absolute;
@@ -754,60 +754,118 @@ main { max-width: 1080px; margin: 0 auto; }
 .bulk { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 14px; background: rgb(198 160 82 / .12); box-shadow: inset 0 0 0 1px rgb(198 160 82 / .35); }
 .bulk p { margin: 0; flex: 1 1 260px; min-width: 0; font: 500 .98rem/1.45 var(--font-ui); color: var(--fildisi); }
 
-/* Defterler: bölüm bölüm deri ciltli küçük defterler */
-.books-help { margin: 0; max-width: 46rem; font: 500 .98rem/1.5 var(--font-ui); color: rgb(244 238 226 / .75); }
-.books { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 22px 18px; }
-.bookcard { display: grid; gap: 10px; justify-items: center; padding: 0; border: 0; background: none; cursor: pointer; color: var(--fildisi); font: inherit; }
-.bk-cover {
+/* Yazılar: okunaklı sayfaların yazısı, yüklenme ya da müfredat sırasıyla */
+.tx-bar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; min-width: 0; }
+.tx-bar .chips { flex: 1 1 320px; min-width: 0; }
+.seg { flex: none; display: inline-flex; padding: 4px; border-radius: 999px; background: rgb(6 12 25 / .6); box-shadow: inset 0 0 0 1px rgb(198 160 82 / .25); }
+.seg button { border: 0; cursor: pointer; padding: 8px 14px; border-radius: 999px; background: transparent; font: 700 .9rem/1 var(--font-ui); color: rgb(244 238 226 / .78); }
+.seg button[aria-checked="true"] { color: var(--lacivert-900); background: linear-gradient(115deg, var(--sedef-1), var(--sedef-2) 50%, var(--sedef-3)); }
+.seg button:focus-visible { outline: 2px solid var(--yaldiz-acik); outline-offset: 2px; }
+.texts { display: grid; gap: 26px; }
+.tx-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
+.tx {
+  --rule: 31px;
   position: relative;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 10px;
-  width: 100%;
-  max-width: 170px;
-  aspect-ratio: 3 / 4;
-  border-radius: 4px 10px 10px 4px;
-  background:
-    radial-gradient(120% 80% at 24% 12%, rgb(var(--isik) / .16), transparent 55%),
-    radial-gradient(150% 120% at 55% 50%, transparent 52%, rgb(var(--golge) / .55)),
-    var(--tex-leather),
-    linear-gradient(160deg, var(--deri-500), var(--deri-700) 60%, var(--deri-900));
-  background-size: auto, auto, 120px 120px, auto;
-  box-shadow: inset 0 0 0 5px rgb(0 0 0 / .08), inset 0 0 0 6px rgb(198 160 82 / .55), inset 9px 0 12px -6px rgb(var(--golge) / .7), 0 18px 26px -16px rgb(var(--golge));
-  transition: transform .3s var(--ease-out), box-shadow .3s;
+  min-width: 0;
+  border-radius: 3px 8px 8px 3px;
+  color: var(--murekkep);
+  background: linear-gradient(180deg, #fbf7ee, var(--fildisi));
+  box-shadow: 0 22px 36px -24px #000, inset 0 0 0 1px rgb(134 98 31 / .28);
+  scroll-margin-top: 18px;
 }
-.bk-cover::before { content: ""; position: absolute; inset: 12px 10px 12px 16px; border-radius: 3px; border: 1px dotted rgb(241 222 164 / .6); }
-.bk-sym svg { width: 64px; height: 64px; display: block; filter: drop-shadow(0 3px 4px rgb(var(--golge) / .6)); }
-.bk-name { position: relative; padding: 0 10px; font: 400 1.15rem/1.15 var(--font-display); letter-spacing: .04em; text-align: center; color: var(--yaldiz-acik); text-shadow: 0 1px 0 rgb(0 0 0 / .45); }
-.bk-count { font: 600 .9rem/1.2 var(--font-ui); color: rgb(244 238 226 / .78); }
-.bookcard:hover .bk-cover { transform: translateY(-4px) rotate(-1deg); box-shadow: inset 0 0 0 5px rgb(0 0 0 / .08), inset 0 0 0 6px rgb(198 160 82 / .7), inset 9px 0 12px -6px rgb(var(--golge) / .7), 0 26px 30px -16px rgb(var(--golge)); }
-.bookcard:focus-visible { outline: none; }
-.bookcard:focus-visible .bk-cover { outline: 2px solid var(--yaldiz-acik); outline-offset: 4px; }
-.bookcard.empty-book .bk-cover { filter: saturate(.55) brightness(.75); }
-.bookcard.empty-book .bk-count { color: rgb(244 238 226 / .5); }
+.tx.is-copy { background: linear-gradient(180deg, #f5efe1, var(--fildisi-2)); }
+.tx.flash { animation: txFlash 1.6s var(--ease-out); }
+@keyframes txFlash { 0%, 45% { box-shadow: 0 0 0 3px var(--yaldiz-acik), 0 22px 36px -24px #000; } }
+.tx-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px 14px; align-items: start; padding: 14px 16px 12px; border-bottom: 1px solid rgb(134 98 31 / .28); }
+.tx-no {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  color: var(--lacivert-900);
+  background: radial-gradient(circle at 34% 28%, var(--yaldiz-acik), var(--yaldiz) 58%, var(--yaldiz-koyu));
+  box-shadow: inset 0 0 0 2px rgb(255 255 255 / .35), inset 0 0 0 5px rgb(134 98 31 / .25), 0 5px 12px -5px rgb(var(--golge) / .7);
+}
+.tx-no b { font: 400 1.4rem/1 var(--font-display); font-variant-numeric: lining-nums; }
+.tx-no small { margin-top: 1px; font: 700 .62rem/1 var(--font-ui); letter-spacing: .03em; }
+.tx-titles { min-width: 0; }
+.tx-titles h5 { margin: 0; font: 400 1.3rem/1.2 var(--font-display); color: var(--lacivert-800); text-wrap: balance; overflow-wrap: anywhere; }
+.tx-place { margin: 5px 0 0; font: 600 .92rem/1.4 var(--font-ui); color: var(--deri-500); }
+.tx-meta { margin: 2px 0 0; font: 500 .84rem/1.35 var(--font-ui); color: var(--murekkep-2); }
+.tx-open { align-self: center; }
+.tx .btn.ghost { border-color: rgb(28 26 43 / .28); color: var(--murekkep); }
+.tx-body {
+  padding: 8px 20px 20px 50px;
+  font: 400 1.07rem/var(--rule) var(--font-body);
+  overflow-wrap: anywhere;
+  background:
+    linear-gradient(90deg, transparent 34px, rgb(196 72 72 / .42) 34px 36px, transparent 36px),
+    repeating-linear-gradient(180deg, transparent 0 calc(var(--rule) - 1px), rgb(72 108 172 / .24) calc(var(--rule) - 1px) var(--rule));
+  background-position: 0 0, 0 8px;
+}
+.tx-body p { margin: 0 0 var(--rule); }
+.tx-body > :last-child { margin-bottom: 0; }
+.tx-fig { margin: 0 0 var(--rule); display: grid; justify-items: center; gap: 2px; background: #fbf7ee; border-radius: 4px; }
+.tx-fig-img:empty { display: none; }
+.tx-fig-img img { display: block; max-width: min(100%, 520px); height: auto; }
+.tx-fig figcaption { font: italic 400 1rem/var(--rule) var(--font-body); color: var(--deri-500); text-align: center; }
+.tx-dup { margin: 0; padding: 12px 16px 2px; font: 500 .95rem/1.5 var(--font-ui); color: var(--murekkep-2); }
+.dup-mark { display: inline-block; margin-right: 6px; padding: 2px 8px 1px; border: 3px double var(--mum); border-radius: 6px; font: 700 .8rem/1.2 var(--font-ui); color: var(--mum); background: rgb(255 249 238 / .8); transform: rotate(-4deg); }
+.tx-more { padding: 4px 16px 14px; }
+.tx-more summary { cursor: pointer; width: fit-content; font: 700 .92rem/1.6 var(--font-ui); color: var(--lacivert-700); }
+.tx-more summary:focus-visible { outline: 2px solid var(--yaldiz-koyu); outline-offset: 2px; border-radius: 4px; }
+.tx-more[open] summary { margin-bottom: 8px; }
+.tx-more .tx-body { border-radius: 6px; }
+.tx-block { display: grid; gap: 16px; }
+.tx-sec { margin: 0; display: flex; align-items: center; gap: 10px; font: 400 1.5rem/1.2 var(--font-display); color: var(--yaldiz-acik); }
+.tx-sec svg { width: 40px; height: 40px; }
+.tx-grade { display: grid; gap: 14px; }
+.tx-grade > h4 { margin: 4px 0 0; display: flex; align-items: center; gap: 12px; font: 400 1.35rem/1.2 var(--font-display); color: var(--fildisi); }
+.tx-grade > h4::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, rgb(198 160 82 / .6), transparent); }
+.tx-unit { display: grid; gap: 12px; padding-left: 14px; border-left: 2px solid rgb(198 160 82 / .35); }
+.tx-unit-name { margin: 0; font: 700 1rem/1.4 var(--font-ui); color: var(--yaldiz-acik); }
 
-/* Defter okuyucu */
-.reader { width: min(980px, calc(100vw - 16px)); height: min(960px, calc(100dvh - 16px)); }
-.rd-wrap { height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; border-radius: 16px; overflow: hidden; background: radial-gradient(80% 60% at 50% 30%, var(--lacivert-800), var(--lacivert-950)); box-shadow: 0 0 0 1px rgb(198 160 82 / .3); }
-.rd-head { position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 64px 12px 16px; border-bottom: 1px solid rgb(198 160 82 / .25); }
-.rd-head h2 { margin: 0; font: 400 1.35rem/1.15 var(--font-display); color: var(--fildisi); }
-.rd-head p { margin: 2px 0 0; font: 500 .9rem/1.3 var(--font-ui); color: rgb(244 238 226 / .7); }
-.rd-sym svg { width: 44px; height: 44px; display: block; }
-.rd-close { top: 50%; transform: translateY(-50%); }
-.rd-stage { overflow: auto; padding: 18px 12px 24px; display: grid; justify-items: center; align-content: start; perspective: 1800px; touch-action: pan-y; overscroll-behavior: contain; }
-.rd-page { width: min(100%, 820px); height: auto; display: block; border-radius: 2px 6px 6px 2px; box-shadow: 0 30px 50px -26px #000, 0 0 0 1px rgb(255 255 255 / .06); background: #fbf7ee; }
-.rd-wait { margin: 40px 0 0; font: 500 1rem/1.4 var(--font-ui); color: rgb(244 238 226 / .8); text-align: center; }
-.rd-foot { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 12px 16px 14px; border-top: 1px solid rgb(198 160 82 / .25); }
-.rd-foot .btn.ghost { color: var(--fildisi); }
-.rd-page.turn-out-next { animation: turnOutNext .32s var(--ease-book) both; transform-origin: left center; }
-.rd-page.turn-out-prev { animation: turnOutPrev .32s var(--ease-book) both; transform-origin: right center; }
-.rd-page.turn-in-next { animation: turnInNext .5s var(--ease-out) both; transform-origin: right center; }
-.rd-page.turn-in-prev { animation: turnInPrev .5s var(--ease-out) both; transform-origin: left center; }
-@keyframes turnOutNext { to { transform: rotateY(-78deg) translateX(-4%); opacity: 0; filter: brightness(.7); } }
-@keyframes turnOutPrev { to { transform: rotateY(78deg) translateX(4%); opacity: 0; filter: brightness(.7); } }
-@keyframes turnInNext { from { transform: rotateY(32deg) translateX(6%); opacity: 0; filter: brightness(1.15); } }
-@keyframes turnInPrev { from { transform: rotateY(-32deg) translateX(-6%); opacity: 0; filter: brightness(1.15); } }
+/* Sayfa kartında müfredattaki yer ve "Var zaten" mührü */
+.card-place { font: 600 .8rem/1.3 var(--font-ui); color: var(--deri-500); }
+.card.is-copy .mat img { filter: sepia(.3) saturate(.75); }
+.badge.dup { top: 16px; left: 12px; color: var(--mum); background: rgb(255 249 238 / .94); box-shadow: inset 0 0 0 2px var(--mum), 0 3px 8px rgb(var(--golge) / .35); transform: rotate(-7deg); }
+
+/* Görüntüleyicide müfredattaki yer */
+.v-topic { display: grid; gap: 8px; padding: 10px 12px 12px; border-radius: 12px; background: rgb(255 255 255 / .45); box-shadow: inset 0 0 0 1px rgb(134 98 31 / .3); }
+.v-topic h4 { margin: 0; font: 700 .9rem/1.2 var(--font-ui); color: var(--murekkep-2); }
+.v-topic-text { margin: 0; display: grid; gap: 2px; font: 500 .96rem/1.4 var(--font-ui); color: var(--murekkep); }
+.v-topic-text strong { font: 400 1.12rem/1.25 var(--font-display); color: var(--lacivert-800); }
+.v-topic-text em { font: italic .86rem/1.3 var(--font-body); color: var(--deri-500); }
+.v-topic-form { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 10px; align-items: center; }
+.v-topic-form label { font: 700 .88rem/1 var(--font-ui); color: var(--murekkep-2); }
+.v-topic-form select { width: 100%; min-width: 0; min-height: 40px; padding: 6px 10px; border: 0; border-radius: 10px; background: rgb(255 255 255 / .75); color: var(--murekkep); box-shadow: inset 0 0 0 1px rgb(28 26 43 / .25); font: 600 .9rem/1.2 var(--font-ui); }
+.v-topic-form select:focus-visible { outline: 2px solid var(--yaldiz-koyu); outline-offset: 1px; }
+.v-topic-form .v-controls { grid-column: 1 / -1; }
+.v-meta .dup-mark { margin-right: 4px; }
+
+/* Teşekkür ekranında eklenen sayfaların müfredattaki yeri */
+.placed { display: grid; gap: 6px; width: 100%; max-width: 34rem; }
+.placed > p { margin: 0; font: 600 .95rem/1.4 var(--font-ui); color: var(--murekkep-2); }
+.placed ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.placed li { display: grid; gap: 2px; padding: 8px 11px; border-radius: 9px; background: rgb(255 255 255 / .5); box-shadow: inset 0 0 0 1px rgb(134 98 31 / .25); }
+.placed strong { font: 700 .95rem/1.3 var(--font-ui); color: var(--lacivert-800); }
+.placed span { font: 500 .88rem/1.4 var(--font-ui); color: var(--deri-500); }
+
+@media (max-width: 560px) {
+  .tx-head { grid-template-columns: auto minmax(0, 1fr); padding: 12px 12px 10px; }
+  .tx-open { grid-column: 2; justify-self: start; }
+  .tx-body {
+    padding: 6px 14px 16px 34px;
+    background:
+      linear-gradient(90deg, transparent 22px, rgb(196 72 72 / .42) 22px 24px, transparent 24px),
+      repeating-linear-gradient(180deg, transparent 0 calc(var(--rule) - 1px), rgb(72 108 172 / .24) calc(var(--rule) - 1px) var(--rule));
+    background-position: 0 0, 0 6px;
+  }
+  .tx-unit { padding-left: 9px; }
+}
 
 /* Yazıyı düzeltme */
 .text-sheet { width: min(720px, calc(100vw - 24px)); }
@@ -967,6 +1025,8 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
 .page-actions.wide { width: 100%; }
 .tally-total em { font: italic 400 .95rem/1.3 var(--font-body); color: rgb(244 238 226 / .65); }
 .arc-panel { display: grid; gap: 16px; }
+/* Izgara öğeleri içeriklerinin tek satırlık genişliğine göre büyümesin (telefonda yana taşma olmasın) */
+.arc-inner > *, .arc-panel > * { min-width: 0; }
 .card-sym svg { width: 100%; height: 100%; display: block; }
 .semse-mini, .big-semse, .lock-art { --sw: 3.3; }
 #exlibrisArt { --sw: 3.6; }
@@ -1238,7 +1298,7 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
       <div class="arc-tools">
         <div class="tabs" role="tablist" aria-label="Arşiv">
           <button role="tab" id="tabBtnPages" aria-selected="true" aria-controls="tabPages" type="button">Sayfalar</button>
-          <button role="tab" id="tabBtnBooks" aria-selected="false" aria-controls="tabBooks" type="button" tabindex="-1">Defterler</button>
+          <button role="tab" id="tabBtnTexts" aria-selected="false" aria-controls="tabTexts" type="button" tabindex="-1">Yazılar</button>
           <button role="tab" id="tabBtnQr" aria-selected="false" aria-controls="tabQr" type="button" tabindex="-1">Giriş QR kodları</button>
         </div>
         <button class="btn ghost small" id="arcClose" type="button">Siteye dön</button>
@@ -1256,9 +1316,15 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
       <div id="gallery"></div>
     </div>
 
-    <div id="tabBooks" role="tabpanel" aria-labelledby="tabBtnBooks" class="arc-panel" hidden>
-      <p class="books-help">Yazısı okunaklı olan her sayfa, bölümünün defterine temiz bir sayfa olarak yazılır. Bir deftere dokun, sayfalarını çevirerek oku.</p>
-      <div class="books" id="books"></div>
+    <div id="tabTexts" role="tabpanel" aria-labelledby="tabBtnTexts" class="arc-panel" hidden>
+      <div class="tx-bar">
+        <div class="chips" id="txChips" role="toolbar" aria-label="Yazıları bölüme göre süz"></div>
+        <div class="seg" id="txOrder" role="radiogroup" aria-label="Sıralama">
+          <button type="button" role="radio" aria-checked="true" data-order="yukleme">Yüklenme sırası</button>
+          <button type="button" role="radio" aria-checked="false" data-order="mufredat" tabindex="-1">Müfredat sırası</button>
+        </div>
+      </div>
+      <div class="texts" id="texts"></div>
     </div>
 
     <div id="tabQr" role="tabpanel" aria-labelledby="tabBtnQr" class="arc-panel" hidden>
@@ -1342,9 +1408,30 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
         <dt>Eklendi</dt><dd id="vDate"></dd>
         <dt>Not</dt><dd id="vNote"></dd>
         <dt>Başlık</dt><dd id="vSum"></dd>
-        <dt>Defter</dt><dd id="vBook"></dd>
-        <dt id="vCopiesLbl" hidden>Kopyalar</dt><dd id="vCopies" hidden></dd>
+        <dt>Yazı</dt><dd id="vBook"></dd>
+        <dt id="vCopiesLbl" hidden>Kopya</dt><dd id="vCopies" hidden></dd>
       </dl>
+      <section class="v-topic" id="vTopic" aria-labelledby="vTopicLbl">
+        <h4 id="vTopicLbl">MEB müfredatındaki yeri</h4>
+        <p class="v-topic-text" id="vTopicText"></p>
+        <div class="v-controls">
+          <button class="btn ghost small" id="vTopicEdit" type="button">Değiştir</button>
+          <button class="btn ghost small" id="vTopicAuto" type="button">Yapay zekâya yeniden sor</button>
+        </div>
+        <form class="v-topic-form" id="vTopicForm" hidden novalidate>
+          <label for="vtGrade">Sınıf</label>
+          <select id="vtGrade"></select>
+          <label for="vtUnit">Ünite</label>
+          <select id="vtUnit"></select>
+          <label for="vtTopic">Konu</label>
+          <select id="vtTopic"></select>
+          <div class="v-controls">
+            <button class="btn ink small" id="vtSave" type="submit">Kaydet</button>
+            <button class="btn ghost small" id="vtNone" type="button">Müfredatta yok</button>
+            <button class="btn ghost small" id="vtCancel" type="button">Vazgeç</button>
+          </div>
+        </form>
+      </section>
       <p class="v-hint" id="vHint" hidden></p>
       <div class="v-controls">
         <label for="vMove">Bölüm</label>
@@ -1375,7 +1462,7 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
 <dialog class="sheet text-sheet" id="textDialog" aria-labelledby="tdTitle">
   <form id="textForm" novalidate>
     <h2 id="tdTitle">Yazıyı düzelt</h2>
-    <p>Yapay zekânın okuduğu yazıyı burada düzeltebilirsin. Defterde bu hâli görünür.</p>
+    <p>Yapay zekânın okuduğu yazıyı burada düzeltebilirsin. Yazılar’da bu hâli görünür.</p>
     <div class="field">
       <label for="tdHead">Başlık</label>
       <input id="tdHead" maxlength="80" autocomplete="off">
@@ -1384,35 +1471,13 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
       <label for="tdText">Yazı</label>
       <textarea id="tdText" rows="12" maxlength="12000" spellcheck="true"></textarea>
     </div>
-    <label class="check"><input type="checkbox" id="tdLegible"> Bu sayfa defterde yer alsın</label>
+    <label class="check"><input type="checkbox" id="tdLegible"> Bu sayfa Yazılar’da yer alsın</label>
     <p class="field-error" id="tdError" role="alert" hidden></p>
     <div class="row">
       <button type="button" class="btn ghost" data-close>Vazgeç</button>
       <button type="submit" class="btn ink" id="tdSave">Kaydet</button>
     </div>
   </form>
-</dialog>
-
-<dialog class="reader" id="reader" aria-labelledby="rdTitle">
-  <div class="rd-wrap">
-    <header class="rd-head">
-      <span class="rd-sym" id="rdSym" aria-hidden="true"></span>
-      <div>
-        <h2 id="rdTitle">Defter</h2>
-        <p id="rdInfo" aria-live="polite"></p>
-      </div>
-      <button class="v-close rd-close" id="rdClose" type="button" aria-label="Defteri kapat">×</button>
-    </header>
-    <div class="rd-stage" id="rdStage">
-      <img class="rd-page" id="rdPage" alt="">
-      <p class="rd-wait" id="rdWait" hidden>Sayfa hazırlanıyor…</p>
-    </div>
-    <footer class="rd-foot">
-      <button class="btn ghost small" id="rdPrev" type="button" aria-label="Önceki sayfa">Önceki</button>
-      <button class="btn gold small" id="rdDownload" type="button" aria-label="Bu sayfayı görsel olarak indir">İndir</button>
-      <button class="btn ghost small" id="rdNext" type="button" aria-label="Sonraki sayfa">Sonraki</button>
-    </footer>
-  </div>
 </dialog>
 
 <dialog class="sheet qr-sheet" id="qrDialog" aria-labelledby="qrTitle">
@@ -2453,7 +2518,11 @@ Reply with ONLY this JSON object and nothing else:
     const admin = async (method, path, body) => {
       const r = await call(method, path, body);
       if (r.status === 401) throw authError();
-      if (!r.ok) throw new Error(r.data.error || 'İşlem yapılamadı. Tekrar dene.');
+      if (!r.ok) {
+        const e = new Error(r.data.error || 'İşlem yapılamadı. Tekrar dene.');
+        e.status = r.status;
+        throw e;
+      }
       return r.data;
     };
     return {
@@ -2485,13 +2554,19 @@ Reply with ONLY this JSON object and nothing else:
         if (!res.ok) throw new Error('Fotoğraf alınamadı.');
         return res.blob();
       },
-      async update(id, patch) { return (await admin('POST', `/api/yonetici/guncelle/${encodeURIComponent(id)}`, patch)).item; },
+      async update(id, patch) {
+        const d = await admin('POST', `/api/yonetici/guncelle/${encodeURIComponent(id)}`, patch);
+        if (d.curriculumChecked === undefined) return d.item;
+        return { ...d.item, curriculum: d.curriculum || null, curriculumChecked: !!d.curriculumChecked, curriculumPending: !!d.curriculumPending };
+      },
       async replace(id, blob, w, h) { return (await admin('POST', `/api/yonetici/degistir/${encodeURIComponent(id)}?w=${w}&h=${h}`, blob)).item; },
       async remove(id) { return admin('DELETE', `/api/yonetici/foto/${encodeURIComponent(id)}`); },
       async getText(id) { return admin('GET', `/api/yonetici/metin/${encodeURIComponent(id)}`); },
       async saveText(id, patch) { return admin('POST', `/api/yonetici/metin/${encodeURIComponent(id)}`, patch); },
       async reread(id) { return admin('POST', `/api/yonetici/oku/${encodeURIComponent(id)}`, {}); },
-      async notebook(section) { return admin('GET', `/api/yonetici/defter/${encodeURIComponent(section)}`); },
+      async texts() { return admin('GET', '/api/yonetici/yazilar'); },
+      async setTopic(id, body) { return admin('POST', `/api/yonetici/konu/${encodeURIComponent(id)}`, body); },
+      async curriculumTree() { return admin('GET', '/api/yonetici/mufredat'); },
       async qrList() { return admin('GET', '/api/yonetici/qr'); },
       async qrCreate(label) { return admin('POST', '/api/yonetici/qr', { label }); },
       async qrRevoke(id) { return admin('DELETE', `/api/yonetici/qr/${encodeURIComponent(id)}`); },
@@ -2664,12 +2739,14 @@ Reply with ONLY this JSON object and nothing else:
       async list() {
         if (!mem.admin) throw authError();
         await ensureExamples();
-        return { items: mem.items.map(copyItem), counts: countBy(mem.items), notebooks: {} };
+        return { items: mem.items.map(copyItem), counts: countBy(mem.items) };
       },
       async getText(id) { find(id); return { text: '', title: '', legible: false }; },
       async saveText() { throw new Error('Önizlemede yazı kaydedilmez; asıl sitede çalışır.'); },
       async reread() { throw new Error('Önizlemede yazı okunmaz; asıl sitede çalışır.'); },
-      async notebook() { return { pages: [] }; },
+      async texts() { return { pages: [] }; },
+      async setTopic() { throw new Error('Önizlemede konu belirlenmez; asıl sitede çalışır.'); },
+      async curriculumTree() { throw new Error('Önizlemede müfredat yok; asıl sitede çalışır.'); },
       photoUrl(it) { const m = mem.items.find((x) => x.id === it.id); return (m && m.url) || ''; },
       async photoBlob(it) { return find(it.id).blob; },
       async update(id, patch) {
@@ -2787,7 +2864,7 @@ Reply with ONLY this JSON object and nothing else:
   /* Durum ve görünümler                                                  */
   /* ------------------------------------------------------------------ */
 
-  const freshFlow = () => ({ open: false, step: 1, name: '', section: '', photos: [], note: '', busy: false, lastAccepted: 0, lastMessages: [] });
+  const freshFlow = () => ({ open: false, step: 1, name: '', section: '', photos: [], note: '', busy: false, lastAccepted: 0, lastMessages: [], lastPlaced: [] });
   const state = {
     view: 'loading',
     status: null,
@@ -2795,10 +2872,13 @@ Reply with ONLY this JSON object and nothing else:
     flow: freshFlow(),
     archive: {
       open: false, items: [], filter: 'tumu', current: null, tab: 'pages', qr: [], currentQr: null,
-      notebooks: {}, texts: new Map(), images: new Map(), mode: 'foto',
+      texts: new Map(), images: new Map(), mode: 'foto',
+      // gone: bu oturumda silinen sayfalar (geç gelen yanıtlar onları geri getirmesin); reading: okunmakta olanlar
+      gone: new Set(), reading: new Set(),
+      // Yazılar sekmesi: okunaklı sayfaların yazıları; iki sıralama (yüklenme sırası, müfredat sırası)
+      textPages: null, textFilter: 'tumu', textOrder: 'yukleme', tree: null,
     },
-    reader: { section: null, pages: [], index: 0, urls: new Map(), busy: false },
-    bulk: { active: false, stop: false, total: 0, done: 0, removed: 0, failed: 0, verb: 'yazıya döküldü' },
+    bulk: { active: false, stop: false, total: 0, done: 0, marked: 0, failed: 0, verb: 'yazıya döküldü' },
   };
 
   const ui = {
@@ -3018,8 +3098,9 @@ Reply with ONLY this JSON object and nothing else:
     const msgs = state.flow.lastMessages || [];
     const rej = msgs.filter((m) => m.type === 'rejected').length;
     const failed = msgs.filter((m) => m.type === 'failed').length;
-    const dup = (msgs.find((m) => m.type === 'duplicate') || {}).count || 0;
+    const copies = (msgs.find((m) => m.type === 'copy') || {}).count || 0;
     const faint = (msgs.find((m) => m.type === 'unreadable') || {}).count || 0;
+    const placed = (state.flow.lastPlaced || []).filter((x) => x.legible);
     return `
       <div class="thanks">
         <svg class="big-semse" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
@@ -3030,8 +3111,9 @@ Reply with ONLY this JSON object and nothing else:
         </svg>
         <h2 tabindex="-1">Teşekkürler, ${esc(state.flow.name)}!</h2>
         <p>${n} sayfa <strong>${esc(secName(state.flow.section))}</strong> bölümüne eklendi. Anıl’ın defteri senin sayende biraz daha tamamlandı.</p>
-        ${faint ? `<p class="notice calm">${faint === n ? (n === 1 ? 'Sayfanın' : 'Sayfaların') : `${faint} sayfanın`} yazısı tam okunamadı. Daha net bir fotoğraf eklersen yazısı da deftere geçer.</p>` : ''}
-        ${dup ? `<p class="notice calm">${dup} fotoğraf defterde zaten vardı (“Var zaten”), yeniden eklenmedi.</p>` : ''}
+        ${placed.length ? `<div class="placed"><p>MEB müfredatındaki yerleri:</p><ul>${placed.map((x) => `<li><strong>${esc(x.title || 'Sayfa')}</strong><span>${x.curriculum ? esc(placeLong(x.curriculum)) : 'Bu yılın müfredatında yeri bulunamadı'}</span></li>`).join('')}</ul></div>` : ''}
+        ${faint ? `<p class="notice calm">${faint === n ? (n === 1 ? 'Sayfanın' : 'Sayfaların') : `${faint} sayfanın`} yazısı tam okunamadı. Daha net bir fotoğraf eklersen yazısı da çıkarılır.</p>` : ''}
+        ${copies ? `<p class="notice calm">${copies === 1 ? 'Bir sayfa' : `${copies} sayfa`} arşivde zaten vardı; “Var zaten” olarak işaretlenip yine de eklendi.</p>` : ''}
         ${rej ? `<p class="notice">${rej} fotoğraf uygunsuz bulunduğu için eklenmedi.</p>` : ''}
         ${failed ? `<p class="notice calm">${failed} fotoğraf denetlenemediği için eklenmedi. Daha sonra yeniden deneyebilirsin.</p>` : ''}
         <div class="page-actions wide">
@@ -3176,7 +3258,7 @@ Reply with ONLY this JSON object and nothing else:
   function statusChip(p) {
     if (p.status === 'checking') return '<span class="st">Okunuyor…</span>';
     if (p.status === 'done') return '<span class="st">Eklendi</span>';
-    if (p.status === 'duplicate') return '<span class="stamp" aria-hidden="true">Var zaten</span><span class="st">Defterde zaten var</span>';
+    if (p.status === 'copy') return '<span class="stamp" aria-hidden="true">Var zaten</span><span class="st">Kopya olarak eklendi</span>';
     if (p.status === 'rejected') return '<span class="st">Kabul edilmedi</span>';
     if (p.status === 'failed') return '<span class="st">Eklenemedi</span>';
     return '';
@@ -3189,7 +3271,7 @@ Reply with ONLY this JSON object and nothing else:
     ul.innerHTML = state.flow.photos.map((p, i) => `
       <li class="thumb ${p.status}" style="--tilt:${((i * 37) % 7) - 3}deg">
         <img src="${p.url}" alt="Seçilen fotoğraf ${i + 1}">
-        ${!busy && (p.status === 'ready' || p.status === 'failed' || p.status === 'rejected' || p.status === 'duplicate') ? `<button type="button" class="rm" data-rm="${p.key}" aria-label="Bu fotoğrafı kaldır">×</button>` : ''}
+        ${!busy && (p.status === 'ready' || p.status === 'failed' || p.status === 'rejected') ? `<button type="button" class="rm" data-rm="${p.key}" aria-label="Bu fotoğrafı kaldır">×</button>` : ''}
         ${statusChip(p)}
       </li>`).join('');
     const send = $('#sendBtn');
@@ -3199,7 +3281,7 @@ Reply with ONLY this JSON object and nothing else:
       if (!busy) send.textContent = state.flow.photos.some((p) => p.status === 'failed') ? 'Yeniden dene' : 'Deftere işle';
     }
     const drop = $('#dropzone');
-    if (drop) drop.hidden = busy || state.flow.photos.filter((p) => p.status !== 'done' && p.status !== 'duplicate').length >= MAX_PHOTOS;
+    if (drop) drop.hidden = busy || state.flow.photos.filter((p) => p.status !== 'done' && p.status !== 'copy').length >= MAX_PHOTOS;
   }
 
   function showResults(messages) {
@@ -3211,7 +3293,8 @@ Reply with ONLY this JSON object and nothing else:
         const warn = left === 1 ? ' Bir uyarı hakkın kaldı: bir daha uygunsuz içerik yüklersen siteden çıkarılırsın.' : '';
         return `<p class="notice">Bir fotoğraf kabul edilmedi. ${esc(m.text)}${warn}</p>`;
       }
-      if (m.type === 'info' || m.type === 'duplicate') return `<p class="notice calm">${esc(m.text)}</p>`;
+      if (m.type === 'info') return `<p class="notice calm">${esc(m.text)}</p>`;
+      if (m.type === 'copy') return '';
       if (m.type === 'unreadable') return '';
       return `<p class="notice calm">${esc(m.text)}</p>`;
     }).join('');
@@ -3225,7 +3308,7 @@ Reply with ONLY this JSON object and nothing else:
       showResults([{ type: 'info', text: 'Yalnızca fotoğraf dosyaları eklenebilir.' }]);
       return;
     }
-    const room = MAX_PHOTOS - state.flow.photos.filter((p) => p.status !== 'done' && p.status !== 'duplicate').length;
+    const room = MAX_PHOTOS - state.flow.photos.filter((p) => p.status !== 'done' && p.status !== 'copy').length;
     if (list.length > room) messages.push({ type: 'info', text: `En fazla ${MAX_PHOTOS} fotoğraf ekleyebilirsin; ilk ${Math.max(0, room)} tanesi alındı.` });
     for (const f of list.slice(0, Math.max(0, room))) {
       try {
@@ -3256,9 +3339,10 @@ Reply with ONLY this JSON object and nothing else:
     renderThumbs();
     const messages = [];
     let accepted = 0;
-    let duplicates = 0;
+    let copies = 0;
     let unreadable = 0;
     let kicked = null;
+    const placed = [];
     for (const p of queue) {
       p.status = 'checking';
       renderThumbs();
@@ -3271,21 +3355,24 @@ Reply with ONLY this JSON object and nothing else:
       if (r.kicked) { kicked = r.reason; break; }
       if (r.gate) { state.flow.busy = false; sessionExpired(); return; }
       if (r.ok) {
-        p.status = 'done';
+        // Arşivde zaten olan sayfa da eklenir; "Var zaten" olarak işaretlenir
+        p.status = r.duplicate ? 'copy' : 'done';
         accepted++;
+        if (r.duplicate) copies++;
         if (r.legible === false) unreadable++;
-      } else if (r.duplicate) { p.status = 'duplicate'; duplicates++; }
-      else if (r.rejected) { p.status = 'rejected'; messages.push({ type: 'rejected', text: r.reason || REASONS.other, rejections: r.rejections, max: r.maxRejections }); }
+        placed.push({ title: r.title || '', legible: r.legible !== false && r.reading !== 'bekliyor', curriculum: r.curriculum || null });
+      } else if (r.rejected) { p.status = 'rejected'; messages.push({ type: 'rejected', text: r.reason || REASONS.other, rejections: r.rejections, max: r.maxRejections }); }
       else { p.status = 'failed'; messages.push({ type: 'failed', text: r.error || 'Fotoğraf eklenemedi.' }); }
       renderThumbs();
     }
     state.flow.busy = false;
     if (kicked) { kick(kicked); return; }
-    if (duplicates) messages.push({ type: 'duplicate', count: duplicates, text: duplicates === 1 ? 'Bu sayfa defterde zaten var, yeniden eklenmedi. Yine de teşekkürler!' : `${duplicates} sayfa defterde zaten var, yeniden eklenmedi. Yine de teşekkürler!` });
+    if (copies) messages.push({ type: 'copy', count: copies });
     if (unreadable) messages.push({ type: 'unreadable', count: unreadable });
     if (accepted > 0) {
       state.flow.lastAccepted = accepted;
       state.flow.lastMessages = messages;
+      state.flow.lastPlaced = placed;
       refreshCounts();
       await sleep(prefersReduced ? 0 : 420);
       await turnTo(4);
@@ -3650,7 +3737,7 @@ Reply with ONLY this JSON object and nothing else:
     try {
       const data = await api.list();
       state.archive.items = data.items || [];
-      state.archive.notebooks = data.notebooks || {};
+      state.archive.textPages = null;
     } catch (e) {
       if (e.auth) { lockedOut(); return; }
       $('#gallery').innerHTML = `<div class="empty"><h3>Sayfalar alınamadı</h3><p>${esc(e.message)}</p></div>`;
@@ -3674,7 +3761,7 @@ Reply with ONLY this JSON object and nothing else:
     toast('Arşiv kilitlendi.');
   }
 
-  const ARCHIVE_TABS = [['pages', '#tabBtnPages', '#tabPages'], ['books', '#tabBtnBooks', '#tabBooks'], ['qr', '#tabBtnQr', '#tabQr']];
+  const ARCHIVE_TABS = [['pages', '#tabBtnPages', '#tabPages'], ['texts', '#tabBtnTexts', '#tabTexts'], ['qr', '#tabBtnQr', '#tabQr']];
   function setArchiveTab(tab) {
     state.archive.tab = tab;
     for (const [id, btn, panel] of ARCHIVE_TABS) {
@@ -3684,16 +3771,20 @@ Reply with ONLY this JSON object and nothing else:
       $(panel).hidden = !on;
     }
     if (tab === 'qr') loadQr();
-    if (tab === 'books') renderBooks();
+    if (tab === 'texts') loadTexts();
     renderBulk();
   }
 
   const emptyBlock = (title, text) => `<div class="empty">${symbolIcon('kitap', 3.2)}<h3>${esc(title)}</h3><p>${esc(text)}</p></div>`;
 
-  // Sayfanın yazısının durumu: deftere yazıldı / okunaksız / henüz yazıya dökülmedi
+  // MEB müfredatındaki yer: kısa ("10. sınıf, 1. ünite, 2. konu") ve uzun (adlarıyla)
+  const placeShort = (c) => (c ? `${c.grade}. sınıf, ${c.unitLabel.toLocaleLowerCase('tr')}, ${c.topic}. konu` : '');
+  const placeLong = (c) => (c ? `${c.grade}. sınıf, ${c.unitLabel}: ${c.unitName}, ${c.topic}. konu: ${c.topicName}` : '');
+
+  // Sayfanın yazısının durumu: yazıya döküldü / okunaksız / henüz yazıya dökülmedi
   function readState(it) {
     if (it.example) return { key: 'none', label: '' };
-    if (it.legible) return { key: 'book', label: 'Defterde' };
+    if (it.legible) return { key: 'book', label: 'Yazıya döküldü' };
     if (it.reading === 'tamam') return { key: 'faint', label: 'Okunaksız' };
     return { key: 'wait', label: 'Yazıya dökülmedi' };
   }
@@ -3701,13 +3792,17 @@ Reply with ONLY this JSON object and nothing else:
   function cardHtml(it) {
     const note = it.title || it.note || it.summary;
     const rs = readState(it);
+    const badge = it.example ? '<span class="badge">Örnek</span>'
+      : it.copyOf ? '<span class="badge dup">Var zaten</span>'
+      : it.copies ? `<span class="badge copy">${it.copies} kopya geldi</span>` : '';
     return `
-      <button type="button" class="card" data-id="${esc(it.id)}">
+      <button type="button" class="card${it.copyOf ? ' is-copy' : ''}" data-id="${esc(it.id)}">
         <span class="mat"><img src="${esc(api.photoUrl(it))}" alt="${esc(it.name || 'İsimsiz')} tarafından eklenen ${esc(secName(it.section))} sayfası" loading="lazy" decoding="async"></span>
-        ${it.example ? '<span class="badge">Örnek</span>' : it.copies ? `<span class="badge copy">${it.copies} kopya geldi</span>` : ''}
+        ${badge}
         <span class="card-sym">${symbolIcon(it.section, 5.5)}</span>
         <span class="card-cap"><strong>${esc(it.name || 'İsimsiz')}</strong><time datetime="${new Date(it.createdAt || Date.now()).toISOString()}">${esc(relTime(it.createdAt))}</time></span>
         ${note ? `<span class="card-note">${esc(note)}</span>` : ''}
+        ${it.curriculum ? `<span class="card-place">${esc(placeShort(it.curriculum))}</span>` : ''}
         ${rs.label ? `<span class="card-state cs-${rs.key}">${rs.label}</span>` : ''}
       </button>`;
   }
@@ -3749,11 +3844,18 @@ Reply with ONLY this JSON object and nothing else:
     $('#vNote').textContent = it.note || '—';
     $('#vSum').textContent = it.title || it.summary || '—';
     const rs = readState(it);
-    $('#vBook').textContent = rs.key === 'book' ? `${secName(it.section)} defterinde` : rs.key === 'faint' ? 'Yazısı tam okunamadı, deftere eklenmedi' : rs.key === 'wait' ? 'Henüz yazıya dökülmedi' : '—';
-    $('#vCopies').textContent = it.copies ? `Bu sayfa ${it.copies} kez daha gönderildi; kopyalar otomatik ayıklandı.` : '';
-    $('#vCopies').hidden = !it.copies;
-    $('#vCopiesLbl').hidden = !it.copies;
-    $('#vReread').textContent = it.reading === 'tamam' ? 'Yeniden oku' : 'Yazıya dök';
+    $('#vBook').textContent = rs.key === 'book' ? 'Yazıya döküldü, Yazılar’da' : rs.key === 'faint' ? 'Tam okunamadı, Yazılar’a eklenmedi' : rs.key === 'wait' ? 'Henüz yazıya dökülmedi' : '—';
+    const cp = $('#vCopies');
+    const orig = it.copyOf ? state.archive.items.find((i) => i.id === it.copyOf) : null;
+    if (it.copyOf) {
+      cp.innerHTML = `<span class="dup-mark">Var zaten</span> ${orig ? `“${esc(orig.title || orig.name || 'Adsız')}” sayfasının kopyası.` : 'Arşivdeki başka bir sayfanın kopyası.'}${orig ? ' <button type="button" class="link-btn" id="vOpenOrig">Aslını aç</button>' : ''}`;
+    } else if (it.copies) {
+      cp.textContent = `Bu sayfanın ${it.copies} kopyası geldi. Kopyalar silinmez, “Var zaten” olarak işaretlenir.`;
+    }
+    const showCp = !!(it.copyOf || it.copies);
+    cp.hidden = !showCp;
+    $('#vCopiesLbl').hidden = !showCp;
+    showReading(it);
     const hint = $('#vHint');
     if (it.subject && SECTION_IDS.includes(it.subject) && it.subject !== it.section) {
       hint.hidden = false;
@@ -3762,6 +3864,7 @@ Reply with ONLY this JSON object and nothing else:
       hint.hidden = true;
     }
     $('#vMove').innerHTML = SECTIONS.map((s) => `<option value="${s.id}"${s.id === it.section ? ' selected' : ''}>${s.name}</option>`).join('');
+    renderTopic(it);
     updateDownload();
   }
 
@@ -3771,9 +3874,97 @@ Reply with ONLY this JSON object and nothing else:
     state.archive.current = it;
     fillViewer(it);
     $('#vConfirm').hidden = true;
-    $('#vStatus').textContent = '';
     setViewerMode('foto');
-    $('#viewer').showModal();
+    if (!$('#viewer').open) $('#viewer').showModal();
+  }
+
+  /* Müfredattaki yer: yapay zekânın belirlediği ya da Anıl'ın seçtiği sınıf, ünite ve konu */
+  function renderTopic(it) {
+    const live = api.mode === 'live';
+    $('#vTopic').hidden = !!it.example;
+    $('#vTopicForm').hidden = true;
+    const c = it.curriculum;
+    const box = $('#vTopicText');
+    if (c) {
+      box.innerHTML = `<strong>${esc(secName(it.section))}, ${c.grade}. sınıf</strong><span>${esc(c.unitLabel)}: ${esc(c.unitName)}</span><span>${c.topic}. konu: ${esc(c.topicName)}</span>${c.manual ? '<em>Elle seçildi</em>' : ''}`;
+    } else if (it.curriculumChecked) {
+      box.textContent = 'Bu yılın müfredatında yeri bulunamadı.';
+    } else if (it.reading === 'tamam') {
+      box.textContent = 'Henüz belirlenmedi.';
+    } else {
+      box.textContent = 'Sayfa yazıya dökülünce belirlenir.';
+    }
+    const can = live && it.reading === 'tamam';
+    $('#vTopicEdit').hidden = !can;
+    $('#vTopicAuto').hidden = !can || !it.legible;
+  }
+
+  async function ensureTree() {
+    if (!state.archive.tree) state.archive.tree = await api.curriculumTree();
+    return state.archive.tree;
+  }
+
+  async function openTopicEditor() {
+    const it = state.archive.current;
+    if (!it) return;
+    try {
+      await ensureTree();
+    } catch (e) {
+      if (e.auth) { lockedOut(); return; }
+      toast(e.message || 'Müfredat alınamadı.', true);
+      return;
+    }
+    const grades = state.archive.tree.bolumler[it.section] || [];
+    const c = it.curriculum;
+    const g = $('#vtGrade');
+    g.innerHTML = grades.map((x) => `<option value="${x.sinif}">${x.sinif}. sınıf</option>`).join('');
+    if (c) g.value = String(c.grade);
+    fillUnits(c ? c.unit : 0, c ? c.topic : 0);
+    $('#vTopicForm').hidden = false;
+    g.focus();
+  }
+
+  function fillUnits(unit = 0, topic = 0) {
+    const it = state.archive.current;
+    const tree = state.archive.tree;
+    if (!it || !tree) return;
+    const grade = (tree.bolumler[it.section] || []).find((x) => String(x.sinif) === $('#vtGrade').value);
+    const u = $('#vtUnit');
+    u.innerHTML = (grade ? grade.uniteler : []).map((x) => `<option value="${x.no}">${esc(x.etiket)}: ${esc(x.ad)}</option>`).join('');
+    if (unit) u.value = String(unit);
+    if (u.selectedIndex < 0 && u.options.length) u.selectedIndex = 0;
+    fillTopics(topic);
+  }
+
+  function fillTopics(topic = 0) {
+    const it = state.archive.current;
+    const tree = state.archive.tree;
+    if (!it || !tree) return;
+    const grade = (tree.bolumler[it.section] || []).find((x) => String(x.sinif) === $('#vtGrade').value);
+    const unit = grade && grade.uniteler.find((x) => String(x.no) === $('#vtUnit').value);
+    const t = $('#vtTopic');
+    t.innerHTML = (unit ? unit.konular : []).map((name, i) => `<option value="${i + 1}">${i + 1}. ${esc(name)}</option>`).join('');
+    if (topic) t.value = String(topic);
+    if (t.selectedIndex < 0 && t.options.length) t.selectedIndex = 0;
+  }
+
+  async function saveTopic(body) {
+    const it = state.archive.current;
+    if (!it) return;
+    const auto = !!body.otomatik;
+    const btn = auto ? $('#vTopicAuto') : body.sinif === 0 ? $('#vtNone') : $('#vtSave');
+    const label = btn.textContent;
+    setBusy(btn, true, auto ? 'Soruluyor' : 'Kaydediliyor');
+    try {
+      const d = await api.setTopic(it.id, body);
+      applyItemUpdate(it, { curriculum: d.curriculum || null, curriculumChecked: true, curriculumPending: false });
+      toast(d.curriculum ? `Müfredattaki yeri: ${placeShort(d.curriculum)}.` : auto ? 'Bu yılın müfredatında yeri bulunamadı.' : 'Müfredatta yeri yok olarak işaretlendi.');
+    } catch (e) {
+      if (e.auth) { lockedOut(); return; }
+      toast(e.message || 'Konu kaydedilemedi.', true);
+    } finally {
+      setBusy(btn, false, label);
+    }
   }
 
   /* Görüntüleyici: fotoğraf ↔ yazıya dökülmüş hâli (temiz defter sayfası görseli) */
@@ -3819,15 +4010,16 @@ Reply with ONLY this JSON object and nothing else:
     const entry = await loadText(it);
     if (!entry.text) return null;
     const narrow = narrowScreen();
+    const place = placeLong(it.curriculum);
     const cached = state.archive.images.get(it.id);
-    if (cached && cached.text === entry.text && cached.title === entry.title && cached.narrow === narrow) return cached;
-    const page = { id: it.id, section: it.section, title: entry.title, text: entry.text, name: it.name, createdAt: it.createdAt, editedAt: it.editedAt, figures: entry.figures };
+    if (cached && cached.text === entry.text && cached.title === entry.title && cached.narrow === narrow && cached.place === place) return cached;
+    const page = { id: it.id, section: it.section, title: entry.title, text: entry.text, name: it.name, createdAt: it.createdAt, editedAt: it.editedAt, figures: entry.figures, curriculum: it.curriculum };
     const figures = await pageFigures(page, () => api.photoBlob(it));
     const wide = await canvasToBlob(await renderTextPage(page, { figures }), 'image/png');
     const dlUrl = URL.createObjectURL(wide);
     const url = narrow ? URL.createObjectURL(await canvasToBlob(await renderTextPage(page, { narrow: true, figures }), 'image/png')) : dlUrl;
     dropImage(cached);
-    const out = { url, dlUrl, text: entry.text, title: entry.title, narrow };
+    const out = { url, dlUrl, text: entry.text, title: entry.title, narrow, place };
     state.archive.images.set(it.id, out);
     return out;
   }
@@ -3887,73 +4079,91 @@ Reply with ONLY this JSON object and nothing else:
     dl.textContent = 'Fotoğrafı indir';
   }
 
-  function recountNotebooks() {
-    const nb = {};
-    for (const i of state.archive.items) if (i.legible) nb[i.section] = (nb[i.section] || 0) + 1;
-    state.archive.notebooks = nb;
-  }
-
   function applyItemUpdate(it, updated) {
     Object.assign(it, updated);
-    recountNotebooks();
-    fillViewer(it);
+    if (state.archive.current === it) fillViewer(it);
     renderArchive();
-    if (state.archive.tab === 'books') renderBooks();
-    state.reader.urls.forEach((u) => URL.revokeObjectURL(u));
-    state.reader.urls.clear();
+    invalidateTexts();
   }
 
-  // Yeniden okuma sonucunu arşive işler: sayfa kopya çıkıp silindiyse ya da başka kopyaların yerine geçtiyse listeyi düzeltir.
-  function applyReread(it, d) {
-    forgetText(it.id);
-    if (d.deleted) {
-      state.archive.items = state.archive.items.filter((i) => i.id !== it.id);
-      if (state.archive.current === it) state.archive.current = null;
-      const kept = state.archive.items.find((i) => i.id === d.duplicateOf);
-      if (kept) kept.copies = (kept.copies || 0) + 1 + (it.copies || 0);
-    } else {
-      state.archive.texts.set(it.id, { text: d.text || '', title: d.title || '', legible: !!d.legible, figures: d.figures || [] });
-      Object.assign(it, d.item, { figuresPending: false });
-      const gone = new Set(d.replaced || []);
-      if (gone.size) {
-        state.archive.items = state.archive.items.filter((i) => !gone.has(i.id));
-        gone.forEach((id) => forgetText(id));
-      }
-    }
-    recountNotebooks();
-  }
-
-  async function rereadCurrent() {
-    const it = state.archive.current;
-    if (!it) return;
-    const btn = $('#vReread');
-    const label = btn.textContent;
-    setBusy(btn, true, 'Okunuyor');
-    $('#vTextRead').disabled = true;
-    $('#vStatus').textContent = 'Yazı yapay zekâyla okunuyor; birkaç saniye sürebilir…';
+  // Arşivi sunucudan yeniden alır (kopya bağlantıları ve sayıları sunucuda değişince)
+  async function reloadArchive() {
     try {
-      const d = await api.reread(it.id);
-      applyReread(it, d);
-      $('#vStatus').textContent = '';
-      if (d.deleted) {
-        $('#viewer').close();
-        renderArchive();
-        refreshCounts();
-        toast('Bu sayfa defterdeki başka bir sayfanın kopyasıydı; otomatik silindi.');
-        return;
-      }
-      fillViewer(it);
-      renderArchive();
-      if ((d.replaced || []).length) refreshCounts();
-      toast(d.legible ? 'Yazı okundu ve deftere yazıldı.' : d.text ? 'Yazı okundu ama tam okunaklı değil; deftere eklenmedi.' : 'Bu fotoğrafta okunabilir yazı bulunamadı.');
-      setViewerMode('yazi');
+      const data = await api.list();
+      const cur = state.archive.current;
+      state.archive.items = (data.items || []).filter((i) => !state.archive.gone.has(i.id));
+      if (cur) state.archive.current = state.archive.items.find((i) => i.id === cur.id) || null;
     } catch (e) {
       if (e.auth) { lockedOut(); return; }
-      $('#vStatus').textContent = '';
-      toast(e.message || 'Yazı okunamadı.', true);
+    }
+    renderArchive();
+    invalidateTexts();
+    if (state.archive.current && $('#viewer').open) fillViewer(state.archive.current);
+  }
+
+  // Yeniden okuma sonucunu arşive işler. Sayfalar silinmez: kopya çıktıysa "Var zaten" olarak işaretlenir,
+  // daha eksiksiz hâliyse eski sayfalar bunun kopyası olur.
+  function applyReread(it, d) {
+    forgetText(it.id);
+    state.archive.texts.set(it.id, { text: d.text || '', title: d.title || '', legible: !!d.legible, figures: d.figures || [] });
+    Object.assign(it, d.item, {
+      figuresPending: false,
+      copyOf: d.copyOf || null,
+      curriculum: d.curriculum || null,
+      curriculumChecked: !!d.curriculumChecked,
+      curriculumPending: !d.curriculumChecked && !!(d.text && d.text.trim()),
+    });
+    const relink = (fromId, toId) => {
+      for (const x of state.archive.items) if (x.copyOf === fromId && x.id !== toId) x.copyOf = toId;
+    };
+    if (d.copyOf) relink(it.id, d.copyOf);
+    for (const oldId of d.replaced || []) {
+      const old = state.archive.items.find((x) => x.id === oldId);
+      if (old) old.copyOf = it.id;
+      relink(oldId, it.id);
+    }
+    state.archive.textPages = null;
+  }
+
+  // Görüntüleyicideki okuma düğmesi ve durum yazısı, gösterilen sayfa okunuyorsa meşgul görünür
+  function showReading(it) {
+    const busy = state.archive.reading.has(it.id);
+    setBusy($('#vReread'), busy, busy ? 'Okunuyor' : it.reading === 'tamam' ? 'Yeniden oku' : 'Yazıya dök');
+    $('#vTextRead').disabled = busy;
+    $('#vStatus').textContent = busy ? 'Yazı yapay zekâyla okunuyor; birkaç saniye sürebilir…' : '';
+  }
+
+  function rereadCurrent() {
+    return rereadPage(state.archive.current);
+  }
+
+  async function rereadPage(it) {
+    if (!it || state.archive.reading.has(it.id)) return;
+    const shown = () => state.archive.current === it && $('#viewer').open;
+    state.archive.reading.add(it.id);
+    if (shown()) showReading(it);
+    try {
+      const d = await api.reread(it.id);
+      if (state.archive.gone.has(it.id)) return;
+      applyReread(it, d);
+      renderArchive();
+      const where = d.curriculum ? ` Müfredattaki yeri: ${placeShort(d.curriculum)}.` : '';
+      toast(d.copyOf
+        ? 'Yazı okundu. Bu yazı arşivde zaten var; sayfa “Var zaten” olarak işaretlendi.'
+        : d.legible ? `Yazı okundu.${where}` : d.text ? 'Yazı okundu ama tam okunaklı değil; Yazılar’a eklenmedi.' : 'Bu fotoğrafta okunabilir yazı bulunamadı.');
+      state.archive.reading.delete(it.id);
+      if (shown()) {
+        fillViewer(it);
+        setViewerMode('yazi');
+      }
+      reloadArchive();
+    } catch (e) {
+      if (e.auth) { lockedOut(); return; }
+      // Okunurken silinen sayfa için hata gösterilmez
+      if (!state.archive.gone.has(it.id) && e.status !== 404) toast(e.message || 'Yazı okunamadı.', true);
     } finally {
-      setBusy(btn, false, label);
-      $('#vTextRead').disabled = false;
+      state.archive.reading.delete(it.id);
+      if (shown()) showReading(it);
     }
   }
 
@@ -3985,15 +4195,19 @@ Reply with ONLY this JSON object and nothing else:
     const btn = $('#tdSave');
     const text = $('#tdText').value;
     const legible = $('#tdLegible').checked;
-    if (legible && !text.trim()) { showFieldError(err, 'Defterde yer alması için yazıyı da gir.'); return; }
+    if (legible && !text.trim()) { showFieldError(err, 'Yazılar’da yer alması için yazıyı da gir.'); return; }
     setBusy(btn, true, 'Kaydediliyor');
     try {
       const d = await api.saveText(it.id, { text, title: $('#tdHead').value, legible });
       forgetText(it.id);
       state.archive.texts.set(it.id, { text: d.text || '', title: d.title || '', legible: !!d.legible, figures: d.figures || [] });
-      applyItemUpdate(it, { ...d.item, figuresPending: false }); // elle düzeltilen yazı toplu okumada ezilmez
+      // elle düzeltilen yazı toplu okumada ezilmez
+      applyItemUpdate(it, {
+        ...d.item, figuresPending: false, curriculum: d.curriculum || null, curriculumChecked: !!d.curriculumChecked,
+        curriculumPending: !d.curriculumChecked && !!(d.text && d.text.trim()),
+      });
       $('#textDialog').close();
-      toast(d.legible ? 'Yazı kaydedildi; defter güncellendi.' : 'Yazı kaydedildi.');
+      toast(d.legible ? 'Yazı kaydedildi; Yazılar güncellendi.' : 'Yazı kaydedildi.');
       setViewerMode('yazi');
     } catch (ex) {
       if (ex.auth) { lockedOut(); return; }
@@ -4003,11 +4217,12 @@ Reply with ONLY this JSON object and nothing else:
     }
   }
 
-  /* Yazıya dökülmemiş sayfaları (özellik gelmeden önce yüklenenler) ve şekiller deftere
-     geçmeden önce okunmuş sayfaları sırayla okut */
+  /* Toplu işlem: yazıya dökülmemiş sayfalar, şekiller gelmeden okunmuş sayfalar ve müfredattaki yeri
+     henüz belirlenmemiş sayfalar sırayla işlenir */
   const needsReading = (i) => i.reading !== 'tamam' || !!i.figuresPending;
+  const needsTopic = (i) => !needsReading(i) && !!i.curriculumPending;
   function pendingItems() {
-    return state.archive.items.filter((i) => !i.example && needsReading(i));
+    return state.archive.items.filter((i) => !i.example && (needsReading(i) || needsTopic(i)));
   }
 
   function renderBulk() {
@@ -4015,23 +4230,35 @@ Reply with ONLY this JSON object and nothing else:
     const run = state.bulk;
     if (run.active) {
       el.hidden = false;
-      $('#bulkText').textContent = `${run.done} / ${run.total} sayfa ${run.verb}…${run.removed ? ` ${run.removed} kopya ayıklandı.` : ''}`;
+      $('#bulkText').textContent = `${run.done} / ${run.total} sayfa ${run.verb}…${run.marked ? ` ${run.marked} kopya “Var zaten” olarak işaretlendi.` : ''}`;
       $('#bulkRun').textContent = 'Durdur';
       return;
     }
     const list = pendingItems();
     const n = list.length;
-    const again = list.filter((i) => i.reading === 'tamam').length; // okunmuş ama şekilleri deftere geçmemiş
-    const fresh = n - again;
+    const fresh = list.filter((i) => i.reading !== 'tamam').length;
+    const again = list.filter((i) => i.reading === 'tamam' && i.figuresPending).length;
+    const topics = list.filter(needsTopic).length;
     el.hidden = !n || state.archive.tab === 'qr' || api.mode !== 'live';
-    $('#bulkText').textContent = !again
-      ? `${n} sayfa henüz yazıya dökülmedi. Yazıya dökülünce okunaklı olanlar defterlere yazılır, aynı sayfanın kopyaları ayıklanır.`
-      : !fresh
-        ? `${again} sayfa, şekiller deftere geçmeden önce okunmuştu. Yeniden okununca çizimleri de deftere geçer.`
-        : `${fresh} sayfa henüz yazıya dökülmedi; ${again} sayfanın da çizimleri için yeniden okunması gerekiyor. Okunaklı olanlar defterlere yazılır, aynı sayfanın kopyaları ayıklanır.`;
+    let text;
+    if (fresh && !again && !topics) {
+      text = `${fresh} sayfa henüz yazıya dökülmedi. Yazıya dökülünce okunaklı olanlar Yazılar’a eklenir ve MEB müfredatındaki yerleri belirlenir.`;
+    } else if (again && !fresh && !topics) {
+      text = `${again} sayfa, şekiller eklenmeden önce okunmuştu. Yeniden okununca çizimleri de yazısına geçer.`;
+    } else if (topics && !fresh && !again) {
+      text = `${topics} sayfanın MEB müfredatındaki yeri (sınıf, ünite, konu) henüz belirlenmedi.`;
+    } else {
+      const parts = [];
+      if (fresh) parts.push(`${fresh} sayfa henüz yazıya dökülmedi`);
+      if (again) parts.push(`${again} sayfanın çizimleri için yeniden okunması gerekiyor`);
+      if (topics) parts.push(`${topics} sayfanın müfredattaki yeri belirlenmedi`);
+      text = `${parts.join('; ')}. Okunaklı olanlar Yazılar’a eklenir, kopyalar “Var zaten” olarak işaretlenir.`;
+    }
+    $('#bulkText').textContent = n ? text : '';
     $('#bulkRun').textContent = fresh
       ? (n === 1 ? 'Yazıya dök' : 'Hepsini yazıya dök')
-      : (again === 1 ? 'Yeniden oku' : 'Hepsini yeniden oku');
+      : again ? (n === 1 ? 'Yeniden oku' : 'Hepsini yeniden oku')
+        : (n === 1 ? 'Konusunu belirle' : 'Konularını belirle');
   }
 
   async function runBulk() {
@@ -4044,24 +4271,35 @@ Reply with ONLY this JSON object and nothing else:
     const list = pendingItems();
     const queue = list.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)).map((i) => i.id);
     if (!queue.length) return;
-    const verb = list.some((i) => i.reading !== 'tamam') ? 'yazıya döküldü' : 'yeniden okundu';
-    Object.assign(run, { active: true, stop: false, total: queue.length, done: 0, removed: 0, failed: 0, verb });
+    const kinds = new Set(list.map((i) => (i.reading !== 'tamam' ? 'oku' : i.figuresPending ? 'yeniden' : 'konu')));
+    const verb = kinds.size > 1 ? 'işlendi' : kinds.has('oku') ? 'yazıya döküldü' : kinds.has('yeniden') ? 'yeniden okundu' : 'müfredata yerleştirildi';
+    Object.assign(run, { active: true, stop: false, total: queue.length, done: 0, marked: 0, failed: 0, verb });
     renderBulk();
     let lastError = '';
     for (const id of queue) {
       if (run.stop || !state.archive.open) break;
       const it = state.archive.items.find((i) => i.id === id);
-      if (it && needsReading(it)) {
+      if (it && !state.archive.reading.has(id) && (needsReading(it) || needsTopic(it))) {
         try {
-          const d = await api.reread(id);
-          applyReread(it, d);
-          if (d.deleted) run.removed++;
-          run.removed += (d.replaced || []).length;
+          if (needsReading(it)) {
+            const d = await api.reread(id);
+            if (!state.archive.gone.has(id)) {
+              applyReread(it, d);
+              if (d.copyOf) run.marked++;
+              run.marked += (d.replaced || []).length;
+            }
+          } else {
+            const d = await api.setTopic(id, { otomatik: true });
+            Object.assign(it, { curriculum: d.curriculum || null, curriculumChecked: true, curriculumPending: false });
+          }
         } catch (e) {
           if (e.auth) { run.active = false; lockedOut(); return; }
-          run.failed++;
-          lastError = e.message || '';
-          if (/kapasite/i.test(lastError)) run.stop = true;
+          // Bu arada silinen sayfa hata sayılmaz
+          if (e.status !== 404 && !state.archive.gone.has(id)) {
+            run.failed++;
+            lastError = e.message || '';
+            if (/kapasite/i.test(lastError)) run.stop = true;
+          }
         }
         renderArchive();
       }
@@ -4071,151 +4309,212 @@ Reply with ONLY this JSON object and nothing else:
     const stopped = run.stop && run.done < run.total;
     run.active = false;
     $('#bulkRun').disabled = false;
-    renderArchive();
-    if (state.archive.tab === 'books') renderBooks();
+    await reloadArchive();
     renderBulk();
     refreshCounts();
     const parts = [`${run.done - run.failed} sayfa ${run.verb}`];
-    if (run.removed) parts.push(`${run.removed} kopya otomatik ayıklandı`);
-    if (run.failed) parts.push(`${run.failed} sayfa şu an okunamadı`);
+    if (run.marked) parts.push(`${run.marked} kopya “Var zaten” olarak işaretlendi`);
+    if (run.failed) parts.push(`${run.failed} sayfa şu an işlenemedi`);
     toast(`${parts.join(', ')}.${stopped && lastError ? ` ${lastError}` : ''}`, !!run.failed);
   }
 
   /* ------------------------------------------------------------------ */
-  /* Defterler: okunaklı sayfaların temiz yazımı, bölüm bölüm              */
+  /* Yazılar: okunaklı sayfaların yazısı; yüklenme sırası ya da müfredat  */
+  /* sırası (sınıf, ünite, konu)                                          */
   /* ------------------------------------------------------------------ */
 
-  function renderBooks() {
-    const nb = state.archive.notebooks || {};
-    $('#books').innerHTML = SECTIONS.map((s) => {
-      const n = nb[s.id] || 0;
-      return `
-        <button type="button" class="bookcard${n ? '' : ' empty-book'}" data-book="${s.id}"${n ? '' : ' aria-disabled="true"'}>
-          <span class="bk-cover">
-            <span class="bk-sym">${symbolIcon(s.id, 5.2)}</span>
-            <span class="bk-name">${s.name}</span>
-          </span>
-          <span class="bk-count">${n ? `${n} sayfa` : 'Henüz sayfa yok'}</span>
-        </button>`;
+  let textsLoading = null;
+  async function loadTexts(force = false) {
+    if (state.archive.textPages && !force) { renderTexts(); return; }
+    if (!textsLoading) {
+      if (!state.archive.textPages) $('#texts').innerHTML = '<div class="empty"><p>Yazılar yükleniyor…</p></div>';
+      textsLoading = api.texts()
+        .then((d) => { state.archive.textPages = d.pages || []; })
+        .finally(() => { textsLoading = null; });
+    }
+    try {
+      await textsLoading;
+    } catch (e) {
+      if (e.auth) { lockedOut(); return; }
+      $('#texts').innerHTML = emptyBlock('Yazılar alınamadı', e.message || 'Biraz sonra tekrar dene.');
+      return;
+    }
+    if (state.archive.tab === 'texts') renderTexts();
+  }
+
+  function invalidateTexts() {
+    state.archive.textPages = null;
+    if (state.archive.open && state.archive.tab === 'texts') loadTexts();
+  }
+
+  // Yazının ekrandaki hâli: paragraflar ve şekiller (şekiller fotoğraftan kesilip sonradan yerleşir)
+  function transcriptHtml(text) {
+    const out = [];
+    let para = [];
+    const flush = () => {
+      if (para.length) out.push(`<p>${para.map(esc).join('<br>')}</p>`);
+      para = [];
+    };
+    for (const raw of String(text || '').split('\n')) {
+      const line = raw.trim();
+      if (!line) { flush(); continue; }
+      const fig = parseFigureLine(line);
+      if (fig) {
+        flush();
+        out.push(`<figure class="tx-fig" data-n="${fig.n}"><span class="tx-fig-img"></span><figcaption>${esc(fig.caption)}</figcaption></figure>`);
+        continue;
+      }
+      para.push(line);
+    }
+    flush();
+    return out.join('');
+  }
+
+  function textEntryHtml(p, mode, uploadNo) {
+    const c = p.curriculum;
+    const no = uploadNo.get(p.id);
+    const all = state.archive.textPages || [];
+    const orig = p.copyOf ? all.find((x) => x.id === p.copyOf) : null;
+    const byTopic = mode === 'mufredat' && c;
+    const marker = byTopic
+      ? `<span class="tx-no" title="${c.topic}. konu"><b>${c.topic}</b><small>konu</small></span>`
+      : `<span class="tx-no" title="${no}. yüklenen sayfa"><b>${no}</b><small>sıra</small></span>`;
+    const place = c
+      ? (byTopic ? `${c.topic}. konu: ${c.topicName}` : `${secName(p.section)}, ${placeLong(c)}`)
+      : p.curriculumChecked ? 'Müfredatta yeri bulunamadı' : 'Müfredattaki yeri henüz belirlenmedi';
+    const meta = [byTopic ? `${no}. yüklenen` : '', p.name ? `ekleyen: ${p.name}` : '', formatDate(p.createdAt)].filter(Boolean).join(', ');
+    const body = `<div class="tx-body">${transcriptHtml(p.text)}</div>`;
+    const figs = Array.isArray(p.figures) && p.figures.length ? ' data-figs="1"' : '';
+    return `
+      <li class="tx${p.copyOf ? ' is-copy' : ''}" id="tx-${esc(p.id)}" data-id="${esc(p.id)}"${figs}>
+        <div class="tx-head">
+          ${marker}
+          <div class="tx-titles">
+            <h5>${esc(p.title || `${secName(p.section)} notu`)}</h5>
+            <p class="tx-place">${esc(place)}</p>
+            <p class="tx-meta">${esc(meta)}</p>
+          </div>
+          <button type="button" class="btn ghost small tx-open" data-open="${esc(p.id)}">Sayfayı aç</button>
+        </div>
+        ${p.copyOf
+          ? `<p class="tx-dup"><span class="dup-mark">Var zaten</span> ${orig ? `Bu yazı ${uploadNo.has(orig.id) ? `${uploadNo.get(orig.id)}. yüklenen` : 'başka bir'} sayfada da var.` : 'Bu yazı arşivdeki başka bir sayfada da var.'}${orig ? ` <button type="button" class="link-btn" data-goto="${esc(orig.id)}">Aslına git</button>` : ''}</p>
+             <details class="tx-more"><summary>Yazısını yine de göster</summary>${body}</details>`
+          : body}
+      </li>`;
+  }
+
+  const byPlace = (a, b) => (a.curriculum.grade - b.curriculum.grade) || (a.curriculum.unit - b.curriculum.unit)
+    || (a.curriculum.topic - b.curriculum.topic) || ((a.createdAt || 0) - (b.createdAt || 0));
+
+  function curriculumHtml(list, uploadNo, filter) {
+    const secs = filter === 'tumu' ? SECTIONS.filter((s) => list.some((p) => p.section === s.id)) : SECTIONS.filter((s) => s.id === filter);
+    return secs.map((s) => {
+      const pages = list.filter((p) => p.section === s.id);
+      const placed = pages.filter((p) => p.curriculum).sort(byPlace);
+      const rest = pages.filter((p) => !p.curriculum);
+      let html = filter === 'tumu' ? `<h3 class="tx-sec">${symbolIcon(s.id, 4.6)}${s.name}</h3>` : '';
+      let grade = null;
+      let unit = null;
+      let open = false;
+      for (const p of placed) {
+        const c = p.curriculum;
+        if (c.grade !== grade) {
+          if (open) html += '</ol></section></section>';
+          html += `<section class="tx-grade"><h4>${c.grade}. sınıf</h4>`;
+          grade = c.grade;
+          unit = null;
+          open = false;
+        }
+        if (c.unit !== unit) {
+          if (open) html += '</ol></section>';
+          html += `<section class="tx-unit"><h5 class="tx-unit-name">${esc(c.unitLabel)}: ${esc(c.unitName)}</h5><ol class="tx-list">`;
+          unit = c.unit;
+          open = true;
+        }
+        html += textEntryHtml(p, 'mufredat', uploadNo);
+      }
+      if (open) html += '</ol></section></section>';
+      if (rest.length) {
+        html += `<section class="tx-grade"><h4>Müfredatta yeri belirlenmeyenler</h4><ol class="tx-list">${rest.map((p) => textEntryHtml(p, 'mufredat', uploadNo)).join('')}</ol></section>`;
+      }
+      return `<section class="tx-block">${html}</section>`;
     }).join('');
   }
 
-  async function openReader(section) {
-    const r = state.reader;
-    const d = $('#reader');
-    r.section = section;
-    r.pages = [];
-    r.index = 0;
-    r.urls.forEach((u) => URL.revokeObjectURL(u));
-    r.urls.clear();
-    $('#rdTitle').textContent = `${secName(section)} defteri`;
-    $('#rdSym').innerHTML = symbolIcon(section, 5);
-    $('#rdInfo').textContent = 'Defter açılıyor…';
-    $('#rdPage').hidden = true;
-    $('#rdWait').hidden = false;
-    $('#rdWait').textContent = 'Defter açılıyor…';
-    d.showModal();
-    try {
-      const data = await api.notebook(section);
-      if (r.section !== section) return;
-      r.pages = data.pages || [];
-    } catch (e) {
-      if (e.auth) { d.close(); lockedOut(); return; }
-      $('#rdWait').textContent = e.message || 'Defter açılamadı.';
-      $('#rdInfo').textContent = '';
+  function renderTexts() {
+    const all = state.archive.textPages || [];
+    const f = state.archive.textFilter;
+    const order = state.archive.textOrder;
+    const counts = {};
+    for (const p of all) counts[p.section] = (counts[p.section] || 0) + 1;
+    $('#txChips').innerHTML = [`<button type="button" class="chip" data-tfilter="tumu" aria-pressed="${f === 'tumu'}">Tümü <b>${all.length}</b></button>`]
+      .concat(SECTIONS.map((s) => `<button type="button" class="chip" data-tfilter="${s.id}" aria-pressed="${f === s.id}">${symbolIcon(s.id, 6.5)}${s.name} <b>${counts[s.id] || 0}</b></button>`))
+      .join('');
+    for (const b of $$('#txOrder [data-order]')) {
+      const on = b.dataset.order === order;
+      b.setAttribute('aria-checked', String(on));
+      b.tabIndex = on ? 0 : -1;
+    }
+    const box = $('#texts');
+    if (!all.length) {
+      box.innerHTML = emptyBlock('Henüz yazı yok', 'Yazısı okunaklı olan sayfalar burada yazı olarak görünür. Eski sayfalar için üstteki düğmeyle hepsini yazıya dökebilirsin.');
       return;
     }
-    if (!r.pages.length) {
-      $('#rdWait').textContent = 'Bu defterde henüz okunaklı sayfa yok.';
-      $('#rdInfo').textContent = '';
-      updateReaderButtons();
+    const list = all.filter((p) => f === 'tumu' || p.section === f)
+      .sort((a, b) => ((a.createdAt || 0) - (b.createdAt || 0)) || (a.id < b.id ? 1 : -1));
+    if (!list.length) {
+      box.innerHTML = emptyBlock(`${secName(f)} bölümünde yazı yok`, 'Bu bölümde yazısı okunaklı bir sayfa henüz yok.');
       return;
     }
-    await showReaderPage(0, 0);
+    const uploadNo = new Map(list.map((p, i) => [p.id, i + 1]));
+    box.innerHTML = order === 'mufredat'
+      ? curriculumHtml(list, uploadNo, f)
+      : `<ol class="tx-list">${list.map((p) => textEntryHtml(p, 'yukleme', uploadNo)).join('')}</ol>`;
+    observeFigures(box);
   }
 
-  async function readerUrl(i) {
-    const r = state.reader;
-    const p = r.pages[i];
-    if (!p) return null;
-    const narrow = narrowScreen();
-    const key = `${p.id}:${narrow ? 'dar' : 'genis'}`;
-    if (r.urls.has(key)) return r.urls.get(key);
-    const figures = await pageFigures(p, () => api.photoBlob(p));
-    const canvas = await renderTextPage({ ...p, section: r.section, folio: i + 1 }, { narrow, figures });
-    const blob = await canvasToBlob(canvas, 'image/png');
-    const url = URL.createObjectURL(blob);
-    r.urls.set(key, url);
-    return url;
+  function setTextOrder(order) {
+    if (state.archive.textOrder === order) return;
+    state.archive.textOrder = order;
+    renderTexts();
   }
 
-  async function showReaderPage(i, dir) {
-    const r = state.reader;
-    if (r.busy || i < 0 || i >= r.pages.length) return;
-    r.busy = true;
-    const img = $('#rdPage');
-    try {
-      const turning = dir && !prefersReduced && !img.hidden;
-      if (turning) {
-        img.classList.remove('turn-in-next', 'turn-in-prev');
-        img.classList.add(dir > 0 ? 'turn-out-next' : 'turn-out-prev');
-      }
-      const [url] = await Promise.all([readerUrl(i), turning ? sleep(320) : Promise.resolve()]);
-      r.index = i;
-      img.src = url;
-      img.alt = `${secName(r.section)} defteri, ${i + 1}. sayfa: ${r.pages[i].title || ''}`;
-      img.hidden = false;
-      $('#rdWait').hidden = true;
-      img.classList.remove('turn-out-next', 'turn-out-prev');
-      if (turning) {
-        void img.offsetWidth;
-        img.classList.add(dir > 0 ? 'turn-in-next' : 'turn-in-prev');
-      }
-      $('#rdStage').scrollTop = 0;
-      const p = r.pages[i];
-      $('#rdInfo').textContent = `Sayfa ${i + 1} / ${r.pages.length}${p.name ? `, ekleyen: ${p.name}` : ''}`;
-      updateReaderButtons();
-      readerUrl(i + 1).catch(() => {});
-    } finally {
-      r.busy = false;
+  // Şekiller görünür olunca fotoğraftan kesilip yerleşir
+  let figObserver = null;
+  function observeFigures(root) {
+    const els = $$('.tx[data-figs="1"]', root);
+    if (!els.length) return;
+    if (!('IntersectionObserver' in window)) { els.forEach(loadEntryFigures); return; }
+    if (!figObserver) {
+      figObserver = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          figObserver.unobserve(e.target);
+          loadEntryFigures(e.target);
+        }
+      }, { rootMargin: '600px 0px' });
     }
+    els.forEach((el) => figObserver.observe(el));
   }
 
-  function updateReaderButtons() {
-    const r = state.reader;
-    const prev = $('#rdPrev');
-    const next = $('#rdNext');
-    const focused = document.activeElement;
-    prev.disabled = r.index <= 0 || !r.pages.length;
-    next.disabled = r.index >= r.pages.length - 1 || !r.pages.length;
-    $('#rdDownload').disabled = !r.pages.length;
-    $('#rdDownload').hidden = !api.canDownload;
-    // Devre dışı kalan düğmedeki odak, diyaloğun içinde kalsın
-    if (focused === next && next.disabled && !prev.disabled) prev.focus();
-    else if (focused === prev && prev.disabled && !next.disabled) next.focus();
-  }
-
-  async function downloadReaderPage() {
-    const r = state.reader;
-    const p = r.pages[r.index];
-    if (!p) return;
-    const btn = $('#rdDownload');
-    setBusy(btn, true, 'Hazırlanıyor');
+  async function loadEntryFigures(el) {
+    const page = (state.archive.textPages || []).find((p) => p.id === el.dataset.id);
+    if (!page) return;
+    let map;
     try {
-      const figures = await pageFigures(p, () => api.photoBlob(p));
-      const blob = await canvasToBlob(await renderTextPage({ ...p, section: r.section, folio: r.index + 1 }, { figures }), 'image/png');
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `anil-defteri-${r.section}-${String(r.index + 1).padStart(2, '0')}-${slug(p.title || 'sayfa')}.png`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 4000);
-    } catch (e) {
-      toast(e.message || 'Sayfa indirilemedi.', true);
-    } finally {
-      setBusy(btn, false, 'İndir');
+      map = await pageFigures(page, () => api.photoBlob(page));
+    } catch {
+      return;
+    }
+    for (const f of $$('.tx-fig', el)) {
+      const canvas = map.get(Number(f.dataset.n));
+      const slot = $('.tx-fig-img', f);
+      if (!canvas || !slot || slot.firstChild) continue;
+      const img = new Image();
+      img.alt = $('figcaption', f).textContent;
+      img.src = canvas.toDataURL('image/png');
+      slot.appendChild(img);
+      f.classList.add('has-img');
     }
   }
 
@@ -4558,7 +4857,14 @@ Reply with ONLY this JSON object and nothing else:
     ctx.textBaseline = 'alphabetic';
     ctx.fillStyle = '#86621f';
     ctx.font = FONT_SMALL;
-    ctx.fillText(`${secName(page.section)} defteri`, BODY_LEFT, L.label);
+    let label = secName(page.section);
+    const cur = page.curriculum;
+    if (cur) {
+      const full = `${label}, ${cur.grade}. sınıf, ${cur.unitLabel}: ${cur.unitName}, ${cur.topic}. konu`;
+      const short = `${label}, ${cur.grade}. sınıf, ${cur.unitLabel}, ${cur.topic}. konu`;
+      label = ctx.measureText(full).width <= bodyWidth ? full : short;
+    }
+    ctx.fillText(label, BODY_LEFT, L.label);
     ctx.fillStyle = '#13203d';
     ctx.font = L.titleFont;
     titleLines.forEach((t, k) => ctx.fillText(t, BODY_LEFT, L.title + k * L.titleStep));
@@ -4625,7 +4931,7 @@ Reply with ONLY this JSON object and nothing else:
       applyItemUpdate(it, updated);
       toast('Sayfa döndürüldü.');
       // Döndürünce şekillerin yeri değişir; yan çekilmiş yazı da okunabilir hâle gelebilir: yeniden oku
-      if (api.mode === 'live') rereadCurrent();
+      if (api.mode === 'live') rereadPage(it);
     } catch (e) {
       if (e.auth) { lockedOut(); return; }
       toast(e.message || 'Sayfa döndürülemedi.', true);
@@ -4639,13 +4945,13 @@ Reply with ONLY this JSON object and nothing else:
     if (!it || section === it.section) return;
     try {
       const updated = await api.update(it.id, { section });
-      applyItemUpdate(it, updated);
       forgetText(it.id);
+      applyItemUpdate(it, updated);
       refreshCounts();
-      toast(`${secName(section)} bölümüne taşındı.`);
+      toast(`${secName(section)} bölümüne taşındı.${updated.curriculum ? ` Müfredattaki yeri: ${placeShort(updated.curriculum)}.` : ''}`);
     } catch (e) {
       if (e.auth) { lockedOut(); return; }
-      $('#vMove').value = it.section;
+      if (state.archive.current === it) $('#vMove').value = it.section;
       toast(e.message || 'Bölüm değiştirilemedi.', true);
     }
   }
@@ -4662,7 +4968,7 @@ Reply with ONLY this JSON object and nothing else:
       applyItemUpdate(it, updated);
       forgetText(it.id);
       toast('Fotoğraf değiştirildi. Yazısı yeniden okunuyor…');
-      if (api.mode === 'live') rereadCurrent();
+      if (api.mode === 'live') rereadPage(it);
     } catch (e) {
       if (e.auth) { lockedOut(); return; }
       toast(e.message || 'Fotoğraf değiştirilemedi.', true);
@@ -4677,14 +4983,16 @@ Reply with ONLY this JSON object and nothing else:
     if (!it) return;
     try {
       await api.remove(it.id);
+      state.archive.gone.add(it.id);
       state.archive.items = state.archive.items.filter((i) => i !== it);
       state.archive.current = null;
       forgetText(it.id);
-      recountNotebooks();
       $('#viewer').close();
       renderArchive();
       refreshCounts();
       toast('Sayfa silindi.');
+      if (it.copies || it.copyOf) reloadArchive();
+      else invalidateTexts();
     } catch (e) {
       if (e.auth) { lockedOut(); return; }
       toast(e.message || 'Sayfa silinemedi.', true);
@@ -4938,7 +5246,7 @@ Reply with ONLY this JSON object and nothing else:
     $('#arcClose').addEventListener('click', closeArchive);
     $('#arcLock').addEventListener('click', lockArchive);
     $('#tabBtnPages').addEventListener('click', () => setArchiveTab('pages'));
-    $('#tabBtnBooks').addEventListener('click', () => setArchiveTab('books'));
+    $('#tabBtnTexts').addEventListener('click', () => setArchiveTab('texts'));
     $('#tabBtnQr').addEventListener('click', () => setArchiveTab('qr'));
     $('.tabs').addEventListener('keydown', (e) => {
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
@@ -4948,45 +5256,54 @@ Reply with ONLY this JSON object and nothing else:
       $(btn).focus();
     });
     $('#bulkRun').addEventListener('click', runBulk);
-    $('#books').addEventListener('click', (e) => {
-      const b = e.target.closest('[data-book]');
-      if (!b) return;
-      if (b.getAttribute('aria-disabled') === 'true') {
-        toast(`${secName(b.dataset.book)} defterine henüz okunaklı sayfa yazılmadı.`);
-        return;
+    // Yazılar: bölüm süzgeci, sıralama, sayfayı açma, kopyanın aslına gitme
+    $('#txChips').addEventListener('click', (e) => {
+      const chip = e.target.closest('[data-tfilter]');
+      if (!chip) return;
+      state.archive.textFilter = chip.dataset.tfilter;
+      renderTexts();
+    });
+    $('#txOrder').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-order]');
+      if (b) setTextOrder(b.dataset.order);
+    });
+    $('#txOrder').addEventListener('keydown', (e) => {
+      if (!['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+      e.preventDefault();
+      const next = state.archive.textOrder === 'yukleme' ? 'mufredat' : 'yukleme';
+      setTextOrder(next);
+      $(`#txOrder [data-order="${next}"]`).focus();
+    });
+    $('#texts').addEventListener('click', (e) => {
+      const open = e.target.closest('[data-open]');
+      if (open) { openViewer(open.dataset.open); return; }
+      const go = e.target.closest('[data-goto]');
+      if (go) {
+        const el = document.getElementById('tx-' + go.dataset.goto);
+        if (!el) return;
+        el.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth', block: 'start' });
+        el.classList.remove('flash');
+        void el.offsetWidth;
+        el.classList.add('flash');
+        $('.tx-open', el)?.focus({ preventScroll: true });
       }
-      openReader(b.dataset.book);
     });
-    $('#rdClose').addEventListener('click', () => $('#reader').close());
-    $('#rdPrev').addEventListener('click', () => showReaderPage(state.reader.index - 1, -1));
-    $('#rdNext').addEventListener('click', () => showReaderPage(state.reader.index + 1, 1));
-    $('#rdDownload').addEventListener('click', downloadReaderPage);
-    document.addEventListener('keydown', (e) => {
-      if (!$('#reader').open || e.target.closest('input, textarea, select')) return;
-      if (e.key === 'ArrowRight') { e.preventDefault(); showReaderPage(state.reader.index + 1, 1); }
-      if (e.key === 'ArrowLeft') { e.preventDefault(); showReaderPage(state.reader.index - 1, -1); }
+    // Görüntüleyici: kopyanın aslı, müfredattaki yeri değiştirme
+    $('#vCopies').addEventListener('click', (e) => {
+      if (!e.target.closest('#vOpenOrig')) return;
+      const it = state.archive.current;
+      if (it && it.copyOf) openViewer(it.copyOf);
     });
-    $('#reader').addEventListener('close', () => {
-      state.reader.section = null;
-      state.reader.urls.forEach((u) => URL.revokeObjectURL(u));
-      state.reader.urls.clear();
+    $('#vTopicEdit').addEventListener('click', openTopicEditor);
+    $('#vTopicAuto').addEventListener('click', () => saveTopic({ otomatik: true }));
+    $('#vtGrade').addEventListener('change', () => fillUnits());
+    $('#vtUnit').addEventListener('change', () => fillTopics());
+    $('#vTopicForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      saveTopic({ sinif: Number($('#vtGrade').value), unite: Number($('#vtUnit').value), konu: Number($('#vtTopic').value) });
     });
-    {
-      let sx = 0;
-      let sy = 0;
-      let tracking = false;
-      const stage = $('#rdStage');
-      stage.addEventListener('pointerdown', (e) => { tracking = true; sx = e.clientX; sy = e.clientY; });
-      stage.addEventListener('pointercancel', () => { tracking = false; });
-      stage.addEventListener('pointerup', (e) => {
-        if (!tracking) return;
-        tracking = false;
-        const dx = e.clientX - sx;
-        const dy = e.clientY - sy;
-        if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
-        showReaderPage(state.reader.index + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
-      });
-    }
+    $('#vtNone').addEventListener('click', () => saveTopic({ sinif: 0 }));
+    $('#vtCancel').addEventListener('click', () => { $('#vTopicForm').hidden = true; $('#vTopicEdit').focus(); });
     $('#vModePhoto').addEventListener('click', () => setViewerMode('foto'));
     $('#vModeText').addEventListener('click', () => setViewerMode('yazi'));
     $('.v-modes').addEventListener('keydown', (e) => {
