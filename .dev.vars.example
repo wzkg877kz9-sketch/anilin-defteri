@@ -1,0 +1,3 @@
+# Yalnızca bilgisayarında "npm run yerel" ile denerken kullanılır.
+# Bu dosyayı ".dev.vars" adıyla kopyala ve parolanı yaz. .dev.vars asla paylaşılmamalı.
+ADMIN_PASSWORD=buraya-parolani-yaz

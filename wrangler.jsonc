@@ -1,0 +1,34 @@
+{
+  // Anıl'ın Defteri: Cloudflare Worker ayarları
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "anilin-defteri",
+  "main": "src/worker.js",
+  "compatibility_date": "2025-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Sayfa (public/index.html). Her istek önce Worker'dan geçer; QR ve parola kontrolü orada yapılır.
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+
+  // Fotoğraflar, QR kodları ve ayarlar burada saklanır (Cloudflare hesabındaki "anilin-defteri" KV deposu).
+  "kv_namespaces": [{ "binding": "DEFTER", "id": "54b37e5a58d547a8876449b540747d11" }],
+
+  // Otomatik içerik denetimi (Workers AI)
+  "ai": { "binding": "AI" },
+
+  "observability": { "enabled": true },
+
+  "vars": {
+    // QR ile girişin geçerli kalacağı süre (saat)
+    "SESSION_HOURS": "12",
+    // Parolayla açılan arşivin açık kalacağı süre (saat)
+    "ADMIN_HOURS": "8",
+    // Kaç uygunsuz fotoğraftan sonra kişi siteden atılsın
+    "MAX_REJECTIONS": "3",
+    // Bir QR oturumunda en fazla kaç fotoğraf yüklenebilsin
+    "MAX_UPLOADS_PER_SESSION": "60"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "anilin-defteri",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Anıl'ın defterini tamamlamasına yardımcı olun: QR ile girilen, parolayla korunan, yapay zekâ denetimli ders notu sitesi",
+  "type": "module",
+  "scripts": {
+    "giris": "wrangler login",
+    "yayinla": "wrangler deploy",
+    "parola": "wrangler secret put ADMIN_PASSWORD",
+    "yerel": "wrangler dev",
+    "kayitlar": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^4.45.0"
+  }
+}
