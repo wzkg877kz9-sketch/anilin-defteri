@@ -1916,7 +1916,8 @@ function topicInput(model, prompt) {
 }
 
 // Yazıdan konuyu belirler; yazı yoksa ya da yapay zekâ çalışmazsa null (sayfa yine kaydedilir, konu sonra belirlenir)
-async function classifySafe(env, cfg, section, title, text) {
+async function classifySafe(env, cfg, section, title, rawText) {
+  const text = withoutImages(rawText);
   if (!hasText(text) || !SECTIONS.includes(section)) return null;
   try {
     return { ...(await classifyText(env, cfg, section, title, text)), durum: 'tamam' };
@@ -2070,8 +2071,8 @@ async function adminSaveText(request, env, cfg, id) {
   let title = restore
     ? row.ilk_baslik || row.baslik || ''
     : typeof body.title === 'string' ? cleanText(body.title, 80) : row.baslik || (ref.meta && ref.meta.d) || '';
-  if (typed && !hasText(text)) return json({ error: 'Yazıyı gir (en az birkaç kelime).' }, 400);
-  if (typed && !title) title = firstLine(text);
+  if (typed && !hasText(withoutImages(text)) && !imageIds(text).length) return json({ error: 'Yazıyı gir ya da fotoğraf ekle.' }, 400);
+  if (typed && !title) title = hasText(withoutImages(text)) ? firstLine(withoutImages(text)) : 'Fotoğraflar';
   const legible = typed
     ? true
     : (typeof body.legible === 'boolean' ? body.legible : Number(row.okunakli) === 1) && dedupeKey(text).length > 0;
@@ -2597,8 +2598,9 @@ async function adminCreateText(request, env, cfg) {
   const section = String(body.bolum || '');
   if (!TEXT_SECTIONS.includes(section)) return json({ error: 'Yazının bölümünü seç.' }, 400);
   const text = cleanTranscript(body.text);
-  if (!hasText(text)) return json({ error: 'Yazıyı gir (en az birkaç kelime).' }, 400);
-  const title = cleanText(body.title, 80) || firstLine(text);
+  const words = withoutImages(text);
+  if (!hasText(words) && !imageIds(text).length) return json({ error: 'Yazıyı gir ya da fotoğraf ekle.' }, 400);
+  const title = cleanText(body.title, 80) || (hasText(words) ? firstLine(words) : 'Fotoğraflar');
   const author = cleanText(body.isim, 40) || 'Anıl';
   if (!(await ensurePages(env))) return json({ error: 'Yazı şu an kaydedilemiyor. Biraz sonra tekrar dene.' }, 503);
   const r = await resolveCurriculum(env, cfg, section, title, text, body.mufredat || { mod: 'otomatik' });
@@ -2831,6 +2833,11 @@ async function adminBeautify(request, env, cfg) {
 // Yazıda kendi satırında durur: "[Görsel: kimlik]" ya da "[Görsel: kimlik | açıklama]"
 const IMAGE_MAX_BYTES = 3 * 1024 * 1024;
 const IMAGE_LINE = /^\s*\[\s*görsel\s*:\s*([a-z0-9]{8,24})\s*(?:\|[^\]\n]*)?\]\s*$/i;
+// Görsel satırları çıkarılmış yazı (başlık ve konu bulmak için)
+export function withoutImages(text) {
+  return String(text || '').split('\n').filter((l) => !IMAGE_LINE.test(l)).join('\n');
+}
+
 export function imageIds(text) {
   const out = [];
   for (const line of String(text || '').split('\n')) {
@@ -2904,7 +2911,8 @@ export function ensureClaude(env) {
         okunakli INTEGER NOT NULL DEFAULT 1,
         foto_ozeti TEXT NOT NULL DEFAULT '',
         model TEXT NOT NULL DEFAULT '',
-        olusturma INTEGER NOT NULL DEFAULT 0
+        olusturma INTEGER NOT NULL DEFAULT 0,
+        tasarim TEXT NOT NULL DEFAULT ''
       )`),
       env.AYAR.prepare(`CREATE TABLE IF NOT EXISTS claude_kuyruk (
         sayfa TEXT PRIMARY KEY,
@@ -2923,6 +2931,8 @@ export function ensureClaude(env) {
         PRIMARY KEY (sayfa, sira)
       )`),
     ])
+      // Claude'un renkli, çizimli sayfa tasarımı (sonradan eklendi)
+      .then(() => env.AYAR.prepare("ALTER TABLE gelismis ADD COLUMN tasarim TEXT NOT NULL DEFAULT ''").run().catch(() => {}))
       .then(() => true)
       .catch((e) => {
         console.warn('Claude tabloları hazırlanamadı:', e && e.message);
@@ -2934,8 +2944,9 @@ export function ensureClaude(env) {
 }
 
 // Claude'un yazmadığı ya da fotoğrafı sonradan değişen asıl sayfaları (kopyalar hariç) kuyruğa koyar
+// (Tasarımı olmayan okunaklı sayfalar da: ilk yazılanlar yalnızca düz yazıydı)
 const CLAUDE_TODO = `FROM sayfalar s LEFT JOIN gelismis g ON g.sayfa = s.id
-  WHERE s.kaynak = 'foto' AND s.asil = '' AND (g.sayfa IS NULL OR g.foto_ozeti != s.foto_ozeti)`;
+  WHERE s.kaynak = 'foto' AND s.asil = '' AND (g.sayfa IS NULL OR g.foto_ozeti != s.foto_ozeti OR (g.okunakli = 1 AND g.tasarim = ''))`;
 
 export async function fillClaudeQueue(env, limit = CLAUDE_FILL_PER_RUN) {
   if (!(await ensurePages(env)) || !(await ensureClaude(env))) return 0;
@@ -2943,7 +2954,8 @@ export async function fillClaudeQueue(env, limit = CLAUDE_FILL_PER_RUN) {
   await env.AYAR.batch([
     env.AYAR.prepare(`DELETE FROM claude_kuyruk WHERE sayfa IN (
       SELECT k.sayfa FROM claude_kuyruk k LEFT JOIN sayfalar s ON s.id = k.sayfa LEFT JOIN gelismis g ON g.sayfa = k.sayfa
-      WHERE s.id IS NULL OR s.asil != '' OR s.foto_ozeti != k.foto_ozeti OR (g.sayfa IS NOT NULL AND g.foto_ozeti = k.foto_ozeti))`),
+      WHERE s.id IS NULL OR s.asil != '' OR s.foto_ozeti != k.foto_ozeti
+        OR (g.sayfa IS NOT NULL AND g.foto_ozeti = k.foto_ozeti AND (g.tasarim != '' OR g.okunakli != 1)))`),
     env.AYAR.prepare('DELETE FROM claude_parca WHERE sayfa NOT IN (SELECT sayfa FROM claude_kuyruk)'),
   ]);
   const { results } = await env.AYAR.prepare(
@@ -2990,7 +3002,7 @@ async function advancedTexts(env, { forReader }) {
   try {
     const { results } = await env.AYAR.prepare(
       `SELECT s.id, s.bolum, s.isim, s.baslik AS s_baslik, s.olusturma, s.sekiller, s.sinif, s.unite, s.konu, s.mufredat, s.foto_ozeti,
-         s.sekil_gorsel, g.baslik AS g_baslik, g.metin AS g_metin, g.ozet, g.kavramlar, g.okunakli AS g_okunakli, g.model,
+         s.sekil_gorsel, g.baslik AS g_baslik, g.metin AS g_metin, g.tasarim AS g_tasarim, g.ozet, g.kavramlar, g.okunakli AS g_okunakli, g.model,
          g.olusturma AS g_zaman, g.foto_ozeti AS g_foto
        FROM gelismis g JOIN sayfalar s ON s.id = g.sayfa WHERE s.asil = ''`,
     ).all();
@@ -3000,7 +3012,8 @@ async function advancedTexts(env, { forReader }) {
     for (const r of results || []) {
       if (r.g_foto !== r.foto_ozeti) continue; // fotoğraf değişti: Claude yeniden yazacak
       last = Math.max(last, Number(r.g_zaman) || 0);
-      const text = cleanTranscript(r.g_metin);
+      const design = cleanDesign(r.g_tasarim);
+      const text = cleanTranscript(r.g_metin) || designText(design);
       if (Number(r.g_okunakli) !== 1 || !hasText(text)) {
         unreadable++;
         continue;
@@ -3015,6 +3028,7 @@ async function advancedTexts(env, { forReader }) {
         { forReader },
       );
       page.advanced = true;
+      if (design) page.design = design;
       page.writtenAt = Number(r.g_zaman) || 0;
       if (!forReader) page.model = r.model || '';
       pages.push(page);
@@ -3029,6 +3043,42 @@ async function advancedTexts(env, { forReader }) {
     console.warn('Gelişmiş yazılar okunamadı:', e && e.message);
     return json({ error: 'Gelişmiş yapay zekâ defteri şu an açılamıyor. Biraz sonra tekrar dene.' }, 503);
   }
+}
+
+// Claude'un sayfa tasarımı (HTML + satır içi SVG). Site onu betik çalıştıramayan bir çerçevede gösterir;
+// burada ayrıca tehlikeli öğeler, olay öznitelikleri, bağlantılar ve dış adresler atılır.
+const DESIGN_MAX = 150000;
+const DESIGN_DROP_BLOCK = /<(script|iframe|object|embed|noscript|template|foreignobject|textarea|select|title|svg:script)\b[\s\S]*?<\/\1\s*>/gi;
+const DESIGN_DROP_TAG = /<\/?(script|iframe|object|embed|link|meta|base|form|input|button|frame|frameset|noscript|template|foreignobject|textarea|select|option|applet|audio|video|source|track|portal|html|head|body|title|dialog)\b[^>]*>/gi;
+export function cleanDesign(raw) {
+  let s = String(raw || '').replace(/\r\n?/g, '\n').trim();
+  if (!s || s.length > DESIGN_MAX) return '';
+  s = s.replace(/<!--[\s\S]*?-->/g, '').replace(/<!doctype[^>]*>/gi, '').replace(/<\?[\s\S]*?\?>/g, '');
+  for (let i = 0; i < 3; i++) s = s.replace(DESIGN_DROP_BLOCK, '');
+  s = s.replace(DESIGN_DROP_TAG, '');
+  s = s.replace(/[\s/"'](on[a-z]+)\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, ' ');
+  s = s.replace(/\s((?:xlink:)?href|src|srcset|action|formaction|poster|background|data|ping|lowsrc|dynsrc)\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+))/gi, (m, name, _q, a, b, c) => {
+    const v = String(a ?? b ?? c ?? '').trim();
+    if (/^#[\w-]*$/.test(v) && /href/i.test(name)) return m;
+    if (/^src$/i.test(name) && /^data:image\/(png|jpe?g|webp|gif);base64,[a-z0-9+/=\s]+$/i.test(v)) return m;
+    return '';
+  });
+  s = s.replace(/@import[^;]*;?/gi, '').replace(/expression\s*\(/gi, '(').replace(/-moz-binding/gi, '');
+  s = s.replace(/url\(\s*(['"]?)\s*(?!data:image\/(?:png|jpe?g|webp|gif)|#)[^)]*\)/gi, 'none');
+  s = s.replace(/<a\b([^>]*)>/gi, '<span$1>').replace(/<\/a\s*>/gi, '</span>');
+  return s.trim();
+}
+
+// Arama ve yedek için tasarımın düz yazısı
+export function designText(design) {
+  return cleanTranscript(String(design || '')
+    .replace(/<style\b[\s\S]*?<\/style\s*>/gi, ' ')
+    .replace(/<svg\b[\s\S]*?<\/svg\s*>/gi, '\n')
+    .replace(/<(br|\/p|\/div|\/h[1-6]|\/li|\/tr|\/section|\/figure)\b[^>]*>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n\s*\n\s*(\n\s*)+/g, '\n\n'));
 }
 
 // Claude'un yazısı silinir; sayfa yeniden kuyruğa girer ve bir sonraki çalışmada yeniden yazılır

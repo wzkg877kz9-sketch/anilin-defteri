@@ -1285,6 +1285,24 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
 .wd-img-x { position: absolute; top: 4px; right: 4px; width: 28px; height: 28px; border: 0; border-radius: 50%; cursor: pointer; font: 700 1.05rem/1 var(--font-ui); color: #fff; background: rgb(28 26 43 / .75); }
 .wd-img-x:focus-visible { outline: 2px solid var(--yaldiz-koyu); outline-offset: 1px; }
 
+/* Fotoğraf galerisi ve büyütme */
+.tx-img img { cursor: zoom-in; }
+.tx-gallery { margin: 0 0 var(--rule); display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.tx-gallery .tx-img { margin: 0; }
+.tx-gallery .tx-img img { width: 100%; max-width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.tx-gallery figcaption { font-size: .92rem; line-height: 1.35; }
+.img-sheet { width: min(1100px, calc(100vw - 16px)); max-height: calc(100dvh - 16px); padding: 12px; border: 0; border-radius: 14px; background: #0c1527; color: var(--fildisi); box-shadow: 0 30px 80px rgb(0 0 0 / .6); }
+.img-sheet::backdrop { background: rgb(4 8 18 / .82); }
+.img-sheet figure { margin: 0; display: grid; justify-items: center; gap: 8px; }
+.img-sheet img { display: block; max-width: 100%; max-height: calc(100dvh - 130px); width: auto; height: auto; border-radius: 8px; background: #fff; }
+.img-sheet figcaption { font: italic 400 1.05rem/1.4 var(--font-body); color: rgb(244 238 226 / .85); text-align: center; }
+.img-sheet form { margin-top: 10px; display: flex; justify-content: center; }
+
+/* Claude'un tasarladığı sayfa */
+.tx-rich { padding: 4px 0 6px; }
+/* Çerçeve kâğıdın üstünde saydam kalsın: içerideki sayfa açık renk düzeninde */
+.rich-frame { display: block; width: 100%; height: 420px; border: 0; background: transparent; color-scheme: light; }
+
 </style>
 </head>
 <body>
@@ -1508,6 +1526,8 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
       <p class="adv-info" id="advInfo" hidden></p>
       <div class="tx-actions">
         <button class="btn gold small" id="txNew" type="button">Yeni yazı</button>
+        <button class="btn ghost small" id="txPhotos" type="button" hidden>Fotoğraf yükle</button>
+        <input type="file" id="txPhotoInput" accept="image/*" multiple hidden>
         <button class="btn ghost small" id="txReaderView" type="button">Okuyanlar nasıl görüyor?</button>
       </div>
       <div class="bulk ai-bulk" id="aiBulk" hidden>
@@ -1851,6 +1871,14 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
     <label class="btn ink small" for="scanFile">Fotoğraftan tara</label>
   </div>
   <input type="file" id="scanFile" accept="image/*" class="visually-hidden">
+</dialog>
+
+<dialog class="img-sheet" id="imgDialog" aria-label="Görsel">
+  <figure>
+    <img id="imgBig" alt="">
+    <figcaption id="imgCap" hidden></figcaption>
+  </figure>
+  <form method="dialog"><button class="btn ghost small" type="submit">Kapat</button></form>
 </dialog>
 
 <dialog class="sheet" id="confirmDialog" aria-labelledby="cTitle">
@@ -4790,6 +4818,13 @@ Reply with ONLY this JSON object and nothing else:
       table = null;
     };
     const flushAll = () => { flushPara(); flushBullets(); flushTable(); };
+    // Art arda gelen görseller (aralarında boş satır olsa da) bir galeri olur
+    let gallery = [];
+    const flushGallery = () => {
+      if (gallery.length > 1) out.push(`<div class="tx-gallery">${gallery.join('')}</div>`);
+      else if (gallery.length) out.push(gallery[0]);
+      gallery = [];
+    };
     for (const raw of String(text || '').split('\n')) {
       const line = raw.trim();
       if (!line) { flushAll(); continue; }
@@ -4797,9 +4832,10 @@ Reply with ONLY this JSON object and nothing else:
       if (img) {
         flushAll();
         const cap = (img[2] || '').trim();
-        out.push(`<figure class="tx-img"><img src="${esc(api.imageUrl(img[1].toLowerCase()))}" alt="${esc(cap || 'Görsel')}" loading="lazy" decoding="async">${cap ? `<figcaption>${esc(cap)}</figcaption>` : ''}</figure>`);
+        gallery.push(`<figure class="tx-img"><img src="${esc(api.imageUrl(img[1].toLowerCase()))}" alt="${esc(cap || 'Görsel')}" loading="lazy" decoding="async">${cap ? `<figcaption>${esc(cap)}</figcaption>` : ''}</figure>`);
         continue;
       }
+      flushGallery();
       const fig = parseFigureLine(line);
       if (fig) {
         flushAll();
@@ -4837,7 +4873,69 @@ Reply with ONLY this JSON object and nothing else:
       para.push(line);
     }
     flushAll();
+    flushGallery();
     return out.join('');
+  }
+
+  // Claude'un tasarladığı sayfa: betik çalıştıramayan bir çerçevede (sandbox) gösterilir
+  const RICH_FONTS = 'https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&amp;family=Alegreya+Sans:wght@400;500;700&amp;family=Caveat:wght@500;600;700&amp;family=Marcellus&amp;display=swap';
+  const RICH_BASE = '*{box-sizing:border-box}html,body{margin:0;background:transparent}'
+    + 'body{padding:6px 16px 18px;color:#1d2442;font:400 17px/1.6 Alegreya,"Iowan Old Style",Georgia,serif;overflow-wrap:anywhere;-webkit-text-size-adjust:100%}'
+    + 'img,svg{max-width:100%;height:auto}svg{display:block;margin-left:auto;margin-right:auto}'
+    + 'table{border-collapse:collapse;display:block;max-width:100%;overflow-x:auto}'
+    + '[data-sekil]{margin:12px auto;text-align:center}[data-sekil] img{display:block;margin:0 auto;max-width:min(100%,520px);border-radius:6px;background:#fff}';
+  const richDoc = (html) => `<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="${RICH_FONTS}"><style>${RICH_BASE}</style></head><body>${html}</body></html>`;
+
+  function placeRichFigures(f) {
+    let doc;
+    try { doc = f.contentDocument; } catch { return; }
+    if (!f._srcOf || !doc || !doc.body) return;
+    for (const slot of doc.querySelectorAll('[data-sekil]')) {
+      if (slot.querySelector('img')) continue;
+      const n = Number(slot.getAttribute('data-sekil'));
+      const src = f._srcOf(n);
+      if (!src) continue;
+      const img = doc.createElement('img');
+      img.alt = `Şekil ${n}`;
+      img.src = src;
+      slot.appendChild(img);
+    }
+  }
+  function setRichFigures(el, srcOf) {
+    for (const f of $$('iframe.rich-frame', el)) {
+      f._srcOf = srcOf;
+      placeRichFigures(f);
+    }
+  }
+  // Çerçevenin yüksekliği içeriğe göre ayarlanır (yazı tipleri, şekiller yüklendikçe de)
+  function fitRichFrames(root) {
+    for (const f of $$('iframe.rich-frame', root)) {
+      if (f.dataset.bound) continue;
+      f.dataset.bound = '1';
+      const setup = () => {
+        let doc;
+        try { doc = f.contentDocument; } catch { return; }
+        if (!doc || !doc.body || f._doc === doc || !doc.body.childElementCount) return;
+        f._doc = doc;
+        const fit = () => { f.style.height = `${Math.ceil(doc.body.getBoundingClientRect().height) + 2}px`; };
+        fit();
+        if ('ResizeObserver' in window) new ResizeObserver(fit).observe(doc.body);
+        if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(fit).catch(() => {});
+        placeRichFigures(f);
+      };
+      f.addEventListener('load', setup);
+      setup();
+    }
+  }
+
+  function openImage(img) {
+    const big = $('#imgBig');
+    big.src = img.currentSrc || img.src;
+    big.alt = img.alt || 'Görsel';
+    const cap = img.closest('figure') && img.closest('figure').querySelector('figcaption');
+    $('#imgCap').textContent = cap ? cap.textContent : '';
+    $('#imgCap').hidden = !cap;
+    $('#imgDialog').showModal();
   }
 
   // Bir yazı: Yazılar’da (yönetici: düzenle, güzelleştir) ya da defterlerde (okuyan: geri bildirim)
@@ -4883,7 +4981,9 @@ Reply with ONLY this JSON object and nothing else:
           ${p.typed ? '' : `<button type="button" class="btn ghost small tx-open" data-open="${esc(p.id)}">Sayfayı aç</button>`}
         </div>`
       : `<div class="tx-tools"><button type="button" class="btn ghost small" data-fb="${esc(p.id)}">Geri bildirim yaz</button></div>`;
-    const body = `<div class="tx-body">${transcriptHtml(p.text)}</div>`;
+    const body = p.design
+      ? `<div class="tx-rich"><iframe class="rich-frame" sandbox="allow-same-origin" referrerpolicy="no-referrer" loading="lazy" title="${esc(p.title || 'Claude’un sayfası')}" srcdoc="${esc(richDoc(p.design))}"></iframe></div>`
+      : `<div class="tx-body">${transcriptHtml(p.text)}</div>`;
     const hasFigs = Array.isArray(p.figures) && p.figures.length && (admin ? !p.typed : !!p.figuresKey);
     return `
       <li class="tx${p.copyOf ? ' is-copy' : ''}${p.typed ? ' is-typed' : ''}" id="${admin ? 'tx' : 'rd'}-${esc(p.id)}" data-id="${esc(p.id)}"${hasFigs ? ' data-figs="1"' : ''}>
@@ -5017,10 +5117,11 @@ Reply with ONLY this JSON object and nothing else:
     const texts = state.archive.textPages || [];
     renderBooks('#txBooks', book, { dersler: bookPages(texts, 'dersler').length, yazilarim: bookPages(texts, 'yazilarim').length, gelismis: adv ? adv.pages.length : null }, 'admin');
     $('#txNew').hidden = book === 'gelismis';
+    $('#txPhotos').hidden = book !== 'yazilarim' || api.mode !== 'live';
     const info = $('#advInfo');
     info.hidden = book !== 'gelismis' || !adv;
     if (adv) {
-      info.textContent = 'Bu defteri Claude Sonnet 5.5 her pazar ve perşembe sabahı, sayfaların fotoğraflarına bakarak baştan yazar. '
+      info.textContent = 'Bu defteri Claude Sonnet 5.5 her pazar ve perşembe sabahı yazar: sayfaların fotoğraflarına bakıp her sayfayı renkli, kendi çizimleriyle süslenmiş bir defter sayfası olarak baştan tasarlar. '
         + (adv.waiting ? `Sırada ${adv.waiting} sayfa var. ` : 'Bütün sayfalar yazıldı. ')
         + (adv.lastRun ? `Son yazdığı: ${relTime(adv.lastRun)}.` : 'Henüz hiç yazmadı.')
         + (adv.unreadable ? ` ${adv.unreadable} sayfayı okuyamadı.` : '');
@@ -5063,6 +5164,7 @@ Reply with ONLY this JSON object and nothing else:
     box.innerHTML = order === 'mufredat'
       ? curriculumHtml(list, uploadNo, f, 'admin', state.archive.tree)
       : `<ol class="tx-list">${list.map((p) => textEntryHtml(p, 'yukleme', uploadNo)).join('')}</ol>`;
+    fitRichFrames(box);
     observeFigures(box, loadEntryFigures);
   }
 
@@ -5144,6 +5246,7 @@ Reply with ONLY this JSON object and nothing else:
       const canvas = map.get(Number(f.dataset.n));
       if (canvas) placeFigure(f, canvas.toDataURL('image/png'));
     }
+    setRichFigures(el, (n) => { const c = map.get(n); return c ? c.toDataURL('image/png') : null; });
     publishFigures(page, map);
   }
 
@@ -5161,6 +5264,7 @@ Reply with ONLY this JSON object and nothing else:
       const hit = (d.list || []).find((x) => x.n === Number(f.dataset.n));
       if (hit) placeFigure(f, hit.src);
     }
+    setRichFigures(el, (n) => { const hit = (d.list || []).find((x) => x.n === n); return hit ? hit.src : null; });
   }
 
   // Okuyanlar fotoğrafları görmez: şekillerin kesilmiş hâlleri Anıl’ın tarayıcısında hazırlanıp sunucuya konur
@@ -5970,6 +6074,7 @@ Reply with ONLY this JSON object and nothing else:
     box.innerHTML = rd.order === 'mufredat'
       ? curriculumHtml(list, uploadNo, rd.filter, 'reader', q ? null : rd.tree)
       : `<ol class="tx-list">${list.map((p) => textEntryHtml(p, 'yukleme', uploadNo, 'reader')).join('')}</ol>`;
+    fitRichFrames(box);
     observeFigures(box, loadReaderFigures);
   }
 
@@ -6784,6 +6889,25 @@ Reply with ONLY this JSON object and nothing else:
     $('#fbAllRead').addEventListener('click', markAllFeedback);
     // Yazı yazma, düzenleme ve yapay zekâyla güzelleştirme
     $('#txNew').addEventListener('click', () => openEditor(null));
+    // Yazılarım: fotoğrafları doğrudan yükle (yazısız fotoğraf yazısı da olur)
+    $('#txPhotos').addEventListener('click', () => $('#txPhotoInput').click());
+    $('#txPhotoInput').addEventListener('change', async (e) => {
+      const files = [...(e.target.files || [])];
+      e.target.value = '';
+      if (!files.length) return;
+      await openEditor(null);
+      if (!$('#writeDialog').open) return;
+      $('#wdSection').value = 'genel';
+      syncEditorSection();
+      $('#wdText').value = '';
+      await addEditorImages(files);
+      $('#wdHead').focus();
+    });
+    // Görsele dokununca büyür
+    for (const sel of ['#texts', '#rdTexts']) {
+      $(sel).addEventListener('click', (e) => { const im = e.target.closest('.tx-img img'); if (im) openImage(im); });
+    }
+    $('#imgDialog').addEventListener('click', (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
     $('#txReaderView').addEventListener('click', () => { state.reader.book = state.archive.book; state.reader.filter = 'tumu'; openReader(); });
     // Defterler: ders notları, yazılarım, gelişmiş yapay zekâ
     const bookKeys = (sel, current, set) => $(sel).addEventListener('keydown', (e) => {
