@@ -26,6 +26,10 @@
 
   "observability": { "enabled": true },
 
+  // Saatte bir: Claude'a gidecek sayfaların fotoğrafları ayar veritabanındaki kuyruğa konur
+  // ("Gelişmiş yapay zekâ" defteri; kuyruğu Anıl'ın Claude'daki zamanlanmış görevi okur)
+  "triggers": { "crons": ["17 * * * *"] },
+
   "vars": {
     // QR ile girişin geçerli kalacağı süre (saat)
     "SESSION_HOURS": "12",

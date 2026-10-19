@@ -1237,6 +1237,54 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
   .rd-tools { width: 100%; }
 }
 
+/* ---------- Defterler: ders notları, yazılarım, gelişmiş yapay zekâ ---------- */
+.books { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: thin; min-width: 0; }
+.books button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 18px 7px 9px;
+  border: 0;
+  border-radius: 6px 16px 16px 6px;
+  cursor: pointer;
+  text-align: left;
+  color: rgb(244 238 226 / .88);
+  background: linear-gradient(180deg, rgb(30 48 88 / .95), rgb(15 26 50 / .95));
+  box-shadow: inset 5px 0 0 rgb(198 160 82 / .5), inset 0 0 0 1px rgb(198 160 82 / .25);
+}
+.books button[aria-checked="true"] {
+  color: var(--lacivert-900);
+  background: linear-gradient(180deg, #f7f0df, #eadcbd);
+  box-shadow: inset 6px 0 0 var(--deri-500), inset 0 0 0 1px var(--yaldiz), 0 8px 18px rgb(0 0 0 / .28);
+}
+.books button:focus-visible { outline: 2px solid var(--yaldiz-acik); outline-offset: 2px; }
+.books svg { width: 36px; height: 36px; flex: none; }
+.bk-txt { display: grid; gap: 2px; font: 700 .98rem/1.15 var(--font-ui); white-space: nowrap; }
+.bk-txt small { font: 500 .8rem/1.2 var(--font-ui); color: rgb(244 238 226 / .62); }
+.books button[aria-checked="true"] small { color: var(--deri-500); }
+.adv-info {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font: 500 .94rem/1.5 var(--font-ui);
+  color: rgb(244 238 226 / .86);
+  background: linear-gradient(115deg, rgb(247 244 238 / .08), rgb(232 240 243 / .13) 50%, rgb(243 231 238 / .08));
+  box-shadow: inset 0 0 0 1px rgb(232 240 243 / .25);
+}
+
+/* Yazıdaki görseller */
+.tx-img { margin: 0 0 var(--rule); display: grid; justify-items: center; gap: 4px; }
+.tx-img img { display: block; max-width: min(100%, 640px); height: auto; border-radius: 6px; background: #fff; box-shadow: 0 2px 10px rgb(28 26 43 / .18); }
+.tx-img figcaption { font: italic 400 1rem/1.5 var(--font-body); color: var(--deri-500); text-align: center; }
+.wd-tools { display: inline-flex; flex-wrap: wrap; gap: 8px; }
+.wd-imgbox { margin-top: 8px; display: grid; gap: 6px; }
+.wd-imgs { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.wd-img { position: relative; width: 84px; height: 84px; border-radius: 10px; overflow: hidden; background: #fff; box-shadow: inset 0 0 0 1px rgb(28 26 43 / .2); }
+.wd-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.wd-img-x { position: absolute; top: 4px; right: 4px; width: 28px; height: 28px; border: 0; border-radius: 50%; cursor: pointer; font: 700 1.05rem/1 var(--font-ui); color: #fff; background: rgb(28 26 43 / .75); }
+.wd-img-x:focus-visible { outline: 2px solid var(--yaldiz-koyu); outline-offset: 1px; }
+
 </style>
 </head>
 <body>
@@ -1456,6 +1504,8 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
     </div>
 
     <div id="tabTexts" role="tabpanel" aria-labelledby="tabBtnTexts" class="arc-panel" hidden>
+      <div class="books" id="txBooks" role="radiogroup" aria-label="Defter"></div>
+      <p class="adv-info" id="advInfo" hidden></p>
       <div class="tx-actions">
         <button class="btn gold small" id="txNew" type="button">Yeni yazı</button>
         <button class="btn ghost small" id="txReaderView" type="button">Okuyanlar nasıl görüyor?</button>
@@ -1516,6 +1566,7 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
         <button class="btn ghost small" id="rdLogout" type="button">Çıkış yap</button>
       </div>
     </header>
+    <div class="books" id="rdBooks" role="radiogroup" aria-label="Defter"></div>
     <div class="tx-bar rd-bar">
       <div class="chips" id="rdChips" role="toolbar" aria-label="Defteri seç"></div>
       <div class="rd-tools">
@@ -1709,10 +1760,18 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
     <div class="field">
       <div class="wd-textbar">
         <label for="wdText">Yazı</label>
-        <button class="btn sedef small" id="wdAi" type="button">Yapay zekâyla güzelleştir</button>
+        <span class="wd-tools">
+          <button class="btn ghost small" id="wdImg" type="button" hidden>Görsel ekle</button>
+          <button class="btn sedef small" id="wdAi" type="button">Yapay zekâyla güzelleştir</button>
+        </span>
+        <input type="file" id="wdImgInput" accept="image/*" multiple hidden>
       </div>
       <textarea id="wdText" rows="14" maxlength="12000" spellcheck="true"></textarea>
       <p class="wd-hint">Başlık satırını “# ”, maddeyi “- ” ile başlat. Çizimin yerine [Şekil: ne olduğu] yazabilirsin.</p>
+      <div class="wd-imgbox" id="wdImgBox" hidden>
+        <ul class="wd-imgs" id="wdImgs" aria-label="Yazıdaki görseller"></ul>
+        <p class="wd-hint">Her görsel, yazıda kendi satırının olduğu yerde görünür. Altına açıklama yazmak için satırı “[Görsel: … | açıklama]” biçimine getir.</p>
+      </div>
     </div>
     <div class="wd-ai" id="wdAiNote" role="status" aria-live="polite" hidden></div>
     <details class="wd-more" id="wdMore">
@@ -1834,7 +1893,19 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
     { id: 'tarih', name: 'Tarih' },
   ];
   const SECTION_IDS = SECTIONS.map((s) => s.id);
-  const secName = (id) => (SECTIONS.find((s) => s.id === id) || {}).name || 'Diğer';
+  // Anıl'ın kendi yazıları bir derse bağlı olmayabilir
+  const GENEL = { id: 'genel', name: 'Genel' };
+  const ALL_SECTIONS = [...SECTIONS, GENEL];
+  const secName = (id) => (ALL_SECTIONS.find((s) => s.id === id) || {}).name || 'Diğer';
+  // Üç defter: ders notları (fotoğraflar ve derse bağlı yazılar), Anıl'ın yazıları, Claude'un yazdıkları
+  const BOOKS = [
+    { id: 'dersler', name: 'Ders notları', readerName: 'Ders notları', icon: 'kitap' },
+    { id: 'yazilarim', name: 'Yazılarım', readerName: 'Anıl’ın yazıları', icon: 'kalem' },
+    { id: 'gelismis', name: 'Gelişmiş yapay zekâ', readerName: 'Gelişmiş yapay zekâ', icon: 'yildiz' },
+  ];
+  const bookPages = (all, book) => (all ? (book === 'yazilarim' ? all.filter((p) => p.typed) : all.filter((p) => !(p.typed && p.section === 'genel'))) : null);
+  // Yazıdaki görsel satırı: "[Görsel: kimlik]" ya da "[Görsel: kimlik | açıklama]"
+  const IMAGE_LINE = /^\[\s*görsel\s*:\s*([a-z0-9]{8,24})\s*(?:\|\s*([^\]\n]*?))?\s*\]$/i;
 
   const REASONS = {
     sexual: 'Fotoğrafta cinsel veya müstehcen içerik var.',
@@ -2199,6 +2270,18 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
       'M85 50 A 35 35 0 1 1 15 50 A 35 35 0 1 1 85 50 Z',
       'M65 35 L 35 65',
       'M50 50 L 50.05 50',
+    ],
+    kalem: [
+      'M33 70 L 68 25 C 70 22 74 22 77 25 C 80 28 80 31 77 34 L 42 79 Z',
+      'M33 70 L 29 84 L 42 79',
+      'M62 32 L 71 40',
+      'M18 88 C 32 84 46 90 62 86 C 70 84 76 86 82 88',
+    ],
+    yildiz: [
+      'M46 18 C 49 39 57 47 78 50 C 57 53 49 61 46 82 C 43 61 35 53 14 50 C 35 47 43 39 46 18 Z',
+      'M76 14 C 77 21 80 24 87 25 C 80 26 77 29 76 36 C 75 29 72 26 65 25 C 72 24 75 21 76 14 Z',
+      'M78 66 C 79 71 81 73 86 74 C 81 75 79 77 78 82 C 77 77 75 75 70 74 C 75 73 77 71 78 66 Z',
+      'M22 22 L 22.05 22',
     ],
   };
 
@@ -2886,6 +2969,12 @@ Reply with ONLY this JSON object and nothing else:
       async readerTree() { return reader('GET', '/api/okur/mufredat'); },
       async readerFigures(id, key) { return reader('GET', `/api/okur/sekil/${encodeURIComponent(id)}?k=${encodeURIComponent(key || '')}`); },
       async sendFeedback(body) { return reader('POST', '/api/okur/geri-bildirim', body); },
+      // Gelişmiş yapay zekâ defteri (Claude'un yazdıkları) ve Anıl'ın yazılarındaki görseller
+      async advancedTexts() { return admin('GET', '/api/yonetici/gelismis'); },
+      async advancedDelete(id) { return admin('DELETE', `/api/yonetici/gelismis/${encodeURIComponent(id)}`); },
+      async readerAdvanced() { return reader('GET', '/api/okur/gelismis'); },
+      async uploadImage(blob) { return admin('POST', '/api/yonetici/gorsel', blob); },
+      imageUrl(id) { return `/api/okur/gorsel/${encodeURIComponent(id)}`; },
     };
   }
 
@@ -3111,6 +3200,11 @@ Reply with ONLY this JSON object and nothing else:
       async readerTree() { throw new Error('Önizlemede müfredat yok; asıl sitede çalışır.'); },
       async readerFigures() { return { list: [] }; },
       async sendFeedback() { throw new Error('Önizlemede geri bildirim gönderilmez; asıl sitede çalışır.'); },
+      async advancedTexts() { return { pages: [], waiting: 0, unreadable: 0, lastRun: 0 }; },
+      async advancedDelete() { throw new Error('Önizlemede bu işlem yapılmaz; asıl sitede çalışır.'); },
+      async readerAdvanced() { return { pages: [] }; },
+      async uploadImage() { throw new Error('Önizlemede görsel eklenmez; asıl sitede çalışır.'); },
+      imageUrl() { return ''; },
     };
   }
 
@@ -3206,6 +3300,8 @@ Reply with ONLY this JSON object and nothing else:
       gone: new Set(), reading: new Set(),
       // Yazılar sekmesi: okunaklı sayfaların yazıları; iki sıralama (yüklenme sırası, müfredat sırası)
       textPages: null, textFilter: 'tumu', textOrder: 'yukleme', tree: null,
+      // Hangi defter açık (ders notları, yazılarım, gelişmiş yapay zekâ); Claude'un yazdıkları
+      book: 'dersler', advanced: null,
     },
     bulk: { active: false, stop: false, total: 0, done: 0, marked: 0, failed: 0, verb: 'yazıya döküldü' },
     // Yazıları yapay zekâyla toplu güzelleştirme
@@ -3215,7 +3311,7 @@ Reply with ONLY this JSON object and nothing else:
     // Yazı düzenleyici: hangi yazı, yapay zekâdan önceki hâl
     editor: { page: null, item: null, before: null, ai: null },
     // Defterleri okuma alanı
-    reader: { open: false, pages: null, filter: 'tumu', order: 'mufredat', query: '', tree: null, fbPage: null },
+    reader: { open: false, pages: null, filter: 'tumu', order: 'mufredat', query: '', tree: null, fbPage: null, book: 'dersler', advanced: null },
   };
 
   const ui = {
@@ -4085,6 +4181,7 @@ Reply with ONLY this JSON object and nothing else:
       const data = await api.list();
       state.archive.items = data.items || [];
       state.archive.textPages = null;
+      state.archive.advanced = null;
       state.feedback.items = null;
       setFeedbackUnread(data.feedbackUnread || 0);
     } catch (e) {
@@ -4627,8 +4724,8 @@ Reply with ONLY this JSON object and nothing else:
   /* ------------------------------------------------------------------ */
 
   let textsLoading = null;
-  async function loadTexts(force = false) {
-    if (state.archive.textPages && !force) { renderTexts(); return; }
+  async function loadTexts(force = false, render = true) {
+    if (state.archive.textPages && !force) { if (render) renderTexts(); return; }
     if (!textsLoading) {
       if (!state.archive.textPages) $('#texts').innerHTML = '<div class="empty"><p>Yazılar yükleniyor…</p></div>';
       textsLoading = api.texts()
@@ -4642,7 +4739,7 @@ Reply with ONLY this JSON object and nothing else:
       $('#texts').innerHTML = emptyBlock('Yazılar alınamadı', e.message || 'Biraz sonra tekrar dene.');
       return;
     }
-    if (state.archive.tab === 'texts') renderTexts();
+    if (render && state.archive.tab === 'texts') renderTexts();
     syncReaderFigures();
   }
 
@@ -4696,6 +4793,13 @@ Reply with ONLY this JSON object and nothing else:
     for (const raw of String(text || '').split('\n')) {
       const line = raw.trim();
       if (!line) { flushAll(); continue; }
+      const img = line.match(IMAGE_LINE);
+      if (img) {
+        flushAll();
+        const cap = (img[2] || '').trim();
+        out.push(`<figure class="tx-img"><img src="${esc(api.imageUrl(img[1].toLowerCase()))}" alt="${esc(cap || 'Görsel')}" loading="lazy" decoding="async">${cap ? `<figcaption>${esc(cap)}</figcaption>` : ''}</figure>`);
+        continue;
+      }
       const fig = parseFigureLine(line);
       if (fig) {
         flushAll();
@@ -4749,14 +4853,16 @@ Reply with ONLY this JSON object and nothing else:
       : `<span class="tx-no" title="${no}. ${admin ? 'yüklenen sayfa' : 'yazı'}"><b>${no}</b><small>sıra</small></span>`;
     const place = c
       ? (byTopic ? `${c.topic}. konu: ${c.topicName}` : `${secName(p.section)}, ${placeLong(c)}`)
-      : p.curriculumChecked ? 'Müfredatta yeri bulunamadı' : 'Müfredattaki yeri henüz belirlenmedi';
+      : p.section === 'genel' ? 'Derse bağlı olmayan yazı'
+        : p.curriculumChecked ? `${secName(p.section)}, müfredatta yeri bulunamadı` : `${secName(p.section)}, müfredattaki yeri henüz belirlenmedi`;
+    const adv = !!p.advanced;
     const meta = admin
-      ? [byTopic ? `${no}. yüklenen` : '', p.typed ? `yazan: ${p.name || 'Anıl'}` : p.name ? `ekleyen: ${p.name}` : '', formatDate(p.createdAt)].filter(Boolean).join(', ')
+      ? [byTopic ? `${no}. yüklenen` : '', p.typed ? `yazan: ${p.name || 'Anıl'}` : p.name ? `ekleyen: ${p.name}` : '', formatDate(p.createdAt), adv ? `Claude yazdı: ${relTime(p.writtenAt)}` : ''].filter(Boolean).join(', ')
       : [byTopic ? `${no}. yazı` : '', formatDate(p.createdAt)].filter(Boolean).join(', ');
     const tags = [
       p.beautified ? '<span class="tx-tag ai">Yapay zekâyla düzenlendi</span>' : '',
       admin && p.typed ? '<span class="tx-tag typed">Elle yazıldı</span>' : '',
-      admin && state.ai.misread.has(p.id) ? '<span class="tx-tag warn">Yanlış okunmuş olabilir</span>' : '',
+      admin && !adv && state.ai.misread.has(p.id) ? '<span class="tx-tag warn">Yanlış okunmuş olabilir</span>' : '',
     ].join('');
     const keys = Array.isArray(p.keywords) ? p.keywords : [];
     const summary = p.summary || keys.length
@@ -4765,7 +4871,12 @@ Reply with ONLY this JSON object and nothing else:
     const fixes = admin && Array.isArray(p.corrections) && p.corrections.length
       ? `<details class="tx-fix"><summary>Yapay zekânın düzelttikleri (${p.corrections.length})</summary><ul>${p.corrections.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></details>`
       : '';
-    const tools = admin
+    const tools = admin && adv
+      ? `<div class="tx-tools">
+          <button type="button" class="btn ghost small tx-open" data-open="${esc(p.id)}">Sayfayı aç</button>
+          <button type="button" class="btn ghost small" data-redo="${esc(p.id)}">Yeniden yazdır</button>
+        </div>`
+      : admin
       ? `<div class="tx-tools">
           <button type="button" class="btn ghost small" data-edit="${esc(p.id)}">Düzenle</button>
           ${p.beautified || p.copyOf || api.mode !== 'live' ? '' : `<button type="button" class="btn sedef small" data-ai="${esc(p.id)}">Yapay zekâyla güzelleştir</button>`}
@@ -4825,9 +4936,13 @@ Reply with ONLY this JSON object and nothing else:
   }
 
   function curriculumHtml(list, uploadNo, filter, role = 'admin', tree = null) {
-    const secs = filter === 'tumu' ? SECTIONS.filter((s) => list.some((p) => p.section === s.id)) : SECTIONS.filter((s) => s.id === filter);
+    const secs = filter === 'tumu' ? ALL_SECTIONS.filter((s) => list.some((p) => p.section === s.id)) : ALL_SECTIONS.filter((s) => s.id === filter);
     return secs.map((s) => {
       const pages = list.filter((p) => p.section === s.id);
+      if (s.id === 'genel') {
+        const head = filter === 'tumu' ? `<h3 class="tx-sec">${symbolIcon('kalem', 4.6)}Genel</h3>` : '';
+        return `<section class="tx-block">${head}<ol class="tx-list">${pages.map((p) => textEntryHtml(p, 'yukleme', uploadNo, role)).join('')}</ol></section>`;
+      }
       const placed = pages.filter((p) => p.curriculum).sort(byPlace);
       const rest = pages.filter((p) => !p.curriculum);
       let html = filter === 'tumu' ? `<h3 class="tx-sec">${symbolIcon(s.id, 4.6)}${s.name}</h3>` : '';
@@ -4851,30 +4966,94 @@ Reply with ONLY this JSON object and nothing else:
     }).join('');
   }
 
-  function renderTexts() {
-    renderAiBulk();
-    const all = state.archive.textPages || [];
-    const f = state.archive.textFilter;
-    const order = state.archive.textOrder;
+  // Defter seçici: her defterin adı ve kaç yazı olduğu
+  function renderBooks(sel, current, counts, role) {
+    $(sel).innerHTML = BOOKS.map((b) => {
+      const on = b.id === current;
+      const n = counts[b.id];
+      return `<button type="button" role="radio" data-book="${b.id}" aria-checked="${on}" tabindex="${on ? 0 : -1}">${symbolIcon(b.icon, 5.5)}<span class="bk-txt"><span>${role === 'admin' ? b.name : b.readerName}</span><small>${n == null ? '&nbsp;' : `${n} yazı`}</small></span></button>`;
+    }).join('');
+  }
+
+  // Bölüm süzgeci: ders notlarında bütün dersler, öbür defterlerde yalnızca yazısı olanlar
+  function chipsHtml(all, f, attr, allSections) {
     const counts = {};
     for (const p of all) counts[p.section] = (counts[p.section] || 0) + 1;
-    $('#txChips').innerHTML = [`<button type="button" class="chip" data-tfilter="tumu" aria-pressed="${f === 'tumu'}">Tümü <b>${all.length}</b></button>`]
-      .concat(SECTIONS.map((s) => `<button type="button" class="chip" data-tfilter="${s.id}" aria-pressed="${f === s.id}">${symbolIcon(s.id, 6.5)}${s.name} <b>${counts[s.id] || 0}</b></button>`))
+    const secs = allSections ? SECTIONS : ALL_SECTIONS.filter((s) => counts[s.id]);
+    return [`<button type="button" class="chip" ${attr}="tumu" aria-pressed="${f === 'tumu'}">Tümü <b>${all.length}</b></button>`]
+      .concat(secs.map((s) => `<button type="button" class="chip" ${attr}="${s.id}" aria-pressed="${f === s.id}">${symbolIcon(s.id === 'genel' ? 'kalem' : s.id, 6.5)}${s.name} <b>${counts[s.id] || 0}</b></button>`))
       .join('');
+  }
+
+  let advancedLoading = null;
+  async function loadAdvanced(force = false) {
+    if (state.archive.advanced && !force) return;
+    if (!advancedLoading) {
+      advancedLoading = api.advancedTexts()
+        .then((d) => { state.archive.advanced = { pages: d.pages || [], waiting: Number(d.waiting) || 0, unreadable: Number(d.unreadable) || 0, lastRun: Number(d.lastRun) || 0 }; })
+        .finally(() => { advancedLoading = null; });
+    }
+    try {
+      await advancedLoading;
+    } catch (e) {
+      if (e.auth) { lockedOut(); return; }
+      $('#texts').innerHTML = emptyBlock('Gelişmiş yapay zekâ defteri açılamadı', e.message || 'Biraz sonra tekrar dene.');
+      return;
+    }
+    if (state.archive.tab === 'texts' && state.archive.book === 'gelismis') renderTexts();
+  }
+
+  function setTextBook(book) {
+    if (state.archive.book === book) return;
+    state.archive.book = book;
+    state.archive.textFilter = 'tumu';
+    renderTexts();
+  }
+
+  function renderTexts() {
+    renderAiBulk();
+    const book = state.archive.book;
+    const adv = state.archive.advanced;
+    const texts = state.archive.textPages || [];
+    renderBooks('#txBooks', book, { dersler: bookPages(texts, 'dersler').length, yazilarim: bookPages(texts, 'yazilarim').length, gelismis: adv ? adv.pages.length : null }, 'admin');
+    $('#txNew').hidden = book === 'gelismis';
+    const info = $('#advInfo');
+    info.hidden = book !== 'gelismis' || !adv;
+    if (adv) {
+      info.textContent = 'Bu defteri Claude Sonnet 5.5 her pazar ve perşembe sabahı, sayfaların fotoğraflarına bakarak baştan yazar. '
+        + (adv.waiting ? `Sırada ${adv.waiting} sayfa var. ` : 'Bütün sayfalar yazıldı. ')
+        + (adv.lastRun ? `Son yazdığı: ${relTime(adv.lastRun)}.` : 'Henüz hiç yazmadı.')
+        + (adv.unreadable ? ` ${adv.unreadable} sayfayı okuyamadı.` : '');
+    }
+    const box = $('#texts');
+    if (book === 'gelismis' && !adv) {
+      box.innerHTML = '<div class="empty"><p>Gelişmiş yapay zekâ defteri yükleniyor…</p></div>';
+      $('#txChips').innerHTML = '';
+      loadAdvanced();
+      return;
+    }
+    const all = book === 'gelismis' ? adv.pages : bookPages(texts, book);
+    let f = state.archive.textFilter;
+    if (f !== 'tumu' && book !== 'dersler' && !all.some((p) => p.section === f)) f = state.archive.textFilter = 'tumu';
+    const order = state.archive.textOrder;
+    $('#txChips').innerHTML = chipsHtml(all, f, 'data-tfilter', book === 'dersler');
     for (const b of $$('#txOrder [data-order]')) {
       const on = b.dataset.order === order;
       b.setAttribute('aria-checked', String(on));
       b.tabIndex = on ? 0 : -1;
     }
-    const box = $('#texts');
     if (!all.length) {
-      box.innerHTML = emptyBlock('Henüz yazı yok', 'Yazısı okunaklı olan sayfalar burada yazı olarak görünür. Eski sayfaları üstteki düğmeyle yazıya dökebilir ya da “Yeni yazı” ile kendin yazabilirsin.');
+      box.innerHTML = book === 'gelismis'
+        ? emptyBlock('Henüz yazı yok', 'Claude Sonnet 5.5 sayfaları her pazar ve perşembe sabahı yazar; ilk yazılar ilk çalışmadan sonra burada görünür.')
+        : book === 'yazilarim'
+          ? emptyBlock('Henüz yazın yok', '“Yeni yazı” ile kendi yazını yaz; istersen görsel de ekleyebilirsin. Bir derse bağlı olması gerekmez.')
+          : emptyBlock('Henüz yazı yok', 'Yazısı okunaklı olan sayfalar burada yazı olarak görünür. Eski sayfaları üstteki düğmeyle yazıya dökebilir ya da “Yeni yazı” ile kendin yazabilirsin.');
       return;
     }
     const list = all.filter((p) => f === 'tumu' || p.section === f)
       .sort((a, b) => ((a.createdAt || 0) - (b.createdAt || 0)) || (a.id < b.id ? 1 : -1));
     if (!list.length) {
-      box.innerHTML = emptyBlock(`${secName(f)} bölümünde yazı yok`, 'Bu bölümde henüz yazı yok. “Yeni yazı” ile ilkini sen yazabilirsin.');
+      box.innerHTML = emptyBlock(`${secName(f)} bölümünde yazı yok`, book === 'gelismis' ? 'Claude bu bölümden henüz bir sayfa yazmadı.' : 'Bu bölümde henüz yazı yok. “Yeni yazı” ile ilkini sen yazabilirsin.');
       return;
     }
     const uploadNo = new Map(list.map((p, i) => [p.id, i + 1]));
@@ -4885,6 +5064,26 @@ Reply with ONLY this JSON object and nothing else:
       ? curriculumHtml(list, uploadNo, f, 'admin', state.archive.tree)
       : `<ol class="tx-list">${list.map((p) => textEntryHtml(p, 'yukleme', uploadNo)).join('')}</ol>`;
     observeFigures(box, loadEntryFigures);
+  }
+
+  // Claude'un yazısı silinir; sayfa sıraya girer ve bir sonraki çalışmada baştan yazılır
+  async function redoAdvanced(id) {
+    const ok = await confirmAsk('Claude bu sayfayı yeniden yazsın mı?', 'Bu yazı silinir. Sayfa sıraya girer ve Claude onu bir sonraki çalışmada (pazar ya da perşembe sabahı) baştan yazar.', 'Yeniden yazdır');
+    if (!ok) return;
+    try {
+      await api.advancedDelete(id);
+      const adv = state.archive.advanced;
+      if (adv) {
+        adv.pages = adv.pages.filter((p) => p.id !== id);
+        adv.waiting++;
+      }
+      state.reader.advanced = null;
+      renderTexts();
+      toast('Claude bu sayfayı bir sonraki çalışmada yeniden yazacak.');
+    } catch (e) {
+      if (e.auth) { lockedOut(); return; }
+      toast(e.message || 'İşlem yapılamadı.', true);
+    }
   }
 
   function setTextOrder(order) {
@@ -4932,7 +5131,8 @@ Reply with ONLY this JSON object and nothing else:
   }
 
   async function loadEntryFigures(el) {
-    const page = (state.archive.textPages || []).find((p) => p.id === el.dataset.id);
+    const pool = state.archive.book === 'gelismis' && state.archive.advanced ? state.archive.advanced.pages : state.archive.textPages || [];
+    const page = pool.find((p) => p.id === el.dataset.id);
     if (!page) return;
     let map;
     try {
@@ -4948,7 +5148,8 @@ Reply with ONLY this JSON object and nothing else:
   }
 
   async function loadReaderFigures(el) {
-    const page = (state.reader.pages || []).find((p) => p.id === el.dataset.id);
+    const pool = state.reader.book === 'gelismis' ? state.reader.advanced || [] : state.reader.pages || [];
+    const page = pool.find((p) => p.id === el.dataset.id);
     if (!page || !page.figuresKey) return;
     let d;
     try {
@@ -5020,7 +5221,7 @@ Reply with ONLY this JSON object and nothing else:
   function renderAiBulk() {
     const el = $('#aiBulk');
     const run = state.ai;
-    if (api.mode !== 'live') { el.hidden = true; return; }
+    if (api.mode !== 'live' || state.archive.book !== 'dersler') { el.hidden = true; return; }
     if (run.active) {
       el.hidden = false;
       $('#aiBulkText').textContent = `${run.done} / ${run.total} yazı yapay zekâyla düzenleniyor… Her yazı birkaç saniye sürer.`;
@@ -5163,6 +5364,96 @@ Reply with ONLY this JSON object and nothing else:
     fillTopicSelect(section, $('#wdGrade'), $('#wdUnit'), $('#wdTopic'), c ? c.topic : 0);
   }
 
+  function syncEditorSection() {
+    $('#wdPlace').hidden = $('#wdSection').value === 'genel';
+  }
+
+  /* Görseller: yazının içinde kendi satırında durur; telefonda küçültülüp yüklenir */
+  function editorImageIds() {
+    const ids = [];
+    for (const line of $('#wdText').value.split('\n')) {
+      const m = line.trim().match(IMAGE_LINE);
+      if (m && !ids.includes(m[1].toLowerCase())) ids.push(m[1].toLowerCase());
+    }
+    return ids;
+  }
+
+  function renderEditorImages() {
+    const box = $('#wdImgs');
+    const ids = api.mode === 'live' ? editorImageIds() : [];
+    $('#wdImgBox').hidden = !ids.length;
+    box.innerHTML = ids.map((id, i) => `<li class="wd-img"><img src="${esc(api.imageUrl(id))}" alt="${i + 1}. görsel" loading="lazy"><button type="button" class="wd-img-x" data-rmimg="${esc(id)}" aria-label="${i + 1}. görseli yazıdan çıkar">×</button></li>`).join('');
+  }
+
+  async function imageForUpload(file) {
+    if (file.type === 'image/gif' && file.size <= 3e6) return file;
+    const src = await decodeImage(file);
+    const sw = src.width || src.naturalWidth;
+    const sh = src.height || src.naturalHeight;
+    if (!sw || !sh) throw new Error('Görsel açılamadı.');
+    for (const side of [1600, 1200, 900]) {
+      const k = Math.min(1, side / Math.max(sw, sh));
+      const c = makeCanvas(Math.max(1, Math.round(sw * k)), Math.max(1, Math.round(sh * k)));
+      const ctx = c.getContext('2d');
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(src, 0, 0, c.width, c.height);
+      let blob = await canvasToBlob(c, 'image/webp', 0.86).catch(() => null);
+      if (!blob || blob.type !== 'image/webp') {
+        ctx.globalCompositeOperation = 'destination-over';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, c.width, c.height);
+        blob = await canvasToBlob(c, 'image/jpeg', 0.86);
+      }
+      if (blob.size <= 2.8e6) {
+        if (src.close) src.close();
+        return blob;
+      }
+    }
+    if (src.close) src.close();
+    throw new Error('Bu görsel çok büyük. Daha küçük bir görsel seç.');
+  }
+
+  function insertImageLine(id) {
+    const ta = $('#wdText');
+    const line = `[Görsel: ${id}]`;
+    const pos = typeof ta.selectionStart === 'number' && document.activeElement === ta ? ta.selectionEnd : ta.value.length;
+    const before = ta.value.slice(0, pos);
+    const after = ta.value.slice(pos);
+    const pre = before && !before.endsWith('\n') ? '\n' : '';
+    const post = after && !after.startsWith('\n') ? '\n' : '';
+    ta.value = before + pre + line + post + after;
+    const caret = (before + pre + line).length;
+    ta.setSelectionRange(caret, caret);
+  }
+
+  async function addEditorImages(files) {
+    const list = [...files].filter((f) => /^image\//.test(f.type));
+    $('#wdImgInput').value = '';
+    if (!list.length) return;
+    const btn = $('#wdImg');
+    showFieldError($('#wdError'), '');
+    setBusy(btn, true, 'Görsel yükleniyor');
+    try {
+      for (const file of list) {
+        const blob = await imageForUpload(file);
+        const d = await api.uploadImage(blob);
+        insertImageLine(d.id);
+        renderEditorImages();
+      }
+    } catch (e) {
+      if (e.auth) { lockedOut(); return; }
+      showFieldError($('#wdError'), e.message || 'Görsel eklenemedi.');
+    } finally {
+      setBusy(btn, false, 'Görsel ekle');
+    }
+  }
+
+  function removeEditorImage(id) {
+    const ta = $('#wdText');
+    ta.value = ta.value.split('\n').filter((l) => { const m = l.trim().match(IMAGE_LINE); return !(m && m[1].toLowerCase() === id); }).join('\n').replace(/\n{3,}/g, '\n\n');
+    renderEditorImages();
+  }
+
   function setAiNote(html, warn = false) {
     const note = $('#wdAiNote');
     note.hidden = !html;
@@ -5198,8 +5489,12 @@ Reply with ONLY this JSON object and nothing else:
       : page.typed
         ? 'Bu yazı bir fotoğraftan okunmadı; her yerini değiştirebilirsin.'
         : 'Yapay zekânın fotoğraftan okuduğu yazıyı düzeltebilirsin. Okunan ilk hâli saklanır, istersen ona geri dönersin.';
-    $('#wdSection').innerHTML = SECTIONS.map((s) => `<option value="${s.id}">${s.name}</option>`).join('');
-    $('#wdSection').value = page ? page.section : state.archive.textFilter !== 'tumu' ? state.archive.textFilter : SECTION_IDS[0];
+    $('#wdSection').innerHTML = (page && !page.typed ? SECTIONS : ALL_SECTIONS)
+      .map((s) => `<option value="${s.id}">${s.id === 'genel' ? 'Genel (derse bağlı değil)' : s.name}</option>`).join('');
+    const filter = state.archive.textFilter;
+    $('#wdSection').value = page ? page.section
+      : state.archive.book === 'yazilarim' ? (filter !== 'tumu' ? filter : 'genel')
+        : SECTION_IDS.includes(filter) ? filter : SECTION_IDS[0];
     $('#wdSection').disabled = !!page && !page.typed;
     $('#wdSection').title = page && !page.typed ? 'Fotoğraflı sayfanın bölümü sayfanın kendi penceresinden değiştirilir.' : '';
     $('#wdHead').value = page ? page.title || '' : '';
@@ -5211,6 +5506,9 @@ Reply with ONLY this JSON object and nothing else:
     $('#wdPlaceNow').hidden = isNew;
     $('#wdPlaceNow').textContent = isNew ? '' : page.curriculum ? `Şu an: ${placeLong(page.curriculum)}` : page.curriculumChecked ? 'Şu an: müfredatta yeri yok' : 'Şu an: henüz belirlenmedi';
     await setPlaceMode(isNew ? 'otomatik' : 'koru');
+    syncEditorSection();
+    $('#wdImg').hidden = !(isNew || page.typed) || api.mode !== 'live';
+    renderEditorImages();
     $('#wdAuthorRow').hidden = !isNew;
     $('#wdAuthor').value = readStore(localStorage, 'defter-yazan') || 'Anıl';
     $('#wdLegibleRow').hidden = isNew || page.typed;
@@ -5429,7 +5727,7 @@ Reply with ONLY this JSON object and nothing else:
         <p class="fb-msg">${esc(f.message)}</p>
         <p class="fb-about">${f.page
           ? (f.pageExists
-            ? `${esc(secName(f.section))}: “${esc(f.title || 'Adsız yazı')}” <button type="button" class="link-btn" data-fb-goto="${esc(f.page)}">Yazıya git</button>`
+            ? `${f.book === 'gelismis' ? 'Gelişmiş yapay zekâ, ' : f.book === 'yazilarim' ? 'Anıl’ın yazıları, ' : ''}${esc(secName(f.section))}: “${esc(f.title || 'Adsız yazı')}” <button type="button" class="link-btn" data-fb-goto="${esc(f.page)}" data-fb-book="${esc(f.book || '')}">Yazıya git</button>`
             : `“${esc(f.title || 'Adsız yazı')}” (bu yazı artık defterde yok)`)
           : 'Genel geri bildirim'}</p>
         <div class="fb-actions">
@@ -5442,7 +5740,7 @@ Reply with ONLY this JSON object and nothing else:
   async function feedbackAction(e) {
     const li = e.target.closest('.fb-item');
     const go = e.target.closest('[data-fb-goto]');
-    if (go) { gotoText(go.dataset.fbGoto); return; }
+    if (go) { gotoText(go.dataset.fbGoto, go.dataset.fbBook); return; }
     if (!li) return;
     const f = (state.feedback.items || []).find((x) => x.id === li.dataset.id);
     if (!f) return;
@@ -5480,8 +5778,12 @@ Reply with ONLY this JSON object and nothing else:
     }
   }
 
-  async function gotoText(id) {
+  async function gotoText(id, book = '') {
     state.archive.textFilter = 'tumu';
+    await loadTexts(false, false);
+    const p = (state.archive.textPages || []).find((x) => x.id === id);
+    state.archive.book = book === 'gelismis' ? 'gelismis' : p && p.typed && p.section === 'genel' ? 'yazilarim' : 'dersler';
+    if (state.archive.book === 'gelismis') await loadAdvanced(true);
     setArchiveTab('texts');
     await loadTexts();
     const el = document.getElementById('tx-' + id);
@@ -5564,6 +5866,29 @@ Reply with ONLY this JSON object and nothing else:
     if (!rd.tree && api.mode === 'live') {
       api.readerTree().then((t) => { rd.tree = t; if (rd.open) renderReader(); }).catch(() => {});
     }
+    if (!rd.advanced) loadReaderAdvanced();
+  }
+
+  let readerAdvancedLoading = null;
+  function loadReaderAdvanced() {
+    const rd = state.reader;
+    if (readerAdvancedLoading) return readerAdvancedLoading;
+    readerAdvancedLoading = api.readerAdvanced()
+      .then((d) => { rd.advanced = d.pages || []; if (rd.open) renderReader(); })
+      .catch((e) => {
+        if (e.readerAuth) { readerLockedOut(); return; }
+        if (rd.open && rd.book === 'gelismis') $('#rdTexts').innerHTML = emptyBlock('Defter açılamadı', e.message || 'Biraz sonra tekrar dene.');
+      })
+      .finally(() => { readerAdvancedLoading = null; });
+    return readerAdvancedLoading;
+  }
+
+  function setReaderBook(book) {
+    const rd = state.reader;
+    if (rd.book === book) return;
+    rd.book = book;
+    rd.filter = 'tumu';
+    renderReader();
   }
 
   function closeReader() {
@@ -5576,6 +5901,7 @@ Reply with ONLY this JSON object and nothing else:
   function readerLockedOut() {
     if (state.status) state.status.reader = false;
     state.reader.pages = null;
+    state.reader.advanced = null;
     closeReader();
     openReaderDialog('Oturumun sona erdi. Okuma şifresini yeniden gir.');
   }
@@ -5584,6 +5910,7 @@ Reply with ONLY this JSON object and nothing else:
     try { await api.readerLogout(); } catch { /* yine de çık */ }
     if (state.status) state.status.reader = false;
     state.reader.pages = null;
+    state.reader.advanced = null;
     closeReader();
     toast('Defterlerden çıkış yapıldı.');
   }
@@ -5593,15 +5920,28 @@ Reply with ONLY this JSON object and nothing else:
 
   function renderReader() {
     const rd = state.reader;
-    const all = rd.pages || [];
+    const book = rd.book;
+    renderBooks('#rdBooks', book, {
+      dersler: rd.pages ? bookPages(rd.pages, 'dersler').length : null,
+      yazilarim: rd.pages ? bookPages(rd.pages, 'yazilarim').length : null,
+      gelismis: rd.advanced ? rd.advanced.length : null,
+    }, 'reader');
+    const bookName = BOOKS.find((b) => b.id === book).readerName;
+    if (book === 'gelismis' && !rd.advanced) {
+      $('#rdSummary').textContent = `${bookName} yükleniyor…`;
+      $('#rdChips').innerHTML = '';
+      $('#rdTexts').innerHTML = '<div class="empty"><p>Defter yükleniyor…</p></div>';
+      loadReaderAdvanced();
+      return;
+    }
+    const all = book === 'gelismis' ? rd.advanced : bookPages(rd.pages || [], book);
     const counts = {};
     for (const p of all) counts[p.section] = (counts[p.section] || 0) + 1;
-    const used = SECTIONS.filter((s) => counts[s.id]);
+    const used = ALL_SECTIONS.filter((s) => counts[s.id]);
     if (rd.filter !== 'tumu' && !counts[rd.filter]) rd.filter = 'tumu';
-    $('#rdSummary').textContent = all.length ? `${all.length} yazı, ${used.length} defterde` : 'Defterler henüz boş';
-    $('#rdChips').innerHTML = [`<button type="button" class="chip" data-rfilter="tumu" aria-pressed="${rd.filter === 'tumu'}">Tümü <b>${all.length}</b></button>`]
-      .concat(used.map((s) => `<button type="button" class="chip" data-rfilter="${s.id}" aria-pressed="${rd.filter === s.id}">${symbolIcon(s.id, 6.5)}${s.name} <b>${counts[s.id]}</b></button>`))
-      .join('');
+    const derste = used.filter((s) => s.id !== 'genel').length;
+    $('#rdSummary').textContent = all.length ? `${bookName}: ${all.length} yazı${derste > 1 ? `, ${derste} derste` : ''}` : `${bookName}: henüz yazı yok`;
+    $('#rdChips').innerHTML = chipsHtml(all, rd.filter, 'data-rfilter', false);
     for (const b of $$('#rdOrder [data-order]')) {
       const on = b.dataset.order === rd.order;
       b.setAttribute('aria-checked', String(on));
@@ -5609,7 +5949,11 @@ Reply with ONLY this JSON object and nothing else:
     }
     const box = $('#rdTexts');
     if (!all.length) {
-      box.innerHTML = emptyBlock('Defterler henüz boş', 'Arkadaşların ders notlarını ekledikçe yazılar burada bölüm bölüm görünecek.');
+      box.innerHTML = book === 'gelismis'
+        ? emptyBlock('Henüz yazı yok', 'Bu defteri Claude Sonnet 5.5 her pazar ve perşembe, sayfaların fotoğraflarına bakarak yazıyor. İlk yazılar yakında burada.')
+        : book === 'yazilarim'
+          ? emptyBlock('Henüz yazı yok', 'Anıl’ın kendi yazdığı yazılar burada görünecek.')
+          : emptyBlock('Defterler henüz boş', 'Arkadaşların ders notlarını ekledikçe yazılar burada bölüm bölüm görünecek.');
       return;
     }
     const inSection = all.filter((p) => rd.filter === 'tumu' || p.section === rd.filter)
@@ -5636,7 +5980,8 @@ Reply with ONLY this JSON object and nothing else:
   }
 
   function openFeedback(pageId = null) {
-    const p = pageId ? (state.reader.pages || []).find((x) => x.id === pageId) : null;
+    const pool = state.reader.book === 'gelismis' ? state.reader.advanced || [] : state.reader.pages || [];
+    const p = pageId ? pool.find((x) => x.id === pageId) : null;
     state.reader.fbPage = p ? p.id : null;
     $('#fbAbout').textContent = p
       ? `“${p.title || `${secName(p.section)} notu`}” yazısı için. Yazdığını yalnızca Anıl görür.`
@@ -5660,7 +6005,7 @@ Reply with ONLY this JSON object and nothing else:
     const name = $('#fbName').value.trim();
     setBusy(btn, true, 'Gönderiliyor');
     try {
-      await api.sendFeedback({ sayfa: state.reader.fbPage || undefined, tur: kind, mesaj: text, isim: name });
+      await api.sendFeedback({ sayfa: state.reader.fbPage || undefined, tur: kind, mesaj: text, isim: name, defter: state.reader.book });
       writeStore(localStorage, 'defter-okur-isim', name);
       $('#fbDialog').close();
       toast('Geri bildirimin Anıl’a iletildi. Teşekkürler!');
@@ -6439,13 +6784,32 @@ Reply with ONLY this JSON object and nothing else:
     $('#fbAllRead').addEventListener('click', markAllFeedback);
     // Yazı yazma, düzenleme ve yapay zekâyla güzelleştirme
     $('#txNew').addEventListener('click', () => openEditor(null));
-    $('#txReaderView').addEventListener('click', openReader);
+    $('#txReaderView').addEventListener('click', () => { state.reader.book = state.archive.book; state.reader.filter = 'tumu'; openReader(); });
+    // Defterler: ders notları, yazılarım, gelişmiş yapay zekâ
+    const bookKeys = (sel, current, set) => $(sel).addEventListener('keydown', (e) => {
+      if (!['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+      e.preventDefault();
+      const i = BOOKS.findIndex((b) => b.id === current());
+      const next = BOOKS[(i + (e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : BOOKS.length - 1)) % BOOKS.length].id;
+      set(next);
+      $(`${sel} [data-book="${next}"]`).focus();
+    });
+    $('#txBooks').addEventListener('click', (e) => { const b = e.target.closest('[data-book]'); if (b) setTextBook(b.dataset.book); });
+    bookKeys('#txBooks', () => state.archive.book, setTextBook);
+    $('#rdBooks').addEventListener('click', (e) => { const b = e.target.closest('[data-book]'); if (b) setReaderBook(b.dataset.book); });
+    bookKeys('#rdBooks', () => state.reader.book, setReaderBook);
+    // Yazılarımdaki görseller
+    $('#wdImg').addEventListener('click', () => $('#wdImgInput').click());
+    $('#wdImgInput').addEventListener('change', (e) => addEditorImages(e.target.files || []));
+    $('#wdImgs').addEventListener('click', (e) => { const x = e.target.closest('[data-rmimg]'); if (x) removeEditorImage(x.dataset.rmimg); });
+    let imgTimer = 0;
+    $('#wdText').addEventListener('input', () => { clearTimeout(imgTimer); imgTimer = setTimeout(renderEditorImages, 400); });
     $('#aiBulkRun').addEventListener('click', runAiBulk);
     $('#writeForm').addEventListener('submit', saveEditor);
     $('#wdAi').addEventListener('click', editorBeautify);
     $('#wdAiNote').addEventListener('click', (e) => { if (e.target.closest('#wdUndo')) editorUndoAi(); });
     for (const r of $$('input[name="wdMode"]')) r.addEventListener('change', () => setPlaceMode(r.value));
-    $('#wdSection').addEventListener('change', () => { if (editorMode() === 'elle') fillEditorPlace(); });
+    $('#wdSection').addEventListener('change', () => { syncEditorSection(); if (editorMode() === 'elle') fillEditorPlace(); });
     $('#wdGrade').addEventListener('change', () => {
       fillUnitSelect($('#wdSection').value, $('#wdGrade'), $('#wdUnit'));
       fillTopicSelect($('#wdSection').value, $('#wdGrade'), $('#wdUnit'), $('#wdTopic'));
@@ -6487,6 +6851,8 @@ Reply with ONLY this JSON object and nothing else:
       if (edit) { openEditor(edit.dataset.edit); return; }
       const ai = e.target.closest('[data-ai]');
       if (ai) { beautifyOne(ai.dataset.ai, ai); return; }
+      const redo = e.target.closest('[data-redo]');
+      if (redo) { redoAdvanced(redo.dataset.redo); return; }
       const go = e.target.closest('[data-goto]');
       if (go) {
         const el = document.getElementById('tx-' + go.dataset.goto);
