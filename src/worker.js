@@ -2696,18 +2696,22 @@ export function beautifyChecks(original, result) {
   return { ok: !reasons.length, reasons, misread };
 }
 
+// Yanıtın belirteç sınırı yazının uzunluğuna göre: kendini tekrarlayan bir yanıt boşuna uzamasın
+export const writeBudget = (text) => Math.min(WRITE_MAX_TOKENS, 700 + Math.ceil(Array.from(String(text || '')).length / 2));
+
 async function beautifyText(env, cfg, { section, curriculum, title, text }) {
   if (!env.AI) throw new Error('Workers AI bağlantısı (AI) tanımlı değil.');
   const prompt = buildWritePrompt(section, curriculum, title, text);
+  const budget = writeBudget(text);
   let lastError;
   for (const model of uniq([cfg.writeModel, cfg.writeModelFallback])) {
     try {
       const input = { messages: [{ role: 'user', content: prompt }], temperature: 0.2 };
       if (/gemma-4|qwen3\.[5-9]/.test(model)) {
-        input.max_completion_tokens = WRITE_MAX_TOKENS;
+        input.max_completion_tokens = budget;
         input.chat_template_kwargs = { enable_thinking: false };
       } else {
-        input.max_tokens = WRITE_MAX_TOKENS;
+        input.max_tokens = budget;
       }
       const raw = extractText(await env.AI.run(model, input));
       const out = parseBeautified(raw);
@@ -2808,10 +2812,17 @@ async function diagBeautify(env, ctx, cfg, url) {
   const model = url.searchParams.get('model') || cfg.writeModel;
   const input = { messages: [{ role: 'user', content: prompt }], temperature: 0.2 };
   if (/gemma-4|qwen3\.[5-9]/.test(model)) {
-    input.max_completion_tokens = WRITE_MAX_TOKENS;
+    input.max_completion_tokens = writeBudget(text);
     input.chat_template_kwargs = { enable_thinking: false };
-  } else input.max_tokens = WRITE_MAX_TOKENS;
+  } else input.max_tokens = writeBudget(text);
+  const note = async (msg) => {
+    await env.AYAR.prepare(
+      'CREATE TABLE IF NOT EXISTS teshis_sonuc (id TEXT, model TEXT, ms INTEGER, kullanim TEXT, bitis TEXT, kontrol TEXT, hata TEXT, ham TEXT, olusturma INTEGER)',
+    ).run();
+    await env.AYAR.prepare('INSERT INTO teshis_sonuc (id, model, ms, hata, olusturma) VALUES (?, ?, 0, ?, ?)').bind(r.id, model, msg, Date.now()).run();
+  };
   const work = async () => {
+    await note('başladı, sınır ' + (input.max_completion_tokens || input.max_tokens) + ', yazı ' + text.length);
     const t0 = Date.now();
     let res = null;
     let err = '';
@@ -2834,7 +2845,7 @@ async function diagBeautify(env, ctx, cfg, url) {
     return { ms, checks, err };
   };
   if (url.searchParams.has('arka')) {
-    ctx.waitUntil(work().catch(() => {}));
+    ctx.waitUntil(work().catch((e) => note('HATA: ' + String((e && e.stack) || e).slice(0, 500)).catch(() => {})));
     return json({ ok: true, started: r.id });
   }
   return json({ ok: true, id: r.id, ...(await work()) });
