@@ -5246,8 +5246,12 @@ Reply with ONLY this JSON object and nothing else:
         ? `<ul>${d.preview.corrections.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`
         : '';
       const warn = d.checks && !d.checks.ok;
+      const photo = ed.page && !ed.page.typed;
+      const partial = !warn && d.preview.quality === 'eksik'
+        ? `<p>Yapay zekâya göre yazının bazı yerleri eksik ya da karışık; [?] olan yerleri ${photo ? 'fotoğrafa bakarak ' : ''}tamamlayabilirsin.</p>`
+        : '';
       setAiNote(
-        `<p><b>Yapay zekâ yazıyı düzenledi.</b> Kaydetmeden önce göz at; istediğin yeri değiştirebilirsin.</p>${fixes}`
+        `<p><b>Yapay zekâ yazıyı düzenledi.</b> Kaydetmeden önce göz at; istediğin yeri değiştirebilirsin.</p>${fixes}${partial}`
         + (warn ? `<p class="wd-warn">Dikkat: ${esc(d.checks.reasons.join(' '))}</p>` : '')
         + '<button type="button" class="link-btn" id="wdUndo">Eski hâline al</button>',
         warn,

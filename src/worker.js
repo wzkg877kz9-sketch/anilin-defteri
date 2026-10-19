@@ -172,10 +172,6 @@ async function api(request, env, ctx, cfg, url) {
     return json({ error: 'Bulunamadı.' }, 404);
   }
 
-  // ==TESHIS-BASLA== (geçici: güzelleştirmeyi gerçek yazılarla ölçmek için; ölçüm bitince silinir)
-  if (path === '/api/teshis-guzel' && method === 'GET') return diagBeautify(env, ctx, cfg, url);
-  // ==TESHIS-BITIR==
-
   // Buradan sonrası yalnızca parolayı bilen içindir.
   if (path.startsWith('/api/yonetici/')) {
     const admin = await readCookieToken(request, env, COOKIE_ADMIN, 'a');
@@ -2298,6 +2294,8 @@ function cleanCorrections(list) {
     if (!t || /^yok\.?$/i.test(t) || t.includes('[?]')) continue;
     const pair = t.split(FIX_ARROW);
     if (pair.length === 2 && side(pair[0]) === side(pair[1])) continue;
+    // "Eyerlerdeki → yok" gibi silinen parçalar düzeltme değildir ("yoğ → yok" ise düzeltmedir)
+    if (pair.length === 2 && (/^(silindi|çıkarıldı|kaldırıldı|atıldı|-|—)?$/.test(side(pair[1])) || (side(pair[1]) === 'yok' && side(pair[0]).length > 4))) continue;
     if (!out.includes(t)) out.push(t);
   }
   return out.slice(0, 6);
@@ -2761,7 +2759,7 @@ async function adminBeautify(request, env, cfg) {
     return json({ error: isQuotaError(e) ? 'Bugünkü yapay zekâ kapasitesi doldu. Yarın yeniden deneyebilirsin.' : 'Yapay zekâ şu an yazıyı düzenleyemedi. Biraz sonra tekrar dene.' }, 503);
   }
   const checks = beautifyChecks(text, result);
-  const preview = { text: result.text, title: result.title || title, summary: result.summary, keywords: result.keywords, corrections: result.corrections };
+  const preview = { text: result.text, title: result.title || title, summary: result.summary, keywords: result.keywords, corrections: result.corrections, quality: result.quality || '' };
   if (!body.kaydet) return json({ ok: true, preview, checks });
   if (!id) return json({ error: 'Kaydedilecek yazı seçilmedi.' }, 400);
   if (!checks.ok) return json({ ok: true, saved: false, preview, checks });
@@ -2792,65 +2790,6 @@ async function adminBeautify(request, env, cfg) {
   const after = await getPageRow(env, id);
   return json({ ok: true, saved: true, preview, checks, page: textPageOf(after), item: ref.photo ? toItem(id, meta) : typedItem(after) });
 }
-
-// ==TESHIS-BASLA== (geçici)
-async function diagBeautify(env, ctx, cfg, url) {
-  const k = url.searchParams.get('k') || '';
-  const row = env.AYAR ? await env.AYAR.prepare("SELECT deger FROM ayarlar WHERE anahtar = 'teshis-anahtar'").first() : null;
-  if (!row || k.length < 20 || !(await safeEqual(await sha256hex(k), String(row.deger)))) return json({ error: 'Bulunamadı.' }, 404);
-  if (url.searchParams.has('liste')) {
-    await ensurePages(env);
-    const { results } = await env.AYAR.prepare(
-      "SELECT id, bolum, baslik, length(metin) AS uzunluk, length(ilk_metin) AS ilk, guzel FROM sayfalar WHERE okunakli = 1 AND metin != '' AND asil = '' ORDER BY olusturma",
-    ).all();
-    return json({ pages: results });
-  }
-  const r = await getPageRow(env, url.searchParams.get('id') || '');
-  if (!r) return json({ error: 'yok' }, 404);
-  const text = collapseLoops(r.ilk_metin || r.metin || '');
-  const prompt = buildWritePrompt(r.bolum, curriculumOf(r.bolum, r), r.ilk_baslik || r.baslik || '', text);
-  const model = url.searchParams.get('model') || cfg.writeModel;
-  const input = { messages: [{ role: 'user', content: prompt }], temperature: 0.2 };
-  if (/gemma-4|qwen3\.[5-9]/.test(model)) {
-    input.max_completion_tokens = writeBudget(text);
-    input.chat_template_kwargs = { enable_thinking: false };
-  } else input.max_tokens = writeBudget(text);
-  const note = async (msg) => {
-    await env.AYAR.prepare(
-      'CREATE TABLE IF NOT EXISTS teshis_sonuc (id TEXT, model TEXT, ms INTEGER, kullanim TEXT, bitis TEXT, kontrol TEXT, hata TEXT, ham TEXT, olusturma INTEGER)',
-    ).run();
-    await env.AYAR.prepare('INSERT INTO teshis_sonuc (id, model, ms, hata, olusturma) VALUES (?, ?, 0, ?, ?)').bind(r.id, model, msg, Date.now()).run();
-  };
-  const work = async () => {
-    await note('başladı, sınır ' + (input.max_completion_tokens || input.max_tokens) + ', yazı ' + text.length);
-    const t0 = Date.now();
-    let res = null;
-    let err = '';
-    try {
-      res = await env.AI.run(model, input);
-    } catch (e) {
-      err = String((e && e.message) || e);
-    }
-    const ms = Date.now() - t0;
-    const raw = res ? extractText(res) : '';
-    const parsed = raw ? parseBeautified(raw) : null;
-    const checks = parsed ? beautifyChecks(text, parsed) : null;
-    await env.AYAR.prepare(
-      'CREATE TABLE IF NOT EXISTS teshis_sonuc (id TEXT, model TEXT, ms INTEGER, kullanim TEXT, bitis TEXT, kontrol TEXT, hata TEXT, ham TEXT, olusturma INTEGER)',
-    ).run();
-    await env.AYAR.prepare('INSERT INTO teshis_sonuc VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
-      .bind(r.id, model, ms, JSON.stringify((res && res.usage) || null), String((res && res.choices && res.choices[0] && res.choices[0].finish_reason) || ''),
-        JSON.stringify(checks), err, raw, Date.now())
-      .run();
-    return { ms, checks, err };
-  };
-  if (url.searchParams.has('arka')) {
-    ctx.waitUntil(work().catch((e) => note('HATA: ' + String((e && e.stack) || e).slice(0, 500)).catch(() => {})));
-    return json({ ok: true, started: r.id });
-  }
-  return json({ ok: true, id: r.id, ...(await work()) });
-}
-// ==TESHIS-BITIR==
 
 /* ------------------------------------------------------------------ */
 /* Sayaçlar                                                            */
