@@ -741,7 +741,7 @@ function parse(source) {
   return grades;
 }
 
-const DERS_ADI = {
+export const DERS_ADI = {
   matematik: 'Matematik',
   edebiyat: 'Türk Dili ve Edebiyatı',
   felsefe: 'Felsefe',

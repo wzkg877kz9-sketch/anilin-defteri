@@ -1,6 +1,6 @@
 # Anıl’ın Defteri
 
-Arkadaşlarının ders notu fotoğraflarını yüklediği, yalnızca QR kodla girilen ve fotoğrafları yalnızca parolayı bilenin gördüğü site. Her şey tek bir platformda çalışır: **Cloudflare** (sayfa barındırma, fotoğraf depolama ve yapay zekâ denetimi). Ücretsiz plan yeterlidir.
+Arkadaşlarının ders notu fotoğraflarını yüklediği, yalnızca QR kodla girilen ve fotoğrafları yalnızca parolayı bilenin gördüğü site. Okuma şifresini bilenler defterlerin temize çekilmiş yazılarını okuyup geri bildirim gönderebilir. Her şey tek bir platformda çalışır: **Cloudflare** (sayfa barındırma, fotoğraf depolama ve yapay zekâ). Ücretsiz plan yeterlidir.
 
 ## Yayınlama
 
@@ -28,6 +28,8 @@ Parolanın kendisi depoda ya da kodda yer almaz. Cloudflare hesabındaki `anilin
 
 **Giriş şifresi:** QR kodu okutamayanlar giriş ekranındaki **Şifreyle gir** düğmesiyle girebilir. Bu şifre yalnızca deftere sayfa eklemeye izin verir, arşivi açmaz. Telefonda kolay yazılsın diye büyük-küçük harfe, boşluklara ve ı/i farkına takılmaz. Özeti aynı veritabanında `giris-parola` satırında, arşiv parolasıyla aynı biçimde durur (özet, şifrenin boşluksuz, küçük harfli ve ı yerine i yazılmış hâlinden alınır). Değiştirmek için Worker’a `ENTRY_PASSWORD` adlı bir Secret ekleyebilirsin; satırı silersen şifreyle giriş kapanır ve düğme kaybolur. Yanlış denemeler aynı ağdan 15 dakikada 20 ile sınırlıdır.
 
+**Okuma şifresi:** Defterleri okumak isteyenler giriş ekranındaki **defterleri aç** bağlantısından ya da doğrudan `https://<sitenin adresi>/#defterler` adresinden okuma şifresiyle girer. Bu şifre yalnızca defterlerin yazılarını açar: fotoğraflar, yükleyenlerin adları, arşiv ve sayfa yükleme kapalı kalır. Şifre büyük-küçük harfe, boşluklara, ı/i farkına ve Türkçe harflere takılmaz (ç, ğ, ö, ş, ü yerine c, g, o, s, u yazılabilir). Özeti aynı veritabanında `okur-parola` satırında, öbür parolalarla aynı biçimde durur (özet, şifrenin bu biçimde sadeleştirilmiş hâlinden alınır). Değiştirmek için Worker’a `READER_PASSWORD` adlı bir Secret ekleyebilirsin; satırı silersen okuma alanı kapanır. Okuma oturumu 30 gün sürer; yanlış denemeler aynı ağdan 15 dakikada 20 ile sınırlıdır.
+
 Site ilk açıldığında kendi adresini de aynı veritabanına yazar; adresi kaybedersen oradan bulunabilir.
 
 ## Nasıl çalışır
@@ -39,7 +41,11 @@ Site ilk açıldığında kendi adresini de aynı veritabanına yazar; adresi ka
 - **MEB müfredatındaki yer:** Yazısı çıkan her sayfanın hangi sınıfın, hangi ünitenin (temanın) kaçıncı konusu olduğunu yapay zekâ MEB müfredatına göre belirler. Ders, sayfanın yüklendiği bölümdür. Yükleyen kişi teşekkür ekranında eklediği sayfaların yerini görür (örneğin “10. sınıf, 2. Tema: …, 3. konu: …”). Arşivde yanlış bulunan yeri görüntüleyicideki **Değiştir** ile elle seçebilir ya da **Yapay zekâya yeniden sor** diyebilirsin; elle seçilen yer sonradan ezilmez. Sayfa başka bölüme taşınınca yeri yeni dersin müfredatına göre yeniden belirlenir. Kopyalar yerini aslından alır. Konusu henüz belirlenmemiş sayfalar için arşivde **Konularını belirle** düğmesi çıkar. Müfredat 2026-2027 öğretim yılına göredir ve `src/mufredat.js` dosyasında yazılıdır: 9, 10 ve 11. sınıflar Türkiye Yüzyılı Maarif Modeli programları, 12. sınıf 2018 programları. Felsefe 10 ve 11. sınıflarda okutulur.
 - **Kopyalar:** Kopyalar silinmez. Aynı fotoğraf ya da aynı yazının başka bir fotoğrafı yeniden gelirse sayfa yine kaydedilir, **“Var zaten”** olarak işaretlenir ve aslına bağlanır; yükleyene de bu söylenir. Aslının kartında kaç kopya geldiği yazar, kopyanın görüntüleyicisinde **Aslını aç** düğmesi çıkar. Aynı sayfanın daha eksiksiz ya da daha okunaklı bir hâli gelirse o asıl olur, eskiler onun kopyası olarak işaretlenir. Asıl sayfa silinirse en eski kopyası asıl olur.
 - **Arşiv:** Fotoğrafları ve yazıları yalnızca parolayı bilen görür. Her sayfayı büyütüp döndürebilir, bölümünü değiştirebilir, başka fotoğrafla değiştirebilir, indirebilir ya da silebilirsin. **Yazı** görünümünde sayfanın yazıya dökülmüş hâlini temiz bir defter sayfası görseli olarak görür ve indirirsin; görselin başında müfredattaki yeri yazar. Yanlış okunan yeri **Yazıyı düzelt** ile düzeltebilir, **Yeniden oku** ile yapay zekâya tekrar okutabilirsin. Yanlışlıkla atılan biri olursa **Engelleri kaldır** düğmesi herkesin engelini kaldırır.
-- **Yazılar:** Okunaklı bütün sayfaların yazısı, çizimleriyle birlikte, iki sıralamayla okunur. **Yüklenme sırası** sayfaları geldikleri sırayla numaralar (1., 2., 3. yüklenen…). **Müfredat sırası** onları ders, sınıf, ünite ve konu sırasına dizer; her yazının yanında konunun numarası durur. Her yazıda öbür sıradaki yeri de yazar. Bölüme göre süzülebilir; kopyalar “Var zaten” işaretiyle görünür ve aslına götürür.
+- **Yazılar:** Okunaklı bütün sayfaların yazısı, çizimleriyle birlikte, iki sıralamayla okunur. **Yüklenme sırası** sayfaları geldikleri sırayla numaralar (1., 2., 3. yüklenen…). **Müfredat sırası** onları ders, sınıf, ünite ve konu sırasına dizer; her yazının yanında konunun numarası durur. Her yazıda öbür sıradaki yeri de yazar. Müfredat sırasında her sınıfın başında o sınıfın konularından kaçının defterde olduğu yazar; **Defterde olmayan konular** listesi eksikleri gösterir. Bölüme göre süzülebilir; kopyalar “Var zaten” işaretiyle görünür ve aslına götürür.
+- **Yazı ekleme ve düzenleme:** Yazılar’daki **Yeni yazı** ile deftere fotoğrafsız bir yazı eklenir: bölüm, başlık, yazı, istenirse özet ve anahtar kavramlar. Müfredattaki yerini yapay zekâ belirler ya da elle seçilir. Her yazının **Düzenle** düğmesi aynı düzenleyiciyi açar. Fotoğraftan okunan yazılarda okunan ilk hâl saklanır; **Okunan hâline dön** ile ona dönülür. Elle yazılan yazılar düzenleyiciden silinebilir. Elle yazılanlar kopya karşılaştırmasına girmez.
+- **Yapay zekâyla güzelleştirme:** Bir yazıdaki **Yapay zekâyla güzelleştir** düğmesi ya da Yazılar’daki **Hepsini güzelleştir** yazıyı yapay zekâya temize çektirir: yanlış okunan kelimeler, yazım ve Türkçe harfler düzeltilir, yazı başlık, madde ve kısa paragraflarla düzenlenir; bilgi eklenmez, çıkarılmaz, şekiller yerinde kalır. Yazının başına kısa bir özet ve anahtar kavramlar eklenir; yapay zekânın neleri düzelttiği yazının altında listelenir. Sonuç aslından çok kısa ya da çok uzunsa, aslına yeterince benzemiyorsa ya da şekilleri eksikse kaydedilmez. Düzenleyicide önce önizleme görülür (**Eski hâline al** önizlemeyi geri alır); kaydedilmiş bir güzelleştirme **Okunan hâline dön** ile geri alınır.
+- **Defterleri okuma:** Okuma şifresiyle girenler okunaklı ve kopya olmayan bütün yazıları şekilleriyle, Yazılar’daki iki sıralamayla okur; bölüme göre süzer ve arar (arama Türkçe harflere ve büyük-küçük harfe takılmaz). Yükleyenlerin adları ve fotoğraflar gösterilmez. Şekiller arşivi açanın tarayıcısında fotoğraftan kesilir ve Yazılar sekmesi açılınca okuyanlar için yayımlanır. Arşivdeki **Okuyanlar nasıl görüyor?** düğmesi bu görünümü açar.
+- **Geri bildirim:** Okuyanlar her yazıdaki **Geri bildirim yaz** ile o yazı için, sayfanın üstündeki düğmeyle de genel olarak mesaj gönderir: hata, öneri, soru ya da teşekkür; ad yazmak isteğe bağlıdır. Mesajlar arşivin **Geri bildirim** sekmesine gelir, yenilerin sayısı sekmede görünür. Okundu sayılabilir, silinebilir, ilgili yazıya gidilebilir. Mesajlar küfür listesinden geçer; bir okuma oturumu saatte en fazla 10, bütün site günde en fazla 300 mesaj gönderebilir.
 
 ## Ücretsiz plan sınırları (yaklaşık)
 
@@ -47,6 +53,8 @@ Site ilk açıldığında kendi adresini de aynı veritabanına yazar; adresi ka
 | --- | --- |
 | Fotoğraf yükleme | Günde ~450 (depolama: günde 1.000 yazma) |
 | Denetim, yazıya dökme ve müfredattaki yer | Günde ~180 sayfa (Workers AI: günde 10.000 nöron; sayfa başına okuma ~15-27, müfredattaki yer ~25 nöron) |
+| Yapay zekâyla güzelleştirme | Aynı günlük nöron kotasından, yazı başına ~40-100 nöron |
+| Okuma ve geri bildirim | Kota harcamaz (geri bildirimler ayar veritabanında durur) |
 | Toplam fotoğraf | ~2.000 (1 GB depolama) |
 | Yazılar ve müfredat bilgisi | Ayar veritabanında (D1, 5 GB; günde 100.000 satır yazma) |
 
@@ -54,11 +62,12 @@ Günlük sınır dolarsa site bunu ziyaretçiye söyler; sınırlar her gün UTC
 
 ## Ayarlar
 
-`wrangler.jsonc` içindeki `vars` bölümü: `SESSION_HOURS` (QR girişinin süresi), `ADMIN_HOURS` (arşivin açık kalma süresi), `MAX_REJECTIONS` (kaç uygunsuz fotoğrafta siteden atılsın), `MAX_UPLOADS_PER_SESSION`. Yapay zekâ modelleri `VISION_MODEL`, `TEXT_MODEL` ve `TOPIC_MODEL` (müfredattaki yer) ile değiştirilebilir; varsayılanlar `src/worker.js` dosyasının başındadır.
+`wrangler.jsonc` içindeki `vars` bölümü: `SESSION_HOURS` (QR girişinin süresi), `ADMIN_HOURS` (arşivin açık kalma süresi), `MAX_REJECTIONS` (kaç uygunsuz fotoğrafta siteden atılsın), `MAX_UPLOADS_PER_SESSION`. `READER_HOURS` eklenirse okuma oturumunun süresini (saat, varsayılan 720) değiştirir. Yapay zekâ modelleri `VISION_MODEL`, `TEXT_MODEL`, `TOPIC_MODEL` (müfredattaki yer) ve `WRITE_MODEL` (güzelleştirme) ile değiştirilebilir; varsayılanlar `src/worker.js` dosyasının başındadır.
 
 ## Bilmen gerekenler
 
 - Denetim ve yazıya dökme Workers AI üzerindeki Google Gemma 4 modeliyle yapılır; çalışmazsa Llama 4 Scout devreye girer. İkisi de çalışmazsa fotoğraf yalnızca Meta Llama 3.2 Vision ile denetlenip eklenir, yazısı daha sonra arşivden **Yazıya dök** ile çıkarılır. Llama 3.2 Vision ilk kullanımda bir kez lisans onayı ister; site onayı senin hesabın adına kendiliğinden gönderir.
+- Güzelleştirme de Workers AI üzerindeki Gemma 4 ile yapılır, çalışmazsa Llama 4 Scout devreye girer. Bu yüzden ücretsizdir; Claude gibi ücretli modeller ve notları Google’a gönderen ücretsiz Gemini API kullanılmadı. Yapay zekânın düzenlediği yazı da hatasız olmayabilir; okunan hâli her zaman saklanır.
 - Engelleme, cihazdaki imzalı çereze dayanır. Tarayıcı verilerini silen biri QR kodu yeniden okutarak girebilir. Okul ağında herkes aynı IP adresini paylaştığı için IP’ye göre engelleme bilerek kullanılmadı.
 - Yapay zekâ denetimi ve okuması hatasız değildir. Kabul edilen her fotoğrafı arşivde görüp silebilir, yanlış okunan yazıyı düzeltebilirsin. Müfredattaki yer de yapay zekânın tahminidir; yanlışsa görüntüleyicide düzeltilir.
 - MEB programları değişirse (örneğin 12. sınıfta Maarif Modeli 2027-2028’de başlayınca) `src/mufredat.js` güncellenmelidir.
@@ -67,6 +76,6 @@ Günlük sınır dolarsa site bunu ziyaretçiye söyler; sınırlar her gün UTC
 ## Dosyalar
 
 - `public/index.html`: sitenin tamamı (tasarım, animasyonlar, akış, arşiv)
-- `src/worker.js`: sunucu (QR girişi, parola, denetim, yazıya dökme, kopyalar, depolama)
+- `src/worker.js`: sunucu (QR girişi, parolalar, denetim, yazıya dökme, kopyalar, güzelleştirme, okuma alanı, geri bildirim, depolama)
 - `src/mufredat.js`: MEB müfredatı (dersler, sınıflar, üniteler ve konular)
 - `wrangler.jsonc`: Cloudflare ayarları

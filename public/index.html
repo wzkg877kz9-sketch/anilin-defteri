@@ -776,7 +776,7 @@ main { max-width: 1080px; margin: 0 auto; }
 .tx.is-copy { background: linear-gradient(180deg, #f5efe1, var(--fildisi-2)); }
 .tx.flash { animation: txFlash 1.6s var(--ease-out); }
 @keyframes txFlash { 0%, 45% { box-shadow: 0 0 0 3px var(--yaldiz-acik), 0 22px 36px -24px #000; } }
-.tx-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px 14px; align-items: start; padding: 14px 16px 12px; border-bottom: 1px solid rgb(134 98 31 / .28); }
+.tx-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 14px; align-items: start; padding: 14px 16px 12px; border-bottom: 1px solid rgb(134 98 31 / .28); }
 .tx-no {
   display: flex;
   flex-direction: column;
@@ -795,7 +795,11 @@ main { max-width: 1080px; margin: 0 auto; }
 .tx-titles h5 { margin: 0; font: 400 1.3rem/1.2 var(--font-display); color: var(--lacivert-800); text-wrap: balance; overflow-wrap: anywhere; }
 .tx-place { margin: 5px 0 0; font: 600 .92rem/1.4 var(--font-ui); color: var(--deri-500); }
 .tx-meta { margin: 2px 0 0; font: 500 .84rem/1.35 var(--font-ui); color: var(--murekkep-2); }
-.tx-open { align-self: center; }
+.tx-tools { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tx-tags { margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.tx-tag { padding: 3px 9px; border-radius: 999px; font: 700 .74rem/1.3 var(--font-ui); }
+.tx-tag.ai { color: var(--lacivert-900); background: linear-gradient(115deg, var(--sedef-1), var(--sedef-2) 50%, var(--sedef-3)); box-shadow: inset 0 0 0 1px rgb(52 80 140 / .3); }
+.tx-tag.typed { color: var(--deri-500); box-shadow: inset 0 0 0 1px rgb(134 98 31 / .5); }
 .tx .btn.ghost { border-color: rgb(28 26 43 / .28); color: var(--murekkep); }
 .tx-body {
   padding: 8px 20px 20px 50px;
@@ -808,6 +812,28 @@ main { max-width: 1080px; margin: 0 auto; }
 }
 .tx-body p { margin: 0 0 var(--rule); }
 .tx-body > :last-child { margin-bottom: 0; }
+.tx-body .tx-h { margin: 0; font: 700 1.14rem/var(--rule) var(--font-body); color: var(--lacivert-800); }
+.tx-body .tx-h2 { font-size: 1.06rem; color: var(--deri-500); }
+.tx-body .tx-h + p, .tx-body .tx-h + .tx-ul { margin-top: 0; }
+.tx-ul { margin: 0 0 var(--rule); padding: 0 0 0 1.25em; list-style: none; }
+.tx-ul li { position: relative; }
+.tx-ul li::before { content: ""; position: absolute; left: -.95em; top: calc(var(--rule) / 2 - 3px); width: 6px; height: 6px; border-radius: 50%; background: var(--yaldiz-koyu); }
+.tx-body .tx-num { margin: 0; display: flex; gap: .45em; }
+.tx-body .tx-num + :not(.tx-num) { margin-top: var(--rule); }
+.tx-mk { flex: none; min-width: 1.5em; font-weight: 700; color: var(--deri-500); font-variant-numeric: lining-nums; }
+.tx-table { margin: 0 0 var(--rule); overflow-x: auto; }
+.tx-table table { border-collapse: collapse; font: inherit; }
+.tx-table th, .tx-table td { padding: 0 .7em; line-height: var(--rule); text-align: left; border-right: 1px solid rgb(134 98 31 / .25); white-space: nowrap; }
+.tx-table th { font-weight: 700; color: var(--lacivert-800); }
+.tx-table tr > :last-child { border-right: 0; }
+.tx-sum { margin: 14px 16px 0; padding: 10px 14px 12px; border-radius: 8px; background: rgb(198 160 82 / .1); box-shadow: inset 3px 0 0 var(--yaldiz); display: grid; gap: 8px; }
+.tx-sum p { margin: 0; font: 400 1.02rem/1.5 var(--font-body); color: var(--murekkep); white-space: pre-line; }
+.tx-sum b { margin-right: 8px; font: 700 .9rem/1.5 var(--font-ui); color: var(--deri-500); }
+.tx-keys { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+.tx-keys li { padding: 2px 10px; border-radius: 999px; font: 600 .82rem/1.5 var(--font-ui); color: var(--lacivert-700); background: rgb(255 255 255 / .6); box-shadow: inset 0 0 0 1px rgb(52 80 140 / .25); }
+.tx-fix { padding: 0 16px 14px 50px; font: 500 .9rem/1.45 var(--font-ui); color: var(--murekkep-2); }
+.tx-fix summary { cursor: pointer; width: fit-content; font-weight: 700; color: var(--lacivert-700); }
+.tx-fix ul { margin: 6px 0 0; padding-left: 1.1em; }
 .tx-fig { margin: 0 0 var(--rule); display: grid; justify-items: center; gap: 2px; background: #fbf7ee; border-radius: 4px; }
 .tx-fig-img:empty { display: none; }
 .tx-fig-img img { display: block; max-width: min(100%, 520px); height: auto; }
@@ -823,7 +849,15 @@ main { max-width: 1080px; margin: 0 auto; }
 .tx-sec { margin: 0; display: flex; align-items: center; gap: 10px; font: 400 1.5rem/1.2 var(--font-display); color: var(--yaldiz-acik); }
 .tx-sec svg { width: 40px; height: 40px; }
 .tx-grade { display: grid; gap: 14px; }
-.tx-grade > h4 { margin: 4px 0 0; display: flex; align-items: center; gap: 12px; font: 400 1.35rem/1.2 var(--font-display); color: var(--fildisi); }
+.tx-grade > h4 { margin: 4px 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font: 400 1.35rem/1.2 var(--font-display); color: var(--fildisi); }
+.tx-grade > h4 small { order: 2; font: 500 .88rem/1.3 var(--font-ui); color: rgb(244 238 226 / .7); }
+.tx-grade > h4::after { order: 3; }
+.tx-gap { padding: 10px 14px; border-radius: 12px; background: rgb(6 12 25 / .45); box-shadow: inset 0 0 0 1px rgb(198 160 82 / .2); color: rgb(244 238 226 / .82); font: 500 .92rem/1.45 var(--font-ui); }
+.tx-gap summary { cursor: pointer; width: fit-content; font-weight: 700; color: var(--yaldiz-acik); }
+.tx-gap summary:focus-visible { outline: 2px solid var(--yaldiz-acik); outline-offset: 2px; border-radius: 4px; }
+.tx-gap ul { margin: 8px 0 0; padding: 0; list-style: none; columns: 2 18rem; column-gap: 28px; }
+.tx-gap li { break-inside: avoid; padding: 1px 0; }
+.tx-gap .tx-gap-unit { margin-top: 6px; font-weight: 700; color: var(--fildisi); }
 .tx-grade > h4::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, rgb(198 160 82 / .6), transparent); }
 .tx-unit { display: grid; gap: 12px; padding-left: 14px; border-left: 2px solid rgb(198 160 82 / .35); }
 .tx-unit-name { margin: 0; font: 700 1rem/1.4 var(--font-ui); color: var(--yaldiz-acik); }
@@ -856,7 +890,9 @@ main { max-width: 1080px; margin: 0 auto; }
 
 @media (max-width: 560px) {
   .tx-head { grid-template-columns: auto minmax(0, 1fr); padding: 12px 12px 10px; }
-  .tx-open { grid-column: 2; justify-self: start; }
+  .tx-tools { grid-column: 1 / -1; }
+  .tx-sum { margin: 12px 12px 0; }
+  .tx-fix { padding: 0 12px 12px 34px; }
   .tx-body {
     padding: 6px 14px 16px 34px;
     background:
@@ -885,7 +921,7 @@ main { max-width: 1080px; margin: 0 auto; }
   font: 400 1.08rem/1.6 var(--font-body);
 }
 .sheet .field textarea:focus { outline: none; box-shadow: inset 0 0 0 2px var(--yaldiz-koyu); background: rgb(255 255 255 / .75); }
-.sheet .field #tdHead { font: 400 1.35rem/1.25 var(--font-display); color: var(--lacivert-800); }
+.sheet .field #wdHead { font: 400 1.35rem/1.25 var(--font-display); color: var(--lacivert-800); }
 .check { display: flex; gap: 10px; align-items: center; font: 600 .98rem/1.3 var(--font-ui); color: var(--murekkep); cursor: pointer; }
 .check input { width: 22px; height: 22px; accent-color: var(--lacivert-700); }
 .empty { display: grid; justify-items: center; gap: 10px; padding: 40px 16px; text-align: center; color: rgb(244 238 226 / .75); }
@@ -1101,6 +1137,105 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
   body.printing-qr .desk { display: none; }
 }
 
+/* ---------- Defterleri okuma alanı ---------- */
+.reader { z-index: 45; }
+.read-invite { margin: 0; font: 500 .98rem/1.5 var(--font-ui); color: rgb(244 238 226 / .78); }
+.read-invite .link-btn { color: var(--yaldiz-acik); font-size: .98rem; text-decoration-color: rgb(241 222 164 / .55); }
+.read-invite .link-btn:hover { color: #fff3cf; }
+.rd-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.rd-search {
+  width: min(240px, 100%);
+  min-height: 42px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--fildisi);
+  background: rgb(6 12 25 / .6);
+  box-shadow: inset 0 0 0 1px rgb(198 160 82 / .3);
+  font: 500 .95rem/1.2 var(--font-ui);
+}
+.rd-search::placeholder { color: rgb(244 238 226 / .55); }
+.rd-search:focus { outline: 2px solid var(--yaldiz-acik); outline-offset: 1px; }
+.reader .tx-tools { justify-content: flex-start; }
+
+/* Arşiv sekmesindeki yeni geri bildirim sayısı */
+.tab-badge { display: inline-grid; place-items: center; min-width: 20px; height: 20px; margin-left: 6px; padding: 0 6px; border-radius: 999px; font: 700 .72rem/1 var(--font-ui); color: #fff6f3; background: var(--mum-acik); vertical-align: 1px; }
+.tabs button[aria-selected="true"] .tab-badge { background: var(--mum); }
+
+/* Yazılar: yeni yazı ve toplu güzelleştirme */
+.tx-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.ai-bulk { background: linear-gradient(115deg, rgb(247 244 238 / .12), rgb(232 240 243 / .16) 50%, rgb(243 231 238 / .12)); box-shadow: inset 0 0 0 1px rgb(232 240 243 / .35); }
+
+/* Arşiv: geri bildirimler */
+.fb-head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+.fb-head p { margin: 0; font: 500 .98rem/1.4 var(--font-ui); color: rgb(244 238 226 / .8); }
+.fb-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.fb-item { display: grid; gap: 8px; padding: 14px 16px; border-radius: 12px; background: rgb(19 32 61 / .7); box-shadow: inset 0 0 0 1px rgb(198 160 82 / .18); }
+.fb-item.is-new { box-shadow: inset 3px 0 0 var(--yaldiz), inset 0 0 0 1px rgb(198 160 82 / .4); }
+.fb-top { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.fb-type { padding: 3px 10px; border-radius: 999px; font: 700 .78rem/1.3 var(--font-ui); color: #fff8ec; background: var(--lacivert-500); }
+.fb-type.t-hata { background: var(--mum-acik); }
+.fb-type.t-soru { color: var(--lacivert-900); background: var(--yaldiz-acik); }
+.fb-type.t-tesekkur { background: var(--onay); }
+.fb-who { font: 500 .9rem/1.3 var(--font-ui); color: rgb(244 238 226 / .7); }
+.fb-new { font: 700 .78rem/1.3 var(--font-ui); color: var(--yaldiz-acik); }
+.fb-msg { margin: 0; font: 400 1.08rem/1.55 var(--font-body); color: var(--fildisi); white-space: pre-wrap; overflow-wrap: anywhere; }
+.fb-about { margin: 0; font: 500 .9rem/1.45 var(--font-ui); color: rgb(244 238 226 / .72); overflow-wrap: anywhere; }
+.fb-about .link-btn, .fb-head .link-btn { color: var(--yaldiz-acik); font-size: .9rem; }
+.fb-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.fb-none { list-style: none; }
+
+/* Geri bildirim penceresi ve yazı düzenleyicideki seçenekler */
+.fb-sheet { width: min(520px, calc(100vw - 24px)); }
+.fb-sheet form, .write-sheet form { display: grid; gap: 12px; }
+.fb-sheet p, .write-sheet p { margin: 0; }
+.fb-sheet .field textarea, .write-sheet #wdSummary { min-height: 7rem; }
+.field label span { font-weight: 500; }
+.fb-kinds, .wd-place { margin: 0; padding: 0; border: 0; min-width: 0; }
+.fb-kinds legend, .wd-place legend { padding: 0; margin-bottom: 6px; font: 700 .95rem/1.2 var(--font-ui); color: var(--murekkep-2); }
+.fb-kinds, .wd-modes { display: flex; flex-wrap: wrap; gap: 8px; }
+.fb-kinds legend { flex-basis: 100%; }
+.fb-kinds label, .wd-modes label { position: relative; cursor: pointer; }
+.fb-kinds input, .wd-modes input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.fb-kinds span, .wd-modes span { display: inline-block; padding: 8px 14px; border-radius: 999px; font: 700 .9rem/1.1 var(--font-ui); color: var(--murekkep); background: rgb(255 255 255 / .55); box-shadow: inset 0 0 0 1px rgb(28 26 43 / .22); }
+.fb-kinds input:checked + span, .wd-modes input:checked + span { color: var(--fildisi); background: linear-gradient(180deg, var(--lacivert-700), var(--lacivert-900)); box-shadow: inset 0 0 0 1px var(--yaldiz); }
+.fb-kinds input:focus-visible + span, .wd-modes input:focus-visible + span { outline: 2px solid var(--yaldiz-koyu); outline-offset: 2px; }
+.sheet select { min-height: 42px; max-width: 100%; padding: 6px 12px; border: 0; border-radius: 10px; color: var(--murekkep); background: rgb(255 255 255 / .6); box-shadow: inset 0 0 0 1px rgb(28 26 43 / .25); font: 600 .98rem/1.2 var(--font-ui); }
+.sheet select:focus { outline: 2px solid var(--yaldiz-koyu); outline-offset: 1px; }
+.sheet select:disabled { opacity: .65; }
+
+/* Yazı düzenleyici */
+.write-sheet { width: min(800px, calc(100vw - 24px)); }
+.wd-row { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: end; }
+.wd-sec { flex: 0 1 200px; }
+.wd-sec select { width: 100%; }
+.wd-grow { flex: 1 1 260px; min-width: 0; }
+.wd-textbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; }
+.wd-hint { font: 500 .86rem/1.4 var(--font-ui); color: var(--murekkep-2); }
+.wd-ai { display: grid; gap: 6px; padding: 12px 14px; border-radius: 12px; color: var(--murekkep); background: linear-gradient(115deg, var(--sedef-1), var(--sedef-2) 50%, var(--sedef-3)); box-shadow: inset 0 0 0 1px rgb(52 80 140 / .25); font: 500 .94rem/1.45 var(--font-ui); }
+.wd-ai.warn { background: rgb(142 36 34 / .08); box-shadow: inset 0 0 0 1px rgb(142 36 34 / .3); }
+.wd-ai ul { margin: 0; padding-left: 1.1em; }
+.wd-ai .link-btn { justify-self: start; }
+.wd-warn { color: var(--mum); font-weight: 600; }
+.wd-more { display: grid; gap: 10px; }
+.wd-more summary { cursor: pointer; width: fit-content; font: 700 .95rem/1.4 var(--font-ui); color: var(--lacivert-700); }
+.wd-more summary:focus-visible { outline: 2px solid var(--yaldiz-koyu); outline-offset: 2px; border-radius: 4px; }
+.wd-more[open] summary { margin-bottom: 10px; }
+.wd-more .field + .field { margin-top: 10px; }
+.wd-now { margin: 0 0 8px; font: 500 .9rem/1.4 var(--font-ui); color: var(--deri-500); }
+.wd-selects { margin-top: 10px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 12px; align-items: center; }
+.wd-selects label { font: 700 .9rem/1 var(--font-ui); color: var(--murekkep-2); }
+.wd-selects select { width: 100%; }
+.wd-actions { align-items: center; }
+.wd-spacer { flex: 1 1 auto; }
+@media (max-width: 560px) {
+  .write-sheet { padding: 20px 16px 16px; }
+  .wd-sec { flex-basis: 100%; }
+  .wd-spacer { display: none; }
+  .rd-search { width: 100%; }
+  .rd-tools { width: 100%; }
+}
+
 </style>
 </head>
 <body>
@@ -1217,6 +1352,7 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
       <div class="state-panel" id="panelMain" hidden>
         <div class="actions">
           <button class="btn gold" id="ctaAdd" type="button">Deftere sayfa ekle</button>
+          <button class="btn ghost cta-read" id="ctaRead" type="button" hidden>Defterleri oku</button>
         </div>
         <div class="tally" id="tally" aria-live="polite"></div>
       </div>
@@ -1232,6 +1368,7 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
           <button class="btn ghost" id="ctaPassword" type="button" hidden>Şifreyle gir</button>
           <button class="btn ghost" id="ctaPreview" type="button" hidden>Önizlemede QR’sız aç</button>
         </div>
+        <p class="read-invite" id="readInvite" hidden><span id="readInviteText">Defterleri okumak için okuma şifren varsa</span> <button class="link-btn cta-read" id="ctaReadGate" type="button">defterleri aç</button>.</p>
       </div>
 
       <div class="state-panel" id="panelKicked" hidden>
@@ -1299,6 +1436,7 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
         <div class="tabs" role="tablist" aria-label="Arşiv">
           <button role="tab" id="tabBtnPages" aria-selected="true" aria-controls="tabPages" type="button">Sayfalar</button>
           <button role="tab" id="tabBtnTexts" aria-selected="false" aria-controls="tabTexts" type="button" tabindex="-1">Yazılar</button>
+          <button role="tab" id="tabBtnFb" aria-selected="false" aria-controls="tabFb" type="button" tabindex="-1">Geri bildirim<span class="tab-badge" id="fbBadge" hidden></span></button>
           <button role="tab" id="tabBtnQr" aria-selected="false" aria-controls="tabQr" type="button" tabindex="-1">Giriş QR kodları</button>
         </div>
         <button class="btn ghost small" id="arcClose" type="button">Siteye dön</button>
@@ -1317,6 +1455,14 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
     </div>
 
     <div id="tabTexts" role="tabpanel" aria-labelledby="tabBtnTexts" class="arc-panel" hidden>
+      <div class="tx-actions">
+        <button class="btn gold small" id="txNew" type="button">Yeni yazı</button>
+        <button class="btn ghost small" id="txReaderView" type="button">Okuyanlar nasıl görüyor?</button>
+      </div>
+      <div class="bulk ai-bulk" id="aiBulk" hidden>
+        <p id="aiBulkText" role="status" aria-live="polite"></p>
+        <button class="btn sedef small" id="aiBulkRun" type="button">Hepsini güzelleştir</button>
+      </div>
       <div class="tx-bar">
         <div class="chips" id="txChips" role="toolbar" aria-label="Yazıları bölüme göre süz"></div>
         <div class="seg" id="txOrder" role="radiogroup" aria-label="Sıralama">
@@ -1325,6 +1471,14 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
         </div>
       </div>
       <div class="texts" id="texts"></div>
+    </div>
+
+    <div id="tabFb" role="tabpanel" aria-labelledby="tabBtnFb" class="arc-panel" hidden>
+      <div class="fb-head">
+        <p id="fbSummary" role="status" aria-live="polite">Geri bildirimler yükleniyor…</p>
+        <button class="btn ghost small" id="fbAllRead" type="button" hidden>Hepsini okundu say</button>
+      </div>
+      <ol class="fb-list" id="fbList"></ol>
     </div>
 
     <div id="tabQr" role="tabpanel" aria-labelledby="tabBtnQr" class="arc-panel" hidden>
@@ -1342,6 +1496,36 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
         <button class="btn ghost small" id="liftBans" type="button">Engelleri kaldır</button>
       </div>
     </div>
+  </div>
+</section>
+
+<section class="archive reader" id="reader" hidden aria-labelledby="rdTitle">
+  <div class="arc-inner">
+    <header class="arc-head">
+      <div class="arc-brand">
+        <span id="rdSeal" aria-hidden="true"></span>
+        <div>
+          <h2 id="rdTitle">Anıl’ın defterleri</h2>
+          <p id="rdSummary">Defterler yükleniyor…</p>
+        </div>
+      </div>
+      <div class="arc-tools">
+        <button class="btn sedef small" id="rdFeedback" type="button">Geri bildirim yaz</button>
+        <button class="btn ghost small" id="rdClose" type="button">Siteye dön</button>
+        <button class="btn ghost small" id="rdLogout" type="button">Çıkış yap</button>
+      </div>
+    </header>
+    <div class="tx-bar rd-bar">
+      <div class="chips" id="rdChips" role="toolbar" aria-label="Defteri seç"></div>
+      <div class="rd-tools">
+        <input type="search" id="rdSearch" class="rd-search" placeholder="Defterde ara" aria-label="Defterde ara" autocomplete="off" spellcheck="false">
+        <div class="seg" id="rdOrder" role="radiogroup" aria-label="Sıralama">
+          <button type="button" role="radio" aria-checked="true" data-order="mufredat">Müfredat sırası</button>
+          <button type="button" role="radio" aria-checked="false" data-order="yukleme" tabindex="-1">Yüklenme sırası</button>
+        </div>
+      </div>
+    </div>
+    <div class="texts" id="rdTexts"></div>
   </div>
 </section>
 
@@ -1383,6 +1567,54 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
     <div class="row">
       <button type="button" class="btn ghost" data-close>Vazgeç</button>
       <button type="submit" class="btn ink" id="entrySubmit">Defteri aç</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="sheet" id="readerDialog" aria-labelledby="readerTitle">
+  <form id="readerForm" novalidate>
+    <svg class="lock-art" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+      <circle cx="50" cy="50" r="48" fill="url(#gLacivert)"/>
+      <circle cx="50" cy="50" r="44" class="sedef-ring"/>
+      <g class="morph-gold" id="readerMorph" transform="translate(12 12) scale(.76)"><path/><path/><path/><path/></g>
+    </svg>
+    <h2 id="readerTitle">Defterleri oku</h2>
+    <p>Anıl’ın defterlerini okumak için okuma şifresini yaz. Bu şifre yalnızca defterleri açar; fotoğraflar ve arşiv kapalı kalır.</p>
+    <div class="field">
+      <label for="readerInput">Okuma şifresi</label>
+      <input type="password" id="readerInput" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" required>
+    </div>
+    <p class="field-error" id="readerError" role="alert" hidden></p>
+    <div class="row">
+      <button type="button" class="btn ghost" data-close>Vazgeç</button>
+      <button type="submit" class="btn ink" id="readerSubmit">Defterleri aç</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="sheet fb-sheet" id="fbDialog" aria-labelledby="fbTitle">
+  <form id="fbForm" novalidate>
+    <h2 id="fbTitle">Geri bildirim</h2>
+    <p id="fbAbout"></p>
+    <fieldset class="fb-kinds">
+      <legend>Ne hakkında?</legend>
+      <label><input type="radio" name="fbKind" value="hata" checked><span>Hata var</span></label>
+      <label><input type="radio" name="fbKind" value="oneri"><span>Öneri</span></label>
+      <label><input type="radio" name="fbKind" value="soru"><span>Soru</span></label>
+      <label><input type="radio" name="fbKind" value="tesekkur"><span>Teşekkür</span></label>
+    </fieldset>
+    <div class="field">
+      <label for="fbText">Mesajın</label>
+      <textarea id="fbText" rows="5" maxlength="1000" spellcheck="true"></textarea>
+    </div>
+    <div class="field">
+      <label for="fbName">Adın <span>(isteğe bağlı)</span></label>
+      <input id="fbName" maxlength="40" autocomplete="nickname">
+    </div>
+    <p class="field-error" id="fbError" role="alert" hidden></p>
+    <div class="row">
+      <button type="button" class="btn ghost" data-close>Vazgeç</button>
+      <button type="submit" class="btn ink" id="fbSend">Gönder</button>
     </div>
   </form>
 </dialog>
@@ -1459,23 +1691,72 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
   </div>
 </dialog>
 
-<dialog class="sheet text-sheet" id="textDialog" aria-labelledby="tdTitle">
-  <form id="textForm" novalidate>
-    <h2 id="tdTitle">Yazıyı düzelt</h2>
-    <p>Yapay zekânın okuduğu yazıyı burada düzeltebilirsin. Yazılar’da bu hâli görünür.</p>
-    <div class="field">
-      <label for="tdHead">Başlık</label>
-      <input id="tdHead" maxlength="80" autocomplete="off">
+<dialog class="sheet write-sheet" id="writeDialog" aria-labelledby="wdTitle">
+  <form id="writeForm" novalidate>
+    <h2 id="wdTitle">Yeni yazı</h2>
+    <p id="wdLead"></p>
+    <div class="wd-row">
+      <div class="field wd-sec">
+        <label for="wdSection">Bölüm</label>
+        <select id="wdSection"></select>
+      </div>
+      <div class="field wd-grow">
+        <label for="wdHead">Başlık</label>
+        <input id="wdHead" maxlength="80" autocomplete="off">
+      </div>
     </div>
     <div class="field">
-      <label for="tdText">Yazı</label>
-      <textarea id="tdText" rows="12" maxlength="12000" spellcheck="true"></textarea>
+      <div class="wd-textbar">
+        <label for="wdText">Yazı</label>
+        <button class="btn sedef small" id="wdAi" type="button">Yapay zekâyla güzelleştir</button>
+      </div>
+      <textarea id="wdText" rows="14" maxlength="12000" spellcheck="true"></textarea>
+      <p class="wd-hint">Başlık satırını “# ”, maddeyi “- ” ile başlat. Çizimin yerine [Şekil: ne olduğu] yazabilirsin.</p>
     </div>
-    <label class="check"><input type="checkbox" id="tdLegible"> Bu sayfa Yazılar’da yer alsın</label>
-    <p class="field-error" id="tdError" role="alert" hidden></p>
-    <div class="row">
+    <div class="wd-ai" id="wdAiNote" role="status" aria-live="polite" hidden></div>
+    <details class="wd-more" id="wdMore">
+      <summary>Özet ve anahtar kavramlar</summary>
+      <div class="field">
+        <label for="wdSummary">Özet</label>
+        <textarea id="wdSummary" rows="3" maxlength="600"></textarea>
+      </div>
+      <div class="field">
+        <label for="wdKeys">Anahtar kavramlar <span>(virgülle ayır)</span></label>
+        <input id="wdKeys" maxlength="300" autocomplete="off">
+      </div>
+    </details>
+    <fieldset class="wd-place" id="wdPlace">
+      <legend>MEB müfredatındaki yeri</legend>
+      <p class="wd-now" id="wdPlaceNow" hidden></p>
+      <div class="wd-modes">
+        <label id="wdKeepWrap"><input type="radio" name="wdMode" value="koru"><span>Olduğu gibi kalsın</span></label>
+        <label><input type="radio" name="wdMode" value="otomatik" checked><span>Yapay zekâ belirlesin</span></label>
+        <label><input type="radio" name="wdMode" value="elle"><span>Ben seçeyim</span></label>
+        <label><input type="radio" name="wdMode" value="yok"><span>Müfredatta yok</span></label>
+      </div>
+      <div class="wd-selects" id="wdSelects" hidden>
+        <label for="wdGrade">Sınıf</label>
+        <select id="wdGrade"></select>
+        <label for="wdUnit">Ünite</label>
+        <select id="wdUnit"></select>
+        <label for="wdTopic">Konu</label>
+        <select id="wdTopic"></select>
+      </div>
+    </fieldset>
+    <div class="wd-row">
+      <div class="field wd-grow" id="wdAuthorRow">
+        <label for="wdAuthor">Yazan</label>
+        <input id="wdAuthor" maxlength="40" autocomplete="nickname">
+      </div>
+    </div>
+    <label class="check" id="wdLegibleRow"><input type="checkbox" id="wdLegible"> Yazılar’da ve defterlerde görünsün</label>
+    <p class="field-error" id="wdError" role="alert" hidden></p>
+    <div class="row wd-actions">
+      <button type="button" class="btn danger small" id="wdDelete" hidden>Yazıyı sil</button>
+      <button type="button" class="btn ghost small" id="wdRestore" hidden>Okunan hâline dön</button>
+      <span class="wd-spacer"></span>
       <button type="button" class="btn ghost" data-close>Vazgeç</button>
-      <button type="submit" class="btn ink" id="tdSave">Kaydet</button>
+      <button type="submit" class="btn ink" id="wdSave">Kaydet</button>
     </div>
   </form>
 </dialog>
@@ -2502,6 +2783,11 @@ Reply with ONLY this JSON object and nothing else:
     e.auth = true;
     return e;
   }
+  function readerAuthError() {
+    const e = new Error('Defterleri okumak için okuma şifresini yeniden gir.');
+    e.readerAuth = true;
+    return e;
+  }
 
   function createLiveApi() {
     async function call(method, path, body) {
@@ -2518,6 +2804,17 @@ Reply with ONLY this JSON object and nothing else:
     const admin = async (method, path, body) => {
       const r = await call(method, path, body);
       if (r.status === 401) throw authError();
+      if (!r.ok) {
+        const e = new Error(r.data.error || 'İşlem yapılamadı. Tekrar dene.');
+        e.status = r.status;
+        throw e;
+      }
+      return r.data;
+    };
+    // Defterleri okuma alanı: okuma şifresiyle (ya da arşiv parolasıyla) açılan oturum
+    const reader = async (method, path, body) => {
+      const r = await call(method, path, body);
+      if (r.status === 401) throw readerAuthError();
       if (!r.ok) {
         const e = new Error(r.data.error || 'İşlem yapılamadı. Tekrar dene.');
         e.status = r.status;
@@ -2571,6 +2868,23 @@ Reply with ONLY this JSON object and nothing else:
       async qrCreate(label) { return admin('POST', '/api/yonetici/qr', { label }); },
       async qrRevoke(id) { return admin('DELETE', `/api/yonetici/qr/${encodeURIComponent(id)}`); },
       async liftBans() { return admin('POST', '/api/yonetici/engelleri-kaldir', {}); },
+      // Yöneticinin yazıları, yapay zekâyla güzelleştirme, okuyucular için şekil görselleri
+      async createText(body) { return admin('POST', '/api/yonetici/yazi', body); },
+      async deleteText(id) { return admin('DELETE', `/api/yonetici/yazi/${encodeURIComponent(id)}`); },
+      async beautify(body) { return admin('POST', '/api/yonetici/guzellestir', body); },
+      async publishFigures(id, key, list) { return admin('POST', `/api/yonetici/sekil/${encodeURIComponent(id)}`, { key, list }); },
+      // Geri bildirimler (arşiv)
+      async feedbackList() { return admin('GET', '/api/yonetici/geri-bildirim'); },
+      async feedbackMark(id, okundu) { return admin('POST', `/api/yonetici/geri-bildirim/${encodeURIComponent(id)}`, { okundu }); },
+      async feedbackMarkAll() { return admin('POST', '/api/yonetici/geri-bildirim', { okundu: true }); },
+      async feedbackDelete(id) { return admin('DELETE', `/api/yonetici/geri-bildirim/${encodeURIComponent(id)}`); },
+      // Defterleri okuma alanı
+      async readerLogin(pw) { const r = await call('POST', '/api/okur/giris', { sifre: pw }); return r.ok ? { ok: true } : r.data; },
+      async readerLogout() { await call('POST', '/api/okur/cikis', {}); },
+      async readerTexts() { return reader('GET', '/api/okur/defterler'); },
+      async readerTree() { return reader('GET', '/api/okur/mufredat'); },
+      async readerFigures(id, key) { return reader('GET', `/api/okur/sekil/${encodeURIComponent(id)}?k=${encodeURIComponent(key || '')}`); },
+      async sendFeedback(body) { return reader('POST', '/api/okur/geri-bildirim', body); },
     };
   }
 
@@ -2782,6 +3096,20 @@ Reply with ONLY this JSON object and nothing else:
       },
       async qrRevoke(id) { mem.qr = mem.qr.filter((q) => q.id !== id); return { ok: true }; },
       async liftBans() { mem.banned = false; removeStore(localStorage, BAN_KEY); return { ok: true }; },
+      async createText() { throw new Error('Önizlemede yazı kaydedilmez; asıl sitede çalışır.'); },
+      async deleteText() { throw new Error('Önizlemede yazı silinmez; asıl sitede çalışır.'); },
+      async beautify() { throw new Error('Önizlemede yapay zekâyla güzelleştirme yok; asıl sitede çalışır.'); },
+      async publishFigures() { return { ok: true }; },
+      async feedbackList() { return { items: [], unread: 0 }; },
+      async feedbackMark() { return { unread: 0 }; },
+      async feedbackMarkAll() { return { unread: 0 }; },
+      async feedbackDelete() { return { unread: 0 }; },
+      async readerLogin() { return { error: 'Önizlemede defterler yok; asıl sitede çalışır.' }; },
+      async readerLogout() {},
+      async readerTexts() { return { pages: [] }; },
+      async readerTree() { throw new Error('Önizlemede müfredat yok; asıl sitede çalışır.'); },
+      async readerFigures() { return { list: [] }; },
+      async sendFeedback() { throw new Error('Önizlemede geri bildirim gönderilmez; asıl sitede çalışır.'); },
     };
   }
 
@@ -2879,6 +3207,14 @@ Reply with ONLY this JSON object and nothing else:
       textPages: null, textFilter: 'tumu', textOrder: 'yukleme', tree: null,
     },
     bulk: { active: false, stop: false, total: 0, done: 0, marked: 0, failed: 0, verb: 'yazıya döküldü' },
+    // Yazıları yapay zekâyla toplu güzelleştirme
+    ai: { active: false, stop: false, total: 0, done: 0, saved: 0, skipped: 0, failed: 0 },
+    // Arşivdeki geri bildirimler
+    feedback: { items: null, unread: 0 },
+    // Yazı düzenleyici: hangi yazı, yapay zekâdan önceki hâl
+    editor: { page: null, item: null, before: null, ai: null },
+    // Defterleri okuma alanı
+    reader: { open: false, pages: null, filter: 'tumu', order: 'mufredat', query: '', tree: null, fbPage: null },
   };
 
   const ui = {
@@ -2887,6 +3223,7 @@ Reply with ONLY this JSON object and nothing else:
     book: $('#book'),
     cover: $('#cover'),
     archive: $('#archive'),
+    reader: $('#reader'),
     panels: { loading: $('#panelLoading'), main: $('#panelMain'), gate: $('#panelGate'), kicked: $('#panelKicked') },
   };
 
@@ -2894,6 +3231,7 @@ Reply with ONLY this JSON object and nothing else:
   let miniMorph;
   let lockMorph;
   let entryMorph;
+  let readerMorph;
   let thanksMorph = null;
   let loopTimer = 0;
 
@@ -2903,14 +3241,17 @@ Reply with ONLY this JSON object and nothing else:
     $('#miniScallop').setAttribute('d', scallop(50, 50, 46, 46, 16, 0.07));
     $('#exlibrisArt').innerHTML = `<circle cx="50" cy="50" r="46" fill="url(#gLacivert)"/><circle cx="50" cy="50" r="42" fill="none" stroke="url(#gYaldizSembol)" stroke-width="1.6"/><g class="morph-gold" transform="translate(12 12) scale(.76)">${SYMBOL_D.kitap.map((d) => `<path d="${d}"/>`).join('')}</g>`;
     $('#arcSeal').innerHTML = symbolIcon('kitap', 3.4);
+    $('#rdSeal').innerHTML = symbolIcon('kitap', 3.4);
     coverMorph = new Morph([$('#coverMorphShadow'), $('#coverMorph')]);
     miniMorph = new Morph([$('#miniMorph')]);
     lockMorph = new Morph([$('#lockMorph')]);
     entryMorph = new Morph([$('#entryMorph')]);
+    readerMorph = new Morph([$('#readerMorph')]);
     coverMorph.set('kitap');
     miniMorph.set('kitap');
     lockMorph.set('kilit');
     entryMorph.set('kilit');
+    readerMorph.set('kilit');
   }
 
   function setCoverSubject(text) {
@@ -2955,6 +3296,10 @@ Reply with ONLY this JSON object and nothing else:
     ui.cover.setAttribute('aria-label', view === 'main' ? 'Defteri aç ve sayfa ekle' : view === 'gate' ? 'Defter kilitli: QR kodla aç' : 'Defter kapalı');
     $('#lede').hidden = view === 'kicked';
     showPanel(view);
+    const canRead = readerAvailable();
+    $('#ctaRead').hidden = !canRead;
+    $('#readInvite').hidden = !canRead;
+    $('#readInviteText').textContent = state.status && state.status.reader ? 'Okuma şifreni bu cihazda girmiştin;' : 'Defterleri okumak için okuma şifren varsa';
     if (view === 'main') {
       renderTally();
       startCoverLoop();
@@ -3012,6 +3357,7 @@ Reply with ONLY this JSON object and nothing else:
     ui.flow.hidden = true;
     ui.hero.hidden = false;
     if (state.archive.open) closeArchive();
+    if (state.reader.open) closeReader();
     setView('kicked', { reason });
     window.scrollTo({ top: 0 });
   }
@@ -3738,6 +4084,8 @@ Reply with ONLY this JSON object and nothing else:
       const data = await api.list();
       state.archive.items = data.items || [];
       state.archive.textPages = null;
+      state.feedback.items = null;
+      setFeedbackUnread(data.feedbackUnread || 0);
     } catch (e) {
       if (e.auth) { lockedOut(); return; }
       $('#gallery').innerHTML = `<div class="empty"><h3>Sayfalar alınamadı</h3><p>${esc(e.message)}</p></div>`;
@@ -3761,7 +4109,7 @@ Reply with ONLY this JSON object and nothing else:
     toast('Arşiv kilitlendi.');
   }
 
-  const ARCHIVE_TABS = [['pages', '#tabBtnPages', '#tabPages'], ['texts', '#tabBtnTexts', '#tabTexts'], ['qr', '#tabBtnQr', '#tabQr']];
+  const ARCHIVE_TABS = [['pages', '#tabBtnPages', '#tabPages'], ['texts', '#tabBtnTexts', '#tabTexts'], ['fb', '#tabBtnFb', '#tabFb'], ['qr', '#tabBtnQr', '#tabQr']];
   function setArchiveTab(tab) {
     state.archive.tab = tab;
     for (const [id, btn, panel] of ARCHIVE_TABS) {
@@ -3772,6 +4120,7 @@ Reply with ONLY this JSON object and nothing else:
     }
     if (tab === 'qr') loadQr();
     if (tab === 'texts') loadTexts();
+    if (tab === 'fb') loadFeedback();
     renderBulk();
   }
 
@@ -4167,56 +4516,6 @@ Reply with ONLY this JSON object and nothing else:
     }
   }
 
-  async function openTextEditor() {
-    const it = state.archive.current;
-    if (!it) return;
-    const err = $('#tdError');
-    showFieldError(err, '');
-    let entry;
-    try {
-      entry = await loadText(it);
-    } catch (e) {
-      if (e.auth) { lockedOut(); return; }
-      toast(e.message || 'Yazı alınamadı.', true);
-      return;
-    }
-    $('#tdHead').value = entry.title || it.title || '';
-    $('#tdText').value = entry.text || '';
-    $('#tdLegible').checked = !!it.legible;
-    $('#textDialog').showModal();
-    setTimeout(() => $('#tdText').focus(), 60);
-  }
-
-  async function saveTextEdit(e) {
-    e.preventDefault();
-    const it = state.archive.current;
-    if (!it) return;
-    const err = $('#tdError');
-    const btn = $('#tdSave');
-    const text = $('#tdText').value;
-    const legible = $('#tdLegible').checked;
-    if (legible && !text.trim()) { showFieldError(err, 'Yazılar’da yer alması için yazıyı da gir.'); return; }
-    setBusy(btn, true, 'Kaydediliyor');
-    try {
-      const d = await api.saveText(it.id, { text, title: $('#tdHead').value, legible });
-      forgetText(it.id);
-      state.archive.texts.set(it.id, { text: d.text || '', title: d.title || '', legible: !!d.legible, figures: d.figures || [] });
-      // elle düzeltilen yazı toplu okumada ezilmez
-      applyItemUpdate(it, {
-        ...d.item, figuresPending: false, curriculum: d.curriculum || null, curriculumChecked: !!d.curriculumChecked,
-        curriculumPending: !d.curriculumChecked && !!(d.text && d.text.trim()),
-      });
-      $('#textDialog').close();
-      toast(d.legible ? 'Yazı kaydedildi; Yazılar güncellendi.' : 'Yazı kaydedildi.');
-      setViewerMode('yazi');
-    } catch (ex) {
-      if (ex.auth) { lockedOut(); return; }
-      showFieldError(err, ex.message || 'Yazı kaydedilemedi.');
-    } finally {
-      setBusy(btn, false, 'Kaydet');
-    }
-  }
-
   /* Toplu işlem: yazıya dökülmemiş sayfalar, şekiller gelmeden okunmuş sayfalar ve müfredattaki yeri
      henüz belirlenmemiş sayfalar sırayla işlenir */
   const needsReading = (i) => i.reading !== 'tamam' || !!i.figuresPending;
@@ -4239,7 +4538,7 @@ Reply with ONLY this JSON object and nothing else:
     const fresh = list.filter((i) => i.reading !== 'tamam').length;
     const again = list.filter((i) => i.reading === 'tamam' && i.figuresPending).length;
     const topics = list.filter(needsTopic).length;
-    el.hidden = !n || state.archive.tab === 'qr' || api.mode !== 'live';
+    el.hidden = !n || state.archive.tab === 'qr' || state.archive.tab === 'fb' || api.mode !== 'live';
     let text;
     if (fresh && !again && !topics) {
       text = `${fresh} sayfa henüz yazıya dökülmedi. Yazıya dökülünce okunaklı olanlar Yazılar’a eklenir ve MEB müfredatındaki yerleri belirlenir.`;
@@ -4340,6 +4639,7 @@ Reply with ONLY this JSON object and nothing else:
       return;
     }
     if (state.archive.tab === 'texts') renderTexts();
+    syncReaderFigures();
   }
 
   function invalidateTexts() {
@@ -4347,101 +4647,207 @@ Reply with ONLY this JSON object and nothing else:
     if (state.archive.open && state.archive.tab === 'texts') loadTexts();
   }
 
-  // Yazının ekrandaki hâli: paragraflar ve şekiller (şekiller fotoğraftan kesilip sonradan yerleşir)
+  // Kaydedilen ya da güzelleştirilen yazıyı listeye işler
+  function applyTextPage(page) {
+    if (!page) return;
+    forgetText(page.id);
+    const list = state.archive.textPages;
+    if (list) {
+      const i = list.findIndex((p) => p.id === page.id);
+      const visible = page.legible !== false;
+      if (i >= 0 && visible) list[i] = page;
+      else if (i >= 0) list.splice(i, 1);
+      else if (visible) list.push(page);
+    }
+    const it = state.archive.items.find((x) => x.id === page.id);
+    if (it) {
+      Object.assign(it, { title: page.title, summary: page.title, curriculum: page.curriculum, curriculumChecked: page.curriculumChecked, editedAt: page.editedAt || it.editedAt });
+      if (state.archive.current === it && $('#viewer').open) fillViewer(it);
+    }
+    if (state.reader.pages) state.reader.pages = null;
+  }
+
+  // Yazının ekrandaki hâli: başlıklar, maddeler, numaralı satırlar, tablolar, paragraflar ve şekiller
+  // (şekiller fotoğraftan kesilip sonradan yerleşir)
   function transcriptHtml(text) {
     const out = [];
     let para = [];
-    const flush = () => {
+    let bullets = null;
+    let table = null;
+    const flushPara = () => {
       if (para.length) out.push(`<p>${para.map(esc).join('<br>')}</p>`);
       para = [];
     };
+    const flushBullets = () => {
+      if (bullets) out.push(`<ul class="tx-ul">${bullets.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>`);
+      bullets = null;
+    };
+    const flushTable = () => {
+      if (table) {
+        out.push(`<div class="tx-table"><table>${table.map((r, i) => `<tr>${r.map((c) => (i === 0 ? `<th>${esc(c)}</th>` : `<td>${esc(c)}</td>`)).join('')}</tr>`).join('')}</table></div>`);
+      }
+      table = null;
+    };
+    const flushAll = () => { flushPara(); flushBullets(); flushTable(); };
     for (const raw of String(text || '').split('\n')) {
       const line = raw.trim();
-      if (!line) { flush(); continue; }
+      if (!line) { flushAll(); continue; }
       const fig = parseFigureLine(line);
       if (fig) {
-        flush();
+        flushAll();
         out.push(`<figure class="tx-fig" data-n="${fig.n}"><span class="tx-fig-img"></span><figcaption>${esc(fig.caption)}</figcaption></figure>`);
         continue;
       }
+      const head = line.match(/^(#{1,4})\s*(.+)$/);
+      if (head) {
+        flushAll();
+        out.push(`<p class="tx-h${head[1].length === 1 ? '' : ' tx-h2'}">${esc(head[2])}</p>`);
+        continue;
+      }
+      if (/\s\|\s/.test(line) || /^\|.+\|$/.test(line)) {
+        flushPara();
+        flushBullets();
+        const cells = line.replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
+        if (!cells.every((c) => /^:?-{2,}:?$/.test(c))) (table || (table = [])).push(cells);
+        continue;
+      }
+      flushTable();
+      const bullet = line.match(/^[-•*–]\s+(.+)$/);
+      if (bullet) {
+        flushPara();
+        (bullets || (bullets = [])).push(bullet[1]);
+        continue;
+      }
+      const num = line.match(/^((?:\d{1,3}|[a-zçğıöşü])[.)])\s+(.+)$/i);
+      if (num) {
+        flushPara();
+        flushBullets();
+        out.push(`<p class="tx-num"><span class="tx-mk">${esc(num[1])}</span>${esc(num[2])}</p>`);
+        continue;
+      }
+      flushBullets();
       para.push(line);
     }
-    flush();
+    flushAll();
     return out.join('');
   }
 
-  function textEntryHtml(p, mode, uploadNo) {
+  // Bir yazı: Yazılar’da (yönetici: düzenle, güzelleştir) ya da defterlerde (okuyan: geri bildirim)
+  function textEntryHtml(p, mode, uploadNo, role = 'admin') {
+    const admin = role === 'admin';
     const c = p.curriculum;
     const no = uploadNo.get(p.id);
-    const all = state.archive.textPages || [];
-    const orig = p.copyOf ? all.find((x) => x.id === p.copyOf) : null;
+    const all = (admin ? state.archive.textPages : state.reader.pages) || [];
+    const orig = admin && p.copyOf ? all.find((x) => x.id === p.copyOf) : null;
     const byTopic = mode === 'mufredat' && c;
     const marker = byTopic
       ? `<span class="tx-no" title="${c.topic}. konu"><b>${c.topic}</b><small>konu</small></span>`
-      : `<span class="tx-no" title="${no}. yüklenen sayfa"><b>${no}</b><small>sıra</small></span>`;
+      : `<span class="tx-no" title="${no}. ${admin ? 'yüklenen sayfa' : 'yazı'}"><b>${no}</b><small>sıra</small></span>`;
     const place = c
       ? (byTopic ? `${c.topic}. konu: ${c.topicName}` : `${secName(p.section)}, ${placeLong(c)}`)
       : p.curriculumChecked ? 'Müfredatta yeri bulunamadı' : 'Müfredattaki yeri henüz belirlenmedi';
-    const meta = [byTopic ? `${no}. yüklenen` : '', p.name ? `ekleyen: ${p.name}` : '', formatDate(p.createdAt)].filter(Boolean).join(', ');
+    const meta = admin
+      ? [byTopic ? `${no}. yüklenen` : '', p.typed ? `yazan: ${p.name || 'Anıl'}` : p.name ? `ekleyen: ${p.name}` : '', formatDate(p.createdAt)].filter(Boolean).join(', ')
+      : [byTopic ? `${no}. yazı` : '', formatDate(p.createdAt)].filter(Boolean).join(', ');
+    const tags = [
+      p.beautified ? '<span class="tx-tag ai">Yapay zekâyla düzenlendi</span>' : '',
+      admin && p.typed ? '<span class="tx-tag typed">Elle yazıldı</span>' : '',
+    ].join('');
+    const keys = Array.isArray(p.keywords) ? p.keywords : [];
+    const summary = p.summary || keys.length
+      ? `<div class="tx-sum">${p.summary ? `<p><b>Özet</b>${esc(p.summary)}</p>` : ''}${keys.length ? `<ul class="tx-keys" aria-label="Anahtar kavramlar">${keys.map((k) => `<li>${esc(k)}</li>`).join('')}</ul>` : ''}</div>`
+      : '';
+    const fixes = admin && Array.isArray(p.corrections) && p.corrections.length
+      ? `<details class="tx-fix"><summary>Yapay zekânın düzelttikleri (${p.corrections.length})</summary><ul>${p.corrections.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></details>`
+      : '';
+    const tools = admin
+      ? `<div class="tx-tools">
+          <button type="button" class="btn ghost small" data-edit="${esc(p.id)}">Düzenle</button>
+          ${p.beautified || p.copyOf || api.mode !== 'live' ? '' : `<button type="button" class="btn sedef small" data-ai="${esc(p.id)}">Yapay zekâyla güzelleştir</button>`}
+          ${p.typed ? '' : `<button type="button" class="btn ghost small tx-open" data-open="${esc(p.id)}">Sayfayı aç</button>`}
+        </div>`
+      : `<div class="tx-tools"><button type="button" class="btn ghost small" data-fb="${esc(p.id)}">Geri bildirim yaz</button></div>`;
     const body = `<div class="tx-body">${transcriptHtml(p.text)}</div>`;
-    const figs = Array.isArray(p.figures) && p.figures.length ? ' data-figs="1"' : '';
+    const hasFigs = Array.isArray(p.figures) && p.figures.length && (admin ? !p.typed : !!p.figuresKey);
     return `
-      <li class="tx${p.copyOf ? ' is-copy' : ''}" id="tx-${esc(p.id)}" data-id="${esc(p.id)}"${figs}>
+      <li class="tx${p.copyOf ? ' is-copy' : ''}${p.typed ? ' is-typed' : ''}" id="${admin ? 'tx' : 'rd'}-${esc(p.id)}" data-id="${esc(p.id)}"${hasFigs ? ' data-figs="1"' : ''}>
         <div class="tx-head">
           ${marker}
           <div class="tx-titles">
             <h5>${esc(p.title || `${secName(p.section)} notu`)}</h5>
             <p class="tx-place">${esc(place)}</p>
             <p class="tx-meta">${esc(meta)}</p>
+            ${tags ? `<p class="tx-tags">${tags}</p>` : ''}
           </div>
-          <button type="button" class="btn ghost small tx-open" data-open="${esc(p.id)}">Sayfayı aç</button>
+          ${tools}
         </div>
         ${p.copyOf
           ? `<p class="tx-dup"><span class="dup-mark">Var zaten</span> ${orig ? `Bu yazı ${uploadNo.has(orig.id) ? `${uploadNo.get(orig.id)}. yüklenen` : 'başka bir'} sayfada da var.` : 'Bu yazı arşivdeki başka bir sayfada da var.'}${orig ? ` <button type="button" class="link-btn" data-goto="${esc(orig.id)}">Aslına git</button>` : ''}</p>
              <details class="tx-more"><summary>Yazısını yine de göster</summary>${body}</details>`
-          : body}
+          : summary + body}
+        ${fixes}
       </li>`;
   }
 
   const byPlace = (a, b) => (a.curriculum.grade - b.curriculum.grade) || (a.curriculum.unit - b.curriculum.unit)
     || (a.curriculum.topic - b.curriculum.topic) || ((a.createdAt || 0) - (b.createdAt || 0));
 
-  function curriculumHtml(list, uploadNo, filter) {
+  // Defterin müfredatı ne kadar kapsadığı: sınıftaki konuların kaçı defterde, hangileri eksik
+  function gradeCoverage(tree, section, grade, pages) {
+    const g = tree && tree.bolumler && (tree.bolumler[section] || []).find((x) => x.sinif === grade);
+    if (!g) return null;
+    const have = new Set(pages.map((p) => `${p.curriculum.unit}.${p.curriculum.topic}`));
+    const missing = [];
+    let total = 0;
+    for (const u of g.uniteler) {
+      u.konular.forEach((name, i) => {
+        total++;
+        if (!have.has(`${u.no}.${i + 1}`)) missing.push({ unit: `${u.etiket}: ${u.ad}`, topic: `${i + 1}. ${name}` });
+      });
+    }
+    return { total, covered: total - missing.length, missing };
+  }
+
+  function coverageHtml(cov) {
+    if (!cov || !cov.missing.length) return '';
+    let unit = '';
+    const items = cov.missing.map((m) => {
+      const head = m.unit !== unit ? `<li class="tx-gap-unit">${esc(m.unit)}</li>` : '';
+      unit = m.unit;
+      return `${head}<li>${esc(m.topic)}</li>`;
+    }).join('');
+    return `<details class="tx-gap"><summary>Defterde olmayan konular (${cov.missing.length})</summary><ul>${items}</ul></details>`;
+  }
+
+  function curriculumHtml(list, uploadNo, filter, role = 'admin', tree = null) {
     const secs = filter === 'tumu' ? SECTIONS.filter((s) => list.some((p) => p.section === s.id)) : SECTIONS.filter((s) => s.id === filter);
     return secs.map((s) => {
       const pages = list.filter((p) => p.section === s.id);
       const placed = pages.filter((p) => p.curriculum).sort(byPlace);
       const rest = pages.filter((p) => !p.curriculum);
       let html = filter === 'tumu' ? `<h3 class="tx-sec">${symbolIcon(s.id, 4.6)}${s.name}</h3>` : '';
-      let grade = null;
-      let unit = null;
-      let open = false;
-      for (const p of placed) {
-        const c = p.curriculum;
-        if (c.grade !== grade) {
-          if (open) html += '</ol></section></section>';
-          html += `<section class="tx-grade"><h4>${c.grade}. sınıf</h4>`;
-          grade = c.grade;
-          unit = null;
-          open = false;
+      const grades = [...new Set(placed.map((p) => p.curriculum.grade))];
+      for (const grade of grades) {
+        const inGrade = placed.filter((p) => p.curriculum.grade === grade);
+        const cov = gradeCoverage(tree, s.id, grade, inGrade);
+        html += `<section class="tx-grade"><h4>${grade}. sınıf${cov ? `<small>${cov.total} konudan ${cov.covered}’${cov.covered === 1 ? 'i' : 'si'} defterde</small>` : ''}</h4>`;
+        const units = [...new Set(inGrade.map((p) => p.curriculum.unit))];
+        for (const unit of units) {
+          const inUnit = inGrade.filter((p) => p.curriculum.unit === unit);
+          const c = inUnit[0].curriculum;
+          html += `<section class="tx-unit"><h5 class="tx-unit-name">${esc(c.unitLabel)}: ${esc(c.unitName)}</h5><ol class="tx-list">${inUnit.map((p) => textEntryHtml(p, 'mufredat', uploadNo, role)).join('')}</ol></section>`;
         }
-        if (c.unit !== unit) {
-          if (open) html += '</ol></section>';
-          html += `<section class="tx-unit"><h5 class="tx-unit-name">${esc(c.unitLabel)}: ${esc(c.unitName)}</h5><ol class="tx-list">`;
-          unit = c.unit;
-          open = true;
-        }
-        html += textEntryHtml(p, 'mufredat', uploadNo);
+        html += `${coverageHtml(cov)}</section>`;
       }
-      if (open) html += '</ol></section></section>';
       if (rest.length) {
-        html += `<section class="tx-grade"><h4>Müfredatta yeri belirlenmeyenler</h4><ol class="tx-list">${rest.map((p) => textEntryHtml(p, 'mufredat', uploadNo)).join('')}</ol></section>`;
+        html += `<section class="tx-grade"><h4>Müfredatta yeri belirlenmeyenler</h4><ol class="tx-list">${rest.map((p) => textEntryHtml(p, 'mufredat', uploadNo, role)).join('')}</ol></section>`;
       }
       return `<section class="tx-block">${html}</section>`;
     }).join('');
   }
 
   function renderTexts() {
+    renderAiBulk();
     const all = state.archive.textPages || [];
     const f = state.archive.textFilter;
     const order = state.archive.textOrder;
@@ -4457,20 +4863,23 @@ Reply with ONLY this JSON object and nothing else:
     }
     const box = $('#texts');
     if (!all.length) {
-      box.innerHTML = emptyBlock('Henüz yazı yok', 'Yazısı okunaklı olan sayfalar burada yazı olarak görünür. Eski sayfalar için üstteki düğmeyle hepsini yazıya dökebilirsin.');
+      box.innerHTML = emptyBlock('Henüz yazı yok', 'Yazısı okunaklı olan sayfalar burada yazı olarak görünür. Eski sayfaları üstteki düğmeyle yazıya dökebilir ya da “Yeni yazı” ile kendin yazabilirsin.');
       return;
     }
     const list = all.filter((p) => f === 'tumu' || p.section === f)
       .sort((a, b) => ((a.createdAt || 0) - (b.createdAt || 0)) || (a.id < b.id ? 1 : -1));
     if (!list.length) {
-      box.innerHTML = emptyBlock(`${secName(f)} bölümünde yazı yok`, 'Bu bölümde yazısı okunaklı bir sayfa henüz yok.');
+      box.innerHTML = emptyBlock(`${secName(f)} bölümünde yazı yok`, 'Bu bölümde henüz yazı yok. “Yeni yazı” ile ilkini sen yazabilirsin.');
       return;
     }
     const uploadNo = new Map(list.map((p, i) => [p.id, i + 1]));
+    if (order === 'mufredat' && !state.archive.tree && api.mode === 'live') {
+      ensureTree().then(() => { if (state.archive.tab === 'texts' && state.archive.textOrder === 'mufredat') renderTexts(); }).catch(() => {});
+    }
     box.innerHTML = order === 'mufredat'
-      ? curriculumHtml(list, uploadNo, f)
+      ? curriculumHtml(list, uploadNo, f, 'admin', state.archive.tree)
       : `<ol class="tx-list">${list.map((p) => textEntryHtml(p, 'yukleme', uploadNo)).join('')}</ol>`;
-    observeFigures(box);
+    observeFigures(box, loadEntryFigures);
   }
 
   function setTextOrder(order) {
@@ -4479,22 +4888,42 @@ Reply with ONLY this JSON object and nothing else:
     renderTexts();
   }
 
-  // Şekiller görünür olunca fotoğraftan kesilip yerleşir
-  let figObserver = null;
-  function observeFigures(root) {
+  function flashEntry(el) {
+    el.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth', block: 'start' });
+    el.classList.remove('flash');
+    void el.offsetWidth;
+    el.classList.add('flash');
+  }
+
+  // Şekiller görünür olunca yerleşir (Yazılar’da fotoğraftan kesilerek, defterlerde hazır görsellerden)
+  const figObservers = new Map();
+  function observeFigures(root, loader) {
     const els = $$('.tx[data-figs="1"]', root);
     if (!els.length) return;
-    if (!('IntersectionObserver' in window)) { els.forEach(loadEntryFigures); return; }
-    if (!figObserver) {
-      figObserver = new IntersectionObserver((entries) => {
+    if (!('IntersectionObserver' in window)) { els.forEach(loader); return; }
+    let obs = figObservers.get(loader);
+    if (!obs) {
+      obs = new IntersectionObserver((entries) => {
         for (const e of entries) {
           if (!e.isIntersecting) continue;
-          figObserver.unobserve(e.target);
-          loadEntryFigures(e.target);
+          obs.unobserve(e.target);
+          loader(e.target);
         }
       }, { rootMargin: '600px 0px' });
+      figObservers.set(loader, obs);
     }
-    els.forEach((el) => figObserver.observe(el));
+    els.forEach((el) => obs.observe(el));
+  }
+
+  function placeFigure(f, src) {
+    const slot = $('.tx-fig-img', f);
+    if (!slot || slot.firstChild) return;
+    const img = new Image();
+    img.alt = $('figcaption', f).textContent;
+    img.decoding = 'async';
+    img.src = src;
+    slot.appendChild(img);
+    f.classList.add('has-img');
   }
 
   async function loadEntryFigures(el) {
@@ -4508,13 +4937,713 @@ Reply with ONLY this JSON object and nothing else:
     }
     for (const f of $$('.tx-fig', el)) {
       const canvas = map.get(Number(f.dataset.n));
-      const slot = $('.tx-fig-img', f);
-      if (!canvas || !slot || slot.firstChild) continue;
-      const img = new Image();
-      img.alt = $('figcaption', f).textContent;
-      img.src = canvas.toDataURL('image/png');
-      slot.appendChild(img);
-      f.classList.add('has-img');
+      if (canvas) placeFigure(f, canvas.toDataURL('image/png'));
+    }
+    publishFigures(page, map);
+  }
+
+  async function loadReaderFigures(el) {
+    const page = (state.reader.pages || []).find((p) => p.id === el.dataset.id);
+    if (!page || !page.figuresKey) return;
+    let d;
+    try {
+      d = await api.readerFigures(page.id, page.figuresKey);
+    } catch {
+      return;
+    }
+    for (const f of $$('.tx-fig', el)) {
+      const hit = (d.list || []).find((x) => x.n === Number(f.dataset.n));
+      if (hit) placeFigure(f, hit.src);
+    }
+  }
+
+  // Okuyanlar fotoğrafları görmez: şekillerin kesilmiş hâlleri Anıl’ın tarayıcısında hazırlanıp sunucuya konur
+  function figureDataUrl(canvas) {
+    let c = canvas;
+    for (let i = 0; i < 4; i++) {
+      let url = c.toDataURL('image/webp', 0.86);
+      if (!url.startsWith('data:image/webp')) url = c.toDataURL('image/png');
+      if (url.length < 900000) return url;
+      const smaller = makeCanvas(Math.max(8, Math.round(c.width * 0.75)), Math.max(8, Math.round(c.height * 0.75)));
+      smaller.getContext('2d').drawImage(c, 0, 0, smaller.width, smaller.height);
+      c = smaller;
+    }
+    return c.toDataURL('image/webp', 0.7);
+  }
+
+  const publishing = new Set();
+  async function publishFigures(page, map) {
+    if (api.mode !== 'live' || !page.figuresKey || page.figuresPublished || page.typed || publishing.has(page.id)) return;
+    publishing.add(page.id);
+    try {
+      const list = [...map].map(([n, canvas]) => ({ n, src: figureDataUrl(canvas) }));
+      await api.publishFigures(page.id, page.figuresKey, list);
+      page.figuresPublished = true;
+    } catch {
+      /* sonraki açılışta yeniden denenir */
+    } finally {
+      publishing.delete(page.id);
+    }
+  }
+
+  let figureSync = null;
+  function syncReaderFigures() {
+    if (figureSync || api.mode !== 'live') return;
+    figureSync = (async () => {
+      for (const page of (state.archive.textPages || []).slice()) {
+        if (!state.archive.open) break;
+        if (!page.figuresKey || page.figuresPublished || page.typed || page.copyOf || publishing.has(page.id)) continue;
+        try {
+          const map = await pageFigures(page, () => api.photoBlob(page));
+          await publishFigures(page, map);
+        } catch {
+          /* bu sayfa atlanır */
+        }
+        await sleep(150);
+      }
+    })().finally(() => { figureSync = null; });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Yapay zekâyla güzelleştirme: yazım ve okuma hataları düzeltilir,     */
+  /* yazı başlık ve maddelerle düzenlenir, kısa bir özet eklenir          */
+  /* ------------------------------------------------------------------ */
+
+  const needsBeauty = (p) => !p.beautified && !p.copyOf && !p.typed && p.legible !== false && !!(p.text && p.text.trim());
+
+  function renderAiBulk() {
+    const el = $('#aiBulk');
+    const run = state.ai;
+    if (api.mode !== 'live') { el.hidden = true; return; }
+    if (run.active) {
+      el.hidden = false;
+      $('#aiBulkText').textContent = `${run.done} / ${run.total} yazı yapay zekâyla düzenleniyor… Her yazı birkaç saniye sürer.`;
+      $('#aiBulkRun').textContent = 'Durdur';
+      return;
+    }
+    const n = (state.archive.textPages || []).filter(needsBeauty).length;
+    el.hidden = !n;
+    $('#aiBulkText').textContent = `${n} yazı henüz yapay zekâyla düzenlenmedi. Yapay zekâ yazım ve okuma hatalarını düzeltir, yazıyı başlık ve maddelerle düzenler, her yazıya kısa bir özet ekler. Okunan hâli saklanır; istersen geri dönebilirsin.`;
+    $('#aiBulkRun').textContent = n === 1 ? 'Güzelleştir' : 'Hepsini güzelleştir';
+  }
+
+  async function runAiBulk() {
+    const run = state.ai;
+    if (run.active) {
+      run.stop = true;
+      $('#aiBulkRun').disabled = true;
+      return;
+    }
+    const queue = (state.archive.textPages || []).filter(needsBeauty).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)).map((p) => p.id);
+    if (!queue.length) return;
+    Object.assign(run, { active: true, stop: false, total: queue.length, done: 0, saved: 0, skipped: 0, failed: 0 });
+    renderAiBulk();
+    let lastError = '';
+    for (const id of queue) {
+      if (run.stop || !state.archive.open) break;
+      try {
+        const d = await api.beautify({ id, kaydet: true });
+        if (d.saved) {
+          run.saved++;
+          applyTextPage(d.page);
+        } else {
+          run.skipped++;
+        }
+      } catch (e) {
+        if (e.auth) { run.active = false; lockedOut(); return; }
+        if (e.status !== 404) {
+          run.failed++;
+          lastError = e.message || '';
+          if (/kapasite/i.test(lastError)) run.stop = true;
+        }
+      }
+      run.done++;
+      renderAiBulk();
+    }
+    const stopped = run.stop && run.done < run.total;
+    run.active = false;
+    $('#aiBulkRun').disabled = false;
+    if (state.archive.open) await loadTexts(true);
+    renderAiBulk();
+    const parts = [`${run.saved} yazı yapay zekâyla düzenlendi`];
+    if (run.skipped) parts.push(`${run.skipped} yazı aslından çok farklı çıktığı için olduğu gibi bırakıldı`);
+    if (run.failed) parts.push(`${run.failed} yazı şu an düzenlenemedi`);
+    toast(`${parts.join(', ')}.${stopped && lastError ? ` ${lastError}` : ''}`, !!run.failed);
+  }
+
+  async function beautifyOne(id, btn) {
+    setBusy(btn, true, 'Düzenleniyor');
+    try {
+      const d = await api.beautify({ id, kaydet: true });
+      if (d.saved) {
+        applyTextPage(d.page);
+        renderTexts();
+        toast('Yazı yapay zekâyla düzenlendi. Beğenmezsen “Düzenle”den okunan hâline dönebilirsin.');
+        const el = document.getElementById('tx-' + id);
+        if (el) flashEntry(el);
+      } else {
+        setBusy(btn, false, 'Yapay zekâyla güzelleştir');
+        toast(`Yazı değiştirilmedi: ${(d.checks && d.checks.reasons && d.checks.reasons[0]) || 'yapay zekânın yazısı aslına uymadı.'}`, true);
+      }
+    } catch (e) {
+      if (e.auth) { lockedOut(); return; }
+      setBusy(btn, false, 'Yapay zekâyla güzelleştir');
+      toast(e.message || 'Yazı düzenlenemedi.', true);
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Yazı düzenleyici: yeni (fotoğrafsız) yazı ya da var olan yazı        */
+  /* ------------------------------------------------------------------ */
+
+  function fillGradeSelect(sel, section, grade = 0) {
+    const grades = (state.archive.tree && state.archive.tree.bolumler[section]) || [];
+    sel.innerHTML = grades.map((x) => `<option value="${x.sinif}">${x.sinif}. sınıf</option>`).join('');
+    if (grade) sel.value = String(grade);
+    if (sel.selectedIndex < 0 && sel.options.length) sel.selectedIndex = 0;
+  }
+  function fillUnitSelect(section, gradeSel, unitSel, unit = 0) {
+    const tree = state.archive.tree;
+    const grade = tree && (tree.bolumler[section] || []).find((x) => String(x.sinif) === gradeSel.value);
+    unitSel.innerHTML = (grade ? grade.uniteler : []).map((x) => `<option value="${x.no}">${esc(x.etiket)}: ${esc(x.ad)}</option>`).join('');
+    if (unit) unitSel.value = String(unit);
+    if (unitSel.selectedIndex < 0 && unitSel.options.length) unitSel.selectedIndex = 0;
+  }
+  function fillTopicSelect(section, gradeSel, unitSel, topicSel, topic = 0) {
+    const tree = state.archive.tree;
+    const grade = tree && (tree.bolumler[section] || []).find((x) => String(x.sinif) === gradeSel.value);
+    const unit = grade && grade.uniteler.find((x) => String(x.no) === unitSel.value);
+    topicSel.innerHTML = (unit ? unit.konular : []).map((name, i) => `<option value="${i + 1}">${i + 1}. ${esc(name)}</option>`).join('');
+    if (topic) topicSel.value = String(topic);
+    if (topicSel.selectedIndex < 0 && topicSel.options.length) topicSel.selectedIndex = 0;
+  }
+
+  const editorMode = () => ($$('input[name="wdMode"]').find((r) => r.checked) || {}).value || 'otomatik';
+  async function setPlaceMode(mode) {
+    for (const r of $$('input[name="wdMode"]')) r.checked = r.value === mode;
+    $('#wdSelects').hidden = mode !== 'elle';
+    if (mode !== 'elle') return;
+    try {
+      await ensureTree();
+    } catch (e) {
+      if (e.auth) { lockedOut(); return; }
+      toast(e.message || 'Müfredat alınamadı.', true);
+      setPlaceMode('otomatik');
+      return;
+    }
+    fillEditorPlace();
+  }
+  function fillEditorPlace() {
+    const section = $('#wdSection').value;
+    const page = state.editor.page;
+    const c = page && page.section === section ? page.curriculum : null;
+    fillGradeSelect($('#wdGrade'), section, c ? c.grade : 0);
+    fillUnitSelect(section, $('#wdGrade'), $('#wdUnit'), c ? c.unit : 0);
+    fillTopicSelect(section, $('#wdGrade'), $('#wdUnit'), $('#wdTopic'), c ? c.topic : 0);
+  }
+
+  function setAiNote(html, warn = false) {
+    const note = $('#wdAiNote');
+    note.hidden = !html;
+    note.innerHTML = html || '';
+    note.classList.toggle('warn', !!warn);
+  }
+
+  async function openEditor(id = null) {
+    const ed = state.editor;
+    Object.assign(ed, { page: null, item: null, before: null, ai: null });
+    let page = null;
+    if (id) {
+      try {
+        const d = await api.getText(id);
+        ed.item = d.item || null;
+        page = d.page || {
+          id, section: (d.item && d.item.section) || 'matematik', title: d.title || '', text: d.text || '', typed: false,
+          legible: !!d.legible, curriculum: d.curriculum || null, curriculumChecked: !!d.curriculumChecked, summary: '', keywords: [], hasOriginal: false,
+        };
+      } catch (e) {
+        if (e.auth) { lockedOut(); return; }
+        toast(e.message || 'Yazı alınamadı.', true);
+        return;
+      }
+    }
+    ed.page = page;
+    const isNew = !page;
+    showFieldError($('#wdError'), '');
+    setAiNote('');
+    $('#wdTitle').textContent = isNew ? 'Yeni yazı' : page.typed ? 'Yazıyı düzenle' : 'Yazıyı düzelt';
+    $('#wdLead').textContent = isNew
+      ? 'Deftere fotoğrafsız bir yazı ekle. Kaydedince Yazılar’da ve okuyanların defterlerinde görünür.'
+      : page.typed
+        ? 'Bu yazı bir fotoğraftan okunmadı; her yerini değiştirebilirsin.'
+        : 'Yapay zekânın fotoğraftan okuduğu yazıyı düzeltebilirsin. Okunan ilk hâli saklanır, istersen ona geri dönersin.';
+    $('#wdSection').innerHTML = SECTIONS.map((s) => `<option value="${s.id}">${s.name}</option>`).join('');
+    $('#wdSection').value = page ? page.section : state.archive.textFilter !== 'tumu' ? state.archive.textFilter : SECTION_IDS[0];
+    $('#wdSection').disabled = !!page && !page.typed;
+    $('#wdSection').title = page && !page.typed ? 'Fotoğraflı sayfanın bölümü sayfanın kendi penceresinden değiştirilir.' : '';
+    $('#wdHead').value = page ? page.title || '' : '';
+    $('#wdText').value = page ? page.text || '' : '';
+    $('#wdSummary').value = page ? page.summary || '' : '';
+    $('#wdKeys').value = page ? (page.keywords || []).join(', ') : '';
+    $('#wdMore').open = !!(page && (page.summary || (page.keywords || []).length));
+    $('#wdKeepWrap').hidden = isNew;
+    $('#wdPlaceNow').hidden = isNew;
+    $('#wdPlaceNow').textContent = isNew ? '' : page.curriculum ? `Şu an: ${placeLong(page.curriculum)}` : page.curriculumChecked ? 'Şu an: müfredatta yeri yok' : 'Şu an: henüz belirlenmedi';
+    await setPlaceMode(isNew ? 'otomatik' : 'koru');
+    $('#wdAuthorRow').hidden = !isNew;
+    $('#wdAuthor').value = readStore(localStorage, 'defter-yazan') || 'Anıl';
+    $('#wdLegibleRow').hidden = isNew || page.typed;
+    $('#wdLegible').checked = isNew || page.typed || page.legible !== false;
+    $('#wdDelete').hidden = isNew || !page.typed;
+    $('#wdRestore').hidden = isNew || !page.hasOriginal;
+    $('#wdAi').hidden = api.mode !== 'live';
+    if (!$('#writeDialog').open) $('#writeDialog').showModal();
+    setTimeout(() => (isNew ? $('#wdHead') : $('#wdText')).focus(), 60);
+  }
+
+  async function editorBeautify() {
+    const ed = state.editor;
+    const text = $('#wdText').value;
+    if (!text.trim()) { showFieldError($('#wdError'), 'Önce yazıyı gir.'); return; }
+    showFieldError($('#wdError'), '');
+    const btn = $('#wdAi');
+    setBusy(btn, true, 'Düzenleniyor');
+    setAiNote('<p>Yapay zekâ yazıyı okuyup düzenliyor; birkaç saniye sürebilir…</p>');
+    try {
+      const body = { text, title: $('#wdHead').value };
+      if (ed.page) body.id = ed.page.id;
+      if (!ed.page || ed.page.typed) body.bolum = $('#wdSection').value;
+      const d = await api.beautify(body);
+      if (!ed.before) ed.before = { text, title: $('#wdHead').value, summary: $('#wdSummary').value, keys: $('#wdKeys').value };
+      ed.ai = d.preview;
+      $('#wdText').value = d.preview.text;
+      if (d.preview.title) $('#wdHead').value = d.preview.title;
+      if (d.preview.summary) $('#wdSummary').value = d.preview.summary;
+      if ((d.preview.keywords || []).length) $('#wdKeys').value = d.preview.keywords.join(', ');
+      $('#wdMore').open = true;
+      const fixes = (d.preview.corrections || []).length
+        ? `<ul>${d.preview.corrections.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`
+        : '';
+      const warn = d.checks && !d.checks.ok;
+      setAiNote(
+        `<p><b>Yapay zekâ yazıyı düzenledi.</b> Kaydetmeden önce göz at; istediğin yeri değiştirebilirsin.</p>${fixes}`
+        + (warn ? `<p class="wd-warn">Dikkat: ${esc(d.checks.reasons.join(' '))}</p>` : '')
+        + '<button type="button" class="link-btn" id="wdUndo">Eski hâline al</button>',
+        warn,
+      );
+    } catch (e) {
+      if (e.auth) { lockedOut(); return; }
+      setAiNote(`<p>${esc(e.message || 'Yazı düzenlenemedi.')}</p>`, true);
+    } finally {
+      setBusy(btn, false, 'Yapay zekâyla güzelleştir');
+    }
+  }
+
+  function editorUndoAi() {
+    const b = state.editor.before;
+    if (!b) return;
+    $('#wdText').value = b.text;
+    $('#wdHead').value = b.title;
+    $('#wdSummary').value = b.summary;
+    $('#wdKeys').value = b.keys;
+    state.editor.before = null;
+    state.editor.ai = null;
+    setAiNote('');
+    $('#wdText').focus();
+  }
+
+  function afterTextSaved(d) {
+    const page = d.page;
+    if (!page) { invalidateTexts(); return; }
+    applyTextPage(page);
+    state.archive.texts.set(page.id, { text: d.text ?? page.text, title: page.title, legible: page.legible !== false, figures: d.figures || page.figures || [] });
+    const it = state.archive.items.find((x) => x.id === page.id);
+    if (it && d.item) {
+      applyItemUpdate(it, {
+        ...d.item, figuresPending: false, curriculum: page.curriculum, curriculumChecked: page.curriculumChecked,
+        curriculumPending: !page.curriculumChecked && !!(page.text && page.text.trim()),
+      });
+      if (state.archive.current === it && $('#viewer').open) setViewerMode('yazi');
+    }
+    if (state.archive.open && state.archive.tab === 'texts') renderTexts();
+  }
+
+  async function saveEditor(e) {
+    e.preventDefault();
+    const ed = state.editor;
+    const err = $('#wdError');
+    const btn = $('#wdSave');
+    const text = $('#wdText').value;
+    const legible = $('#wdLegible').checked;
+    if ((!ed.page || ed.page.typed || legible) && !text.trim()) { showFieldError(err, 'Yazıyı gir.'); return; }
+    const mode = editorMode();
+    const mufredat = mode === 'koru' ? null
+      : mode === 'elle' ? { mod: 'elle', sinif: Number($('#wdGrade').value), unite: Number($('#wdUnit').value), konu: Number($('#wdTopic').value) }
+      : { mod: mode };
+    const usedAi = !!ed.ai;
+    setBusy(btn, true, 'Kaydediliyor');
+    try {
+      let d;
+      if (!ed.page) {
+        const author = $('#wdAuthor').value.trim();
+        if (author) writeStore(localStorage, 'defter-yazan', author);
+        d = await api.createText({
+          bolum: $('#wdSection').value, title: $('#wdHead').value, text, isim: author, ozet: $('#wdSummary').value, kavramlar: $('#wdKeys').value,
+          mufredat: mufredat || { mod: 'otomatik' }, guzel: usedAi, duzeltmeler: usedAi ? ed.ai.corrections || [] : [],
+        });
+      } else {
+        const body = { text, title: $('#wdHead').value, ozet: $('#wdSummary').value, kavramlar: $('#wdKeys').value };
+        if (ed.page.typed) body.bolum = $('#wdSection').value;
+        else body.legible = legible;
+        if (mufredat) body.mufredat = mufredat;
+        if (usedAi) { body.guzel = true; body.duzeltmeler = ed.ai.corrections || []; }
+        d = await api.saveText(ed.page.id, body);
+      }
+      afterTextSaved(d);
+      $('#writeDialog').close();
+      const where = d.page && d.page.curriculum ? ` Müfredattaki yeri: ${placeShort(d.page.curriculum)}.` : '';
+      toast(ed.page ? `Yazı kaydedildi.${where}` : `Yazı deftere eklendi.${where}`);
+      if (!ed.page && d.page) {
+        state.archive.textFilter = 'tumu';
+        if (state.archive.tab === 'texts') {
+          renderTexts();
+          const el = document.getElementById('tx-' + d.page.id);
+          if (el) flashEntry(el);
+        }
+      }
+    } catch (ex) {
+      if (ex.auth) { lockedOut(); return; }
+      showFieldError(err, ex.message || 'Yazı kaydedilemedi.');
+    } finally {
+      setBusy(btn, false, 'Kaydet');
+    }
+  }
+
+  async function restoreOriginal() {
+    const page = state.editor.page;
+    if (!page) return;
+    const ok = await confirmAsk('Okunan hâline dönülsün mü?', 'Yazıda yaptığın ve yapay zekânın yaptığı değişiklikler silinir; yazı fotoğraftan okunan ilk hâline döner.', 'Okunan hâline dön');
+    if (!ok) return;
+    try {
+      const d = await api.saveText(page.id, { ilkHali: true });
+      afterTextSaved(d);
+      $('#writeDialog').close();
+      toast('Yazı okunan hâline döndü.');
+    } catch (e) {
+      if (e.auth) { lockedOut(); return; }
+      showFieldError($('#wdError'), e.message || 'Yazı geri alınamadı.');
+    }
+  }
+
+  async function deleteTyped() {
+    const page = state.editor.page;
+    if (!page || !page.typed) return;
+    const ok = await confirmAsk('Yazı silinsin mi?', `“${page.title || 'Bu yazı'}” defterden kalıcı olarak silinecek.`, 'Sil');
+    if (!ok) return;
+    try {
+      await api.deleteText(page.id);
+      if (state.archive.textPages) state.archive.textPages = state.archive.textPages.filter((p) => p.id !== page.id);
+      state.reader.pages = null;
+      $('#writeDialog').close();
+      renderTexts();
+      toast('Yazı silindi.');
+    } catch (e) {
+      if (e.auth) { lockedOut(); return; }
+      showFieldError($('#wdError'), e.message || 'Yazı silinemedi.');
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Arşiv: okuyanların geri bildirimleri                                 */
+  /* ------------------------------------------------------------------ */
+
+  const FB_TYPES = { hata: 'Hata var', oneri: 'Öneri', soru: 'Soru', tesekkur: 'Teşekkür' };
+
+  function setFeedbackUnread(n) {
+    state.feedback.unread = Number(n) || 0;
+    const b = $('#fbBadge');
+    b.hidden = !state.feedback.unread;
+    b.textContent = String(state.feedback.unread);
+    $('#tabBtnFb').setAttribute('aria-label', state.feedback.unread ? `Geri bildirim, ${state.feedback.unread} yeni` : 'Geri bildirim');
+  }
+
+  async function loadFeedback() {
+    if (!state.feedback.items) $('#fbList').innerHTML = '';
+    $('#fbSummary').textContent = 'Geri bildirimler yükleniyor…';
+    try {
+      const d = await api.feedbackList();
+      state.feedback.items = d.items || [];
+      setFeedbackUnread(d.unread);
+    } catch (e) {
+      if (e.auth) { lockedOut(); return; }
+      $('#fbSummary').textContent = e.message || 'Geri bildirimler alınamadı.';
+      return;
+    }
+    renderFeedback();
+  }
+
+  function renderFeedback() {
+    const items = state.feedback.items || [];
+    const unread = items.filter((i) => !i.read).length;
+    $('#fbSummary').textContent = items.length
+      ? (unread ? `${items.length} geri bildirim, ${unread} tanesi yeni.` : `${items.length} geri bildirim, hepsi okundu.`)
+      : '';
+    $('#fbAllRead').hidden = !unread;
+    const list = $('#fbList');
+    if (!items.length) {
+      list.innerHTML = `<li class="fb-none">${emptyBlock('Henüz geri bildirim yok', 'Defterleri okuyanlar bir yazıda hata gördüğünde ya da bir önerisi olduğunda yazdıkları burada görünür.')}</li>`;
+      return;
+    }
+    list.innerHTML = items.map((f) => `
+      <li class="fb-item${f.read ? '' : ' is-new'}" data-id="${esc(f.id)}">
+        <div class="fb-top">
+          <span class="fb-type t-${esc(f.type)}">${esc(FB_TYPES[f.type] || 'Öneri')}</span>
+          <span class="fb-who">${esc(f.name || 'İsimsiz')}, <time datetime="${new Date(f.createdAt || Date.now()).toISOString()}" title="${esc(formatDate(f.createdAt))}">${esc(relTime(f.createdAt))}</time></span>
+          ${f.read ? '' : '<span class="fb-new">Yeni</span>'}
+        </div>
+        <p class="fb-msg">${esc(f.message)}</p>
+        <p class="fb-about">${f.page
+          ? (f.pageExists
+            ? `${esc(secName(f.section))}: “${esc(f.title || 'Adsız yazı')}” <button type="button" class="link-btn" data-fb-goto="${esc(f.page)}">Yazıya git</button>`
+            : `“${esc(f.title || 'Adsız yazı')}” (bu yazı artık defterde yok)`)
+          : 'Genel geri bildirim'}</p>
+        <div class="fb-actions">
+          <button type="button" class="btn ghost small" data-fb-read="${f.read ? '0' : '1'}">${f.read ? 'Okunmadı yap' : 'Okundu say'}</button>
+          <button type="button" class="btn ghost small" data-fb-del>Sil</button>
+        </div>
+      </li>`).join('');
+  }
+
+  async function feedbackAction(e) {
+    const li = e.target.closest('.fb-item');
+    const go = e.target.closest('[data-fb-goto]');
+    if (go) { gotoText(go.dataset.fbGoto); return; }
+    if (!li) return;
+    const f = (state.feedback.items || []).find((x) => x.id === li.dataset.id);
+    if (!f) return;
+    try {
+      if (e.target.closest('[data-fb-read]')) {
+        const read = e.target.closest('[data-fb-read]').dataset.fbRead === '1';
+        const d = await api.feedbackMark(f.id, read);
+        f.read = read;
+        setFeedbackUnread(d.unread);
+        renderFeedback();
+      } else if (e.target.closest('[data-fb-del]')) {
+        const ok = await confirmAsk('Geri bildirim silinsin mi?', 'Bu mesaj kalıcı olarak silinecek.', 'Sil');
+        if (!ok) return;
+        const d = await api.feedbackDelete(f.id);
+        state.feedback.items = state.feedback.items.filter((x) => x !== f);
+        setFeedbackUnread(d.unread);
+        renderFeedback();
+        toast('Geri bildirim silindi.');
+      }
+    } catch (ex) {
+      if (ex.auth) { lockedOut(); return; }
+      toast(ex.message || 'İşlem yapılamadı.', true);
+    }
+  }
+
+  async function markAllFeedback() {
+    try {
+      const d = await api.feedbackMarkAll();
+      for (const f of state.feedback.items || []) f.read = true;
+      setFeedbackUnread(d.unread);
+      renderFeedback();
+    } catch (e) {
+      if (e.auth) { lockedOut(); return; }
+      toast(e.message || 'İşlem yapılamadı.', true);
+    }
+  }
+
+  async function gotoText(id) {
+    state.archive.textFilter = 'tumu';
+    setArchiveTab('texts');
+    await loadTexts();
+    const el = document.getElementById('tx-' + id);
+    if (el) flashEntry(el);
+    else toast('Bu yazı artık Yazılar’da görünmüyor.', true);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Defterleri okuma alanı (okuma şifresiyle): yalnızca okunur, geri     */
+  /* bildirim yazılır; fotoğraflara ve arşive erişilmez                   */
+  /* ------------------------------------------------------------------ */
+
+  function readerAvailable() {
+    const s = state.status || {};
+    return api.mode === 'live' && !s.banned && !!(s.readerPassword || s.reader);
+  }
+
+  function onRead() {
+    const s = state.status || {};
+    if (s.reader || s.admin || state.adminUnlocked) openReader();
+    else openReaderDialog();
+  }
+
+  function openReaderDialog(message = '') {
+    showFieldError($('#readerError'), message);
+    $('#readerInput').value = '';
+    readerMorph.set('kilit');
+    if (!$('#readerDialog').open) $('#readerDialog').showModal();
+    setTimeout(() => $('#readerInput').focus(), 60);
+  }
+
+  async function submitReader(e) {
+    e.preventDefault();
+    const form = $('#readerForm');
+    const err = $('#readerError');
+    const btn = $('#readerSubmit');
+    const pw = $('#readerInput').value;
+    if (!pw.trim()) { showFieldError(err, 'Okuma şifresini yaz.'); return; }
+    setBusy(btn, true, 'Açılıyor');
+    let r;
+    try { r = await api.readerLogin(pw); } catch (ex) { r = { error: ex.message }; }
+    setBusy(btn, false, 'Defterleri aç');
+    if (r.kicked) { $('#readerDialog').close(); kick(r.reason); return; }
+    if (!r.ok) {
+      showFieldError(err, r.error || 'Okuma şifresi yanlış.');
+      form.classList.remove('shake');
+      void form.offsetWidth;
+      form.classList.add('shake');
+      $('#readerInput').select();
+      return;
+    }
+    if (state.status) state.status.reader = true;
+    await readerMorph.to('kitap', 650);
+    await sleep(200);
+    $('#readerDialog').close();
+    openReader();
+  }
+
+  async function openReader() {
+    const rd = state.reader;
+    rd.open = true;
+    stopCoverLoop();
+    ui.reader.hidden = false;
+    document.body.style.overflow = 'hidden';
+    $('#rdLogout').hidden = !(state.status && state.status.reader);
+    $('#rdClose').focus({ preventScroll: true });
+    if (!rd.pages) {
+      $('#rdSummary').textContent = 'Defterler yükleniyor…';
+      $('#rdTexts').innerHTML = '<div class="empty"><p>Defterler yükleniyor…</p></div>';
+      try {
+        const d = await api.readerTexts();
+        rd.pages = d.pages || [];
+      } catch (e) {
+        if (e.readerAuth) { readerLockedOut(); return; }
+        $('#rdTexts').innerHTML = emptyBlock('Defterler alınamadı', e.message || 'Biraz sonra tekrar dene.');
+        return;
+      }
+    }
+    renderReader();
+    if (!rd.tree && api.mode === 'live') {
+      api.readerTree().then((t) => { rd.tree = t; if (rd.open) renderReader(); }).catch(() => {});
+    }
+  }
+
+  function closeReader() {
+    ui.reader.hidden = true;
+    state.reader.open = false;
+    if (!state.archive.open) document.body.style.overflow = '';
+    if (state.view === 'main' && !state.flow.open && !state.archive.open) startCoverLoop();
+  }
+
+  function readerLockedOut() {
+    if (state.status) state.status.reader = false;
+    state.reader.pages = null;
+    closeReader();
+    openReaderDialog('Oturumun sona erdi. Okuma şifresini yeniden gir.');
+  }
+
+  async function readerLogout() {
+    try { await api.readerLogout(); } catch { /* yine de çık */ }
+    if (state.status) state.status.reader = false;
+    state.reader.pages = null;
+    closeReader();
+    toast('Defterlerden çıkış yapıldı.');
+  }
+
+  // Aramada Türkçe harfler ve büyük-küçük harf fark etmez
+  const foldTr = (s) => String(s || '').toLocaleLowerCase('tr').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ı/g, 'i');
+
+  function renderReader() {
+    const rd = state.reader;
+    const all = rd.pages || [];
+    const counts = {};
+    for (const p of all) counts[p.section] = (counts[p.section] || 0) + 1;
+    const used = SECTIONS.filter((s) => counts[s.id]);
+    if (rd.filter !== 'tumu' && !counts[rd.filter]) rd.filter = 'tumu';
+    $('#rdSummary').textContent = all.length ? `${all.length} yazı, ${used.length} defterde` : 'Defterler henüz boş';
+    $('#rdChips').innerHTML = [`<button type="button" class="chip" data-rfilter="tumu" aria-pressed="${rd.filter === 'tumu'}">Tümü <b>${all.length}</b></button>`]
+      .concat(used.map((s) => `<button type="button" class="chip" data-rfilter="${s.id}" aria-pressed="${rd.filter === s.id}">${symbolIcon(s.id, 6.5)}${s.name} <b>${counts[s.id]}</b></button>`))
+      .join('');
+    for (const b of $$('#rdOrder [data-order]')) {
+      const on = b.dataset.order === rd.order;
+      b.setAttribute('aria-checked', String(on));
+      b.tabIndex = on ? 0 : -1;
+    }
+    const box = $('#rdTexts');
+    if (!all.length) {
+      box.innerHTML = emptyBlock('Defterler henüz boş', 'Arkadaşların ders notlarını ekledikçe yazılar burada bölüm bölüm görünecek.');
+      return;
+    }
+    const inSection = all.filter((p) => rd.filter === 'tumu' || p.section === rd.filter)
+      .sort((a, b) => ((a.createdAt || 0) - (b.createdAt || 0)) || (a.id < b.id ? 1 : -1));
+    const uploadNo = new Map(inSection.map((p, i) => [p.id, i + 1]));
+    const q = foldTr(rd.query.trim());
+    const list = q
+      ? inSection.filter((p) => foldTr([p.title, p.text, p.summary, (p.keywords || []).join(' '), p.curriculum ? `${p.curriculum.unitName} ${p.curriculum.topicName}` : ''].join(' ')).includes(q))
+      : inSection;
+    if (!list.length) {
+      box.innerHTML = emptyBlock('Bulunamadı', q ? `“${rd.query.trim()}” geçen bir yazı yok. Başka bir kelime dene.` : 'Bu defterde henüz yazı yok.');
+      return;
+    }
+    box.innerHTML = rd.order === 'mufredat'
+      ? curriculumHtml(list, uploadNo, rd.filter, 'reader', q ? null : rd.tree)
+      : `<ol class="tx-list">${list.map((p) => textEntryHtml(p, 'yukleme', uploadNo, 'reader')).join('')}</ol>`;
+    observeFigures(box, loadReaderFigures);
+  }
+
+  function setReaderOrder(order) {
+    if (state.reader.order === order) return;
+    state.reader.order = order;
+    renderReader();
+  }
+
+  function openFeedback(pageId = null) {
+    const p = pageId ? (state.reader.pages || []).find((x) => x.id === pageId) : null;
+    state.reader.fbPage = p ? p.id : null;
+    $('#fbAbout').textContent = p
+      ? `“${p.title || `${secName(p.section)} notu`}” yazısı için. Yazdığını yalnızca Anıl görür.`
+      : 'Defterler hakkında Anıl’a söylemek istediğin bir şey var mı? Yazdığını yalnızca Anıl görür.';
+    const kind = p ? 'hata' : 'oneri';
+    for (const r of $$('input[name="fbKind"]')) r.checked = r.value === kind;
+    $('#fbText').value = '';
+    $('#fbName').value = readStore(localStorage, 'defter-okur-isim') || '';
+    showFieldError($('#fbError'), '');
+    $('#fbDialog').showModal();
+    setTimeout(() => $('#fbText').focus(), 60);
+  }
+
+  async function sendFeedback(e) {
+    e.preventDefault();
+    const err = $('#fbError');
+    const btn = $('#fbSend');
+    const text = $('#fbText').value.trim();
+    if (!text) { showFieldError(err, 'Mesajını yaz.'); return; }
+    const kind = ($$('input[name="fbKind"]').find((r) => r.checked) || {}).value || 'oneri';
+    const name = $('#fbName').value.trim();
+    setBusy(btn, true, 'Gönderiliyor');
+    try {
+      await api.sendFeedback({ sayfa: state.reader.fbPage || undefined, tur: kind, mesaj: text, isim: name });
+      writeStore(localStorage, 'defter-okur-isim', name);
+      $('#fbDialog').close();
+      toast('Geri bildirimin Anıl’a iletildi. Teşekkürler!');
+    } catch (ex) {
+      if (ex.readerAuth) { $('#fbDialog').close(); readerLockedOut(); return; }
+      showFieldError(err, ex.message || 'Geri bildirim gönderilemedi.');
+    } finally {
+      setBusy(btn, false, 'Gönder');
     }
   }
 
@@ -5168,6 +6297,39 @@ Reply with ONLY this JSON object and nothing else:
     });
     $('#ownerBtn').addEventListener('click', onOwner);
     $('#lockForm').addEventListener('submit', submitLock);
+    // Defterleri okuma alanı
+    for (const b of $$('.cta-read')) b.addEventListener('click', onRead);
+    $('#readerForm').addEventListener('submit', submitReader);
+    $('#rdClose').addEventListener('click', closeReader);
+    $('#rdLogout').addEventListener('click', readerLogout);
+    $('#rdFeedback').addEventListener('click', () => openFeedback(null));
+    $('#rdChips').addEventListener('click', (e) => {
+      const chip = e.target.closest('[data-rfilter]');
+      if (!chip) return;
+      state.reader.filter = chip.dataset.rfilter;
+      renderReader();
+    });
+    $('#rdOrder').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-order]');
+      if (b) setReaderOrder(b.dataset.order);
+    });
+    $('#rdOrder').addEventListener('keydown', (e) => {
+      if (!['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+      e.preventDefault();
+      const next = state.reader.order === 'yukleme' ? 'mufredat' : 'yukleme';
+      setReaderOrder(next);
+      $(`#rdOrder [data-order="${next}"]`).focus();
+    });
+    let searchTimer = 0;
+    $('#rdSearch').addEventListener('input', (e) => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => { state.reader.query = e.target.value; renderReader(); }, 180);
+    });
+    $('#rdTexts').addEventListener('click', (e) => {
+      const fb = e.target.closest('[data-fb]');
+      if (fb) openFeedback(fb.dataset.fb);
+    });
+    $('#fbForm').addEventListener('submit', sendFeedback);
 
     document.addEventListener('click', (e) => {
       const closer = e.target.closest('[data-close]');
@@ -5247,6 +6409,25 @@ Reply with ONLY this JSON object and nothing else:
     $('#arcLock').addEventListener('click', lockArchive);
     $('#tabBtnPages').addEventListener('click', () => setArchiveTab('pages'));
     $('#tabBtnTexts').addEventListener('click', () => setArchiveTab('texts'));
+    $('#tabBtnFb').addEventListener('click', () => setArchiveTab('fb'));
+    $('#fbList').addEventListener('click', feedbackAction);
+    $('#fbAllRead').addEventListener('click', markAllFeedback);
+    // Yazı yazma, düzenleme ve yapay zekâyla güzelleştirme
+    $('#txNew').addEventListener('click', () => openEditor(null));
+    $('#txReaderView').addEventListener('click', openReader);
+    $('#aiBulkRun').addEventListener('click', runAiBulk);
+    $('#writeForm').addEventListener('submit', saveEditor);
+    $('#wdAi').addEventListener('click', editorBeautify);
+    $('#wdAiNote').addEventListener('click', (e) => { if (e.target.closest('#wdUndo')) editorUndoAi(); });
+    for (const r of $$('input[name="wdMode"]')) r.addEventListener('change', () => setPlaceMode(r.value));
+    $('#wdSection').addEventListener('change', () => { if (editorMode() === 'elle') fillEditorPlace(); });
+    $('#wdGrade').addEventListener('change', () => {
+      fillUnitSelect($('#wdSection').value, $('#wdGrade'), $('#wdUnit'));
+      fillTopicSelect($('#wdSection').value, $('#wdGrade'), $('#wdUnit'), $('#wdTopic'));
+    });
+    $('#wdUnit').addEventListener('change', () => fillTopicSelect($('#wdSection').value, $('#wdGrade'), $('#wdUnit'), $('#wdTopic')));
+    $('#wdRestore').addEventListener('click', restoreOriginal);
+    $('#wdDelete').addEventListener('click', deleteTyped);
     $('#tabBtnQr').addEventListener('click', () => setArchiveTab('qr'));
     $('.tabs').addEventListener('keydown', (e) => {
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
@@ -5277,14 +6458,15 @@ Reply with ONLY this JSON object and nothing else:
     $('#texts').addEventListener('click', (e) => {
       const open = e.target.closest('[data-open]');
       if (open) { openViewer(open.dataset.open); return; }
+      const edit = e.target.closest('[data-edit]');
+      if (edit) { openEditor(edit.dataset.edit); return; }
+      const ai = e.target.closest('[data-ai]');
+      if (ai) { beautifyOne(ai.dataset.ai, ai); return; }
       const go = e.target.closest('[data-goto]');
       if (go) {
         const el = document.getElementById('tx-' + go.dataset.goto);
         if (!el) return;
-        el.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth', block: 'start' });
-        el.classList.remove('flash');
-        void el.offsetWidth;
-        el.classList.add('flash');
+        flashEntry(el);
         $('.tx-open', el)?.focus({ preventScroll: true });
       }
     });
@@ -5312,10 +6494,9 @@ Reply with ONLY this JSON object and nothing else:
       setViewerMode(next);
       (next === 'foto' ? $('#vModePhoto') : $('#vModeText')).focus();
     });
-    $('#vEditText').addEventListener('click', openTextEditor);
+    $('#vEditText').addEventListener('click', () => { if (state.archive.current) openEditor(state.archive.current.id); });
     $('#vReread').addEventListener('click', rereadCurrent);
     $('#vTextRead').addEventListener('click', rereadCurrent);
-    $('#textForm').addEventListener('submit', saveTextEdit);
     $('#chips').addEventListener('click', (e) => {
       const chip = e.target.closest('[data-filter]');
       if (!chip) return;
@@ -5370,10 +6551,12 @@ Reply with ONLY this JSON object and nothing else:
       }
     });
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && state.archive.open && !$('dialog[open]')) closeArchive();
+      if (e.key !== 'Escape' || $('dialog[open]')) return;
+      if (state.reader.open) closeReader();
+      else if (state.archive.open) closeArchive();
     });
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && state.view === 'main' && !state.flow.open && !state.archive.open && !loopTimer) startCoverLoop();
+      if (!document.hidden && state.view === 'main' && !state.flow.open && !state.archive.open && !state.reader.open && !loopTimer) startCoverLoop();
     });
 
     const heroBook = $('#heroBook');
@@ -5411,11 +6594,14 @@ Reply with ONLY this JSON object and nothing else:
       return;
     }
     if (state.status.banned || durum === 'engel') { setView('kicked', { reason: 'Daha önce uygunsuz bir giriş yapıldı.' }); return; }
+    const wantsReader = location.hash === '#defterler' && readerAvailable();
     if (!state.status.entered) {
       setView('gate', { error: durum === 'gecersiz' ? 'Okuttuğun QR kod geçersiz ya da kaldırılmış. Anıl’dan yeni bir kod iste.' : '' });
+      if (wantsReader) onRead();
       return;
     }
     setView('main');
+    if (wantsReader) onRead();
     if (params.has('giris') || durum === 'giris') toast('Hoş geldin! Defter açıldı.');
   }
 
