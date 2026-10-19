@@ -173,7 +173,7 @@ async function api(request, env, ctx, cfg, url) {
   }
 
   // ==TESHIS-BASLA== (geçici: güzelleştirmeyi gerçek yazılarla ölçmek için; ölçüm bitince silinir)
-  if (path === '/api/teshis-guzel' && method === 'GET') return diagBeautify(env, cfg, url);
+  if (path === '/api/teshis-guzel' && method === 'GET') return diagBeautify(env, ctx, cfg, url);
   // ==TESHIS-BITIR==
 
   // Buradan sonrası yalnızca parolayı bilen içindir.
@@ -2764,7 +2764,7 @@ async function adminBeautify(request, env, cfg) {
 }
 
 // ==TESHIS-BASLA== (geçici)
-async function diagBeautify(env, cfg, url) {
+async function diagBeautify(env, ctx, cfg, url) {
   const k = url.searchParams.get('k') || '';
   const row = env.AYAR ? await env.AYAR.prepare("SELECT deger FROM ayarlar WHERE anahtar = 'teshis-anahtar'").first() : null;
   if (!row || k.length < 20 || !(await safeEqual(await sha256hex(k), String(row.deger)))) return json({ error: 'Bulunamadı.' }, 404);
@@ -2785,21 +2785,33 @@ async function diagBeautify(env, cfg, url) {
     input.max_completion_tokens = WRITE_MAX_TOKENS;
     input.chat_template_kwargs = { enable_thinking: false };
   } else input.max_tokens = WRITE_MAX_TOKENS;
-  const t0 = Date.now();
-  let res = null;
-  let err = '';
-  try {
-    res = await env.AI.run(model, input);
-  } catch (e) {
-    err = String((e && e.message) || e);
+  const work = async () => {
+    const t0 = Date.now();
+    let res = null;
+    let err = '';
+    try {
+      res = await env.AI.run(model, input);
+    } catch (e) {
+      err = String((e && e.message) || e);
+    }
+    const ms = Date.now() - t0;
+    const raw = res ? extractText(res) : '';
+    const parsed = raw ? parseBeautified(raw) : null;
+    const checks = parsed ? beautifyChecks(text, parsed) : null;
+    await env.AYAR.prepare(
+      'CREATE TABLE IF NOT EXISTS teshis_sonuc (id TEXT, model TEXT, ms INTEGER, kullanim TEXT, bitis TEXT, kontrol TEXT, hata TEXT, ham TEXT, olusturma INTEGER)',
+    ).run();
+    await env.AYAR.prepare('INSERT INTO teshis_sonuc VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+      .bind(r.id, model, ms, JSON.stringify((res && res.usage) || null), String((res && res.choices && res.choices[0] && res.choices[0].finish_reason) || ''),
+        JSON.stringify(checks), err, raw, Date.now())
+      .run();
+    return { ms, checks, err };
+  };
+  if (url.searchParams.has('arka')) {
+    ctx.waitUntil(work().catch(() => {}));
+    return json({ ok: true, started: r.id });
   }
-  const raw = res ? extractText(res) : '';
-  const parsed = raw ? parseBeautified(raw) : null;
-  return json({
-    id: r.id, model, ms: Date.now() - t0, err, usage: (res && res.usage) || null,
-    finish: (res && res.choices && res.choices[0] && res.choices[0].finish_reason) || null,
-    checks: parsed ? beautifyChecks(text, parsed) : null, original: text, raw,
-  });
+  return json({ ok: true, id: r.id, ...(await work()) });
 }
 // ==TESHIS-BITIR==
 
