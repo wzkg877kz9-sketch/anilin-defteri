@@ -2278,11 +2278,29 @@ function cleanKeywords(v) {
 const joinKeywords = (list) => list.join(', ');
 const splitKeywords = (s) => (s ? String(s).split(', ').filter(Boolean) : []);
 
+// "yanlış → doğru" satırları: tek satıra virgülle dizilenler ayrılır; iki yanı aynı olanlar ve [?] içerenler atılır
+const FIX_ARROW = /\s*(?:→|->|=>)\s*/;
 function cleanCorrections(list) {
-  return (Array.isArray(list) ? list : String(list ?? '').split('\n'))
-    .map((l) => cleanText(String(l ?? '').replace(/^[-*•\d.)\s]+/, ''), 160))
-    .filter((l) => l && !/^yok\.?$/i.test(l))
-    .slice(0, 6);
+  const lines = (Array.isArray(list) ? list : String(list ?? '').split('\n')).flatMap((l) => {
+    const line = String(l ?? '');
+    if ((line.match(/→|->|=>/g) || []).length < 2) return [line];
+    const out = [];
+    for (const part of line.split(/\s*[,;]\s+/)) {
+      if (FIX_ARROW.test(part) || !out.length) out.push(part);
+      else out[out.length - 1] += ', ' + part;
+    }
+    return out;
+  });
+  const side = (t) => String(t).replace(/\([^)]*\)/g, '').normalize('NFC').toLocaleLowerCase('tr').replace(/[^\p{L}\p{N}]+/gu, '');
+  const out = [];
+  for (const l of lines) {
+    const t = cleanText(l.replace(/^[-*•\d.)\s]+/, '').replace(/\s*(?:->|=>)\s*/g, ' → '), 160);
+    if (!t || /^yok\.?$/i.test(t) || t.includes('[?]')) continue;
+    const pair = t.split(FIX_ARROW);
+    if (pair.length === 2 && side(pair[0]) === side(pair[1])) continue;
+    if (!out.includes(t)) out.push(t);
+  }
+  return out.slice(0, 6);
 }
 
 // Şekil görsellerinin hangi şekil kaydı ve fotoğraf için hazırlandığını gösteren kısa anahtar
@@ -2591,7 +2609,7 @@ async function adminDeleteText(env, id) {
 }
 
 // ---- Yapay zekâyla güzelleştirme: yazım düzeltilir, düzenlenir; özet ve anahtar kavramlar çıkarılır ----
-const WRITE_MAX_TOKENS = 3200;
+const WRITE_MAX_TOKENS = 4000;
 const WRITE_MAX_INPUT = 7000;
 
 export function buildWritePrompt(section, curriculum, title, text) {
@@ -2601,8 +2619,9 @@ export function buildWritePrompt(section, curriculum, title, text) {
 
 Rewrite them as a clean, well-organized notebook page in Turkish:
 - Keep all the information, examples, formulas, numbers and exercise solutions, in the same order. Do not add facts, explanations or examples that are not in the notes, and do not drop anything meaningful.
-- Fix misread words, spelling, punctuation and Turkish letters (ç ğ ı İ ö ş ü) using the context and your knowledge of the subject. If you cannot tell what an unreadable part was, keep it as [?].
+- Fix misread words, spelling, punctuation and Turkish letters (ç ğ ı İ ö ş ü â) using the context and your knowledge of the subject, following standard Turkish (TDK) spelling. If you cannot tell what an unreadable word was, write [?] in its place.
 - Remove fragments that are clearly reading errors, such as the same word or line repeated many times.
+- Keep symbols, units and variable names as the notes write them (for example vilk, vson, v0, Δx, m/s²). Do not add underscores, LaTeX or code formatting to them.
 - Organize the page: write each heading on its own line starting with "# " (sub-headings with "## "), list items starting with "- ", numbered steps as "1) ", and short paragraphs. Write formulas in plain text with symbols such as x², √, π, Δ, →, ≤, ≥, ·. Write a table row by row with cells separated by " | ".
 - A line that starts with "[Şekil" marks a drawing. Copy every such line exactly as it is, at the right place, and do not add new ones.
 - Do not use bold, italics, emojis, code blocks or HTML.
@@ -2610,12 +2629,14 @@ Rewrite them as a clean, well-organized notebook page in Turkish:
 Answer in exactly this format, with nothing before or after it:
 ---BAŞLIK---
 a short Turkish title for the page, at most 8 words
+---DEĞERLENDİRME---
+one word: "iyi" if the notes read as a class note, "eksik" if some parts are garbled or missing, "anlamsız" if most of the notes are meaningless text (the photo was probably misread)
 ---ÖZET---
 2 or 3 short Turkish sentences that tell a student what these notes teach
 ---KAVRAMLAR---
 3 to 8 key terms from the notes, separated by commas
 ---DÜZELTMELER---
-up to 5 short Turkish lines naming the most important corrections you made (for example: Asit edebiyatı → Âşık edebiyatı), or "yok"
+up to 5 lines, one per line, each "wrong → right" for a word or phrase you corrected (for example: Asit edebiyatı → Âşık edebiyatı); do not list removed parts or [?]; or "yok"
 ---METİN---
 the rewritten notes
 
@@ -2625,8 +2646,8 @@ ${title ? `(Guessed title: ${title})\n` : ''}${text}
 """`;
 }
 
-const WRITE_MARK = /^[ \t]*[-=*_#]{2,}[ \t]*(BAŞLIK|BASLIK|ÖZET|OZET|KAVRAMLAR|DÜZELTMELER|DUZELTMELER|METİN|METIN)[ \t]*[-=*_#]{0,}[ \t]*$/gim;
-const WRITE_KEYS = { BASLIK: 'baslik', OZET: 'ozet', KAVRAMLAR: 'kavramlar', DUZELTMELER: 'duzeltmeler', METIN: 'metin' };
+const WRITE_MARK = /^[ \t]*[-=*_#]{2,}[ \t]*(BAŞLIK|BASLIK|DEĞERLENDİRME|DEGERLENDIRME|ÖZET|OZET|KAVRAMLAR|DÜZELTMELER|DUZELTMELER|METİN|METIN)[ \t]*[-=*_#]{0,}[ \t]*$/gim;
+const WRITE_KEYS = { BASLIK: 'baslik', DEGERLENDIRME: 'degerlendirme', OZET: 'ozet', KAVRAMLAR: 'kavramlar', DUZELTMELER: 'duzeltmeler', METIN: 'metin' };
 
 export function parseBeautified(raw) {
   const s = String(raw || '')
@@ -2636,7 +2657,7 @@ export function parseBeautified(raw) {
   const re = new RegExp(WRITE_MARK.source, 'gim');
   let m;
   while ((m = re.exec(s))) {
-    const k = m[1].toLocaleUpperCase('tr').replace(/Ş/g, 'S').replace(/Ö/g, 'O').replace(/Ü/g, 'U').replace(/İ/g, 'I');
+    const k = m[1].toLocaleUpperCase('tr').replace(/Ş/g, 'S').replace(/Ö/g, 'O').replace(/Ü/g, 'U').replace(/İ/g, 'I').replace(/Ğ/g, 'G').replace(/Ç/g, 'C');
     marks.push({ key: WRITE_KEYS[k], start: m.index, end: m.index + m[0].length });
   }
   const parts = {};
@@ -2647,8 +2668,10 @@ export function parseBeautified(raw) {
   const plain = (t) => String(t || '').replace(/\*\*(.+?)\*\*/g, '$1').replace(/__(.+?)__/g, '$1').replace(/^```[a-z]*\s*$/gim, '');
   const text = collapseLoops(cleanTranscript(plain(parts.metin)));
   if (!hasText(text)) return null;
+  const verdict = normalizeText(plain(parts.degerlendirme)).match(/\b(iyi|eksik|anlamsiz)\b/);
   return {
     title: cleanText(plain(parts.baslik).replace(/^#+\s*/, '').split('\n')[0], 80),
+    quality: verdict ? verdict[1] : '',
     summary: cleanMessage(plain(parts.ozet), 600),
     keywords: cleanKeywords(plain(parts.kavramlar)),
     corrections: cleanCorrections(plain(parts.duzeltmeler)),
@@ -2667,7 +2690,10 @@ export function beautifyChecks(original, result) {
   if (figureNumbers(original) !== figureNumbers(result.text)) reasons.push('Şekillerin yerleri aslıyla aynı değil.');
   const ov = textOverlap(original, result.text);
   if (ov.sizeB >= 40 && ov.b < 0.45) reasons.push('Yapay zekânın yazısı aslına yeterince benzemiyor.');
-  return { ok: !reasons.length, reasons };
+  // Yapay zekâya göre yazının çoğu anlamsızsa güzelleştirmek boşunadır: sayfa yeniden okunmalı
+  const misread = result.quality === 'anlamsiz';
+  if (misread) reasons.unshift('Yapay zekâya göre bu yazının çoğu anlamsız; fotoğraftan yanlış okunmuş olabilir.');
+  return { ok: !reasons.length, reasons, misread };
 }
 
 async function beautifyText(env, cfg, { section, curriculum, title, text }) {
