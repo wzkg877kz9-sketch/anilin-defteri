@@ -526,6 +526,17 @@ main { max-width: 1080px; margin: 0 auto; }
 .field input::placeholder { color: rgb(28 26 43 / .32); }
 .field input:focus { outline: none; border-bottom-color: var(--yaldiz-koyu); background: rgb(198 160 82 / .1); }
 .field-error { margin: 0; font: 600 .95rem/1.4 var(--font-ui); color: var(--mum); }
+.field .opt { font-weight: 500; color: var(--deri-500); }
+.field-hint { margin: 0; font: 500 .9rem/1.4 var(--font-ui); color: var(--murekkep-2); }
+.rules { display: grid; gap: 6px; padding: 10px 12px; border-radius: 10px; background: rgb(198 160 82 / .14); box-shadow: inset 3px 0 0 var(--yaldiz-koyu); font: 500 .95rem/1.45 var(--font-ui); color: var(--murekkep); }
+.rules p { margin: 0; }
+.privacy { font: 500 .92rem/1.45 var(--font-ui); color: var(--murekkep-2); }
+.privacy summary { cursor: pointer; font-weight: 700; color: var(--lacivert-700); padding: 4px 0; }
+.privacy summary:focus-visible { outline: 2px solid var(--yaldiz-koyu); outline-offset: 2px; border-radius: 4px; }
+.privacy ul { margin: 6px 0 0; padding-left: 1.1rem; display: grid; gap: 6px; }
+.consent { display: flex; gap: 10px; align-items: flex-start; font: 600 .95rem/1.4 var(--font-ui); color: var(--murekkep); cursor: pointer; }
+.consent input { flex: none; width: 22px; height: 22px; margin: 0; accent-color: var(--lacivert-700); color-scheme: light; }
+.consent input:focus-visible { outline: 2px solid var(--yaldiz-koyu); outline-offset: 2px; }
 .notice { margin: 0; padding: 10px 12px; border-radius: 10px; font: 500 .95rem/1.45 var(--font-ui); background: rgb(142 36 34 / .08); color: var(--mum); box-shadow: inset 0 0 0 1px rgb(142 36 34 / .25); }
 .notice.calm { background: rgb(27 44 82 / .06); color: var(--lacivert-700); box-shadow: inset 0 0 0 1px rgb(27 44 82 / .18); }
 
@@ -931,6 +942,7 @@ main { max-width: 1080px; margin: 0 auto; }
 .empty p { margin: 0; max-width: 28rem; }
 .qr-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; padding: 16px; border-radius: 14px; background: rgb(19 32 61 / .7); box-shadow: inset 0 0 0 1px rgb(198 160 82 / .25); }
 .qr-form .field { flex: 1 1 240px; }
+.qr-form.reader-pw { margin-top: 18px; }
 .qr-form label { font: 700 .95rem/1.2 var(--font-ui); color: rgb(244 238 226 / .8); }
 .qr-form input { width: 100%; padding: 12px 14px; border-radius: 10px; border: 0; color: var(--fildisi); background: rgb(6 12 25 / .7); box-shadow: inset 0 0 0 1px rgb(244 238 226 / .2); font: 500 1rem/1.2 var(--font-ui); }
 .qr-form input:focus { outline: 2px solid var(--yaldiz); outline-offset: 1px; }
@@ -1486,7 +1498,7 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
 
 <footer class="foot">
   <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2.5 4.5 5.5v6c0 4.6 3.1 8.4 7.5 10 4.4-1.6 7.5-5.4 7.5-10v-6Z" fill="none" stroke="url(#gYaldiz)" stroke-width="1.5" stroke-linejoin="round"/><path d="m8.5 12 2.4 2.4 4.6-4.8" fill="none" stroke="url(#gYaldiz)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  <p>Yüklediğin fotoğrafları yalnızca parolayı bilen Anıl görebilir. Her isim ve fotoğraf otomatik olarak denetlenir; uygunsuz içerik kabul edilmez.</p>
+  <p>Yüklediğin sayfaları Anıl ve okuma parolası olan sınıf arkadaşları görebilir. Yalnızca kendi el yazısı notlarını yükle; kitap ve test sayfaları kabul edilmez. Silinmesini istediğin bir sayfa için Anıl’a söylemen yeterli.</p>
 </footer>
 
 <section class="archive" id="archive" hidden aria-labelledby="arcTitle">
@@ -1562,6 +1574,14 @@ dialog[open] { animation: dlgIn .3s var(--ease-out); }
       </form>
       <p class="qr-help">Her kod ayrı bir giriş anahtarıdır. Kodu yazdırıp sınıfa asabilir ya da telefonundan gösterebilirsin. Bir kodu kaldırdığında onunla kimse giriş yapamaz; diğer kodlar çalışmaya devam eder.</p>
       <ul class="qr-list" id="qrList"></ul>
+      <form class="qr-form reader-pw" id="readerPwForm" novalidate>
+        <div class="field">
+          <label for="readerPwInput">Yeni okuma şifresi</label>
+          <input id="readerPwInput" type="text" minlength="8" maxlength="128" autocomplete="new-password" autocapitalize="off" spellcheck="false" placeholder="En az 8 karakter">
+        </div>
+        <button class="btn gold" id="readerPwBtn" type="submit">Şifreyi değiştir</button>
+      </form>
+      <p class="qr-help">Okuma şifresi sınıf dışına yayıldıysa burada değiştir. Eski şifreyle açık olan herkesin defterleri kapanır; yeni şifreyi yalnızca sınıfınla paylaş.</p>
       <div class="danger-zone">
         <p>Uygunsuz isim girdiği için siteden çıkarılan herkesin engelini kaldırabilirsin.</p>
         <button class="btn ghost small" id="liftBans" type="button">Engelleri kaldır</button>
@@ -2944,7 +2964,8 @@ Reply with ONLY this JSON object and nothing else:
       async checkName(name) { const r = await call('POST', '/api/isim', { isim: name }); return r.data; },
       async upload(item) {
         const f = new FormData();
-        f.set('isim', item.name);
+        f.set('isim', item.name || '');
+        f.set('onay', '1');
         f.set('bolum', item.section);
         f.set('not', item.note || '');
         f.set('w', String(item.w));
@@ -2980,6 +3001,7 @@ Reply with ONLY this JSON object and nothing else:
       async qrCreate(label) { return admin('POST', '/api/yonetici/qr', { label }); },
       async qrRevoke(id) { return admin('DELETE', `/api/yonetici/qr/${encodeURIComponent(id)}`); },
       async liftBans() { return admin('POST', '/api/yonetici/engelleri-kaldir', {}); },
+      async setReaderPassword(pw) { return admin('POST', '/api/yonetici/okur-sifre', { sifre: pw }); },
       // Yöneticinin yazıları, yapay zekâyla güzelleştirme, okuyucular için şekil görselleri
       async createText(body) { return admin('POST', '/api/yonetici/yazi', body); },
       async deleteText(id) { return admin('DELETE', `/api/yonetici/yazi/${encodeURIComponent(id)}`); },
@@ -3214,6 +3236,10 @@ Reply with ONLY this JSON object and nothing else:
       },
       async qrRevoke(id) { mem.qr = mem.qr.filter((q) => q.id !== id); return { ok: true }; },
       async liftBans() { mem.banned = false; removeStore(localStorage, BAN_KEY); return { ok: true }; },
+      async setReaderPassword(pw) {
+        if (String(pw).trim().length < 8) { const e = new Error('Yeni şifre en az 8 karakter olmalı.'); throw e; }
+        return { ok: true };
+      },
       async createText() { throw new Error('Önizlemede yazı kaydedilmez; asıl sitede çalışır.'); },
       async deleteText() { throw new Error('Önizlemede yazı silinmez; asıl sitede çalışır.'); },
       async beautify() { throw new Error('Önizlemede yapay zekâyla güzelleştirme yok; asıl sitede çalışır.'); },
@@ -3315,7 +3341,7 @@ Reply with ONLY this JSON object and nothing else:
   /* Durum ve görünümler                                                  */
   /* ------------------------------------------------------------------ */
 
-  const freshFlow = () => ({ open: false, step: 1, name: '', section: '', photos: [], note: '', busy: false, lastAccepted: 0, lastMessages: [], lastPlaced: [] });
+  const freshFlow = () => ({ open: false, step: 1, name: '', consent: false, section: '', photos: [], note: '', busy: false, lastAccepted: 0, lastMessages: [], lastPlaced: [] });
   const state = {
     view: 'loading',
     status: null,
@@ -3505,7 +3531,7 @@ Reply with ONLY this JSON object and nothing else:
   /* Akış: isim → bölüm → fotoğraflar → teşekkür                          */
   /* ------------------------------------------------------------------ */
 
-  const STEP_LABELS = { 1: 'Adın', 2: 'Bölüm', 3: 'Fotoğraflar' };
+  const STEP_LABELS = { 1: 'Kurallar', 2: 'Bölüm', 3: 'Fotoğraflar' };
   const countLabel = (id) => {
     const n = (state.status && state.status.counts && state.status.counts[id]) || 0;
     return n ? `${n} sayfa` : 'Henüz boş';
@@ -3513,14 +3539,32 @@ Reply with ONLY this JSON object and nothing else:
   const cameraIcon = () => '<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><rect x="5" y="13" width="38" height="27" rx="5" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M16 13l3-5h10l3 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><circle cx="24" cy="26.5" r="7.5" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="36.5" cy="19" r="1.6" fill="currentColor"/></svg>';
 
   function tplName() {
+    const agreed = state.flow.consent ? 'checked' : '';
     return `
-      <h2>Adın ne?</h2>
-      <p class="hint">Teşekkür ederken bu adı kullanacağız. Anıl da yüklediğin sayfaların yanında bu adı görecek.</p>
+      <h2>Başlamadan önce</h2>
+      <div class="rules" role="note" aria-label="Yükleme kuralları">
+        <p><strong>Yalnızca kendi el yazısı notlarını yükle.</strong> Ders kitabı, test kitabı, föy ya da başkasına ait sayfaları yükleme; bunlar telif hakkıyla korunur.</p>
+        <p>Fotoğrafta yüz, isim listesi, telefon numarası gibi kişisel bilgi olmasın.</p>
+      </div>
       <form id="nameForm" class="field-stack" novalidate>
         <div class="field">
-          <label for="nameInput">Adın</label>
-          <input id="nameInput" name="isim" maxlength="40" autocomplete="given-name" enterkeyhint="next" placeholder="Örn. Zeynep K." value="${esc(state.flow.name)}" required>
+          <label for="nameInput">Adın <span class="opt">(isteğe bağlı)</span></label>
+          <input id="nameInput" name="isim" maxlength="40" autocomplete="given-name" enterkeyhint="next" placeholder="Örn. Zeynep" value="${esc(state.flow.name)}" aria-describedby="nameHint">
+          <p class="field-hint" id="nameHint">Sadece ilk adın yeterli. Boş bırakırsan sayfaların “İsimsiz” olarak eklenir.</p>
         </div>
+        <details class="privacy">
+          <summary>Verilerin nasıl kullanılıyor?</summary>
+          <ul>
+            <li><strong>Ne kaydedilir:</strong> yazdığın ad (yazarsan), yüklediğin fotoğraflar ve kuralları çiğneyen cihazlar için bir engel kaydı. Adres, telefon ya da e-posta istenmez.</li>
+            <li><strong>Kim görür:</strong> Anıl ve Anıl’ın parolayı verdiği sınıf arkadaşları.</li>
+            <li><strong>Yapay zekâ:</strong> fotoğraflardaki yazı Cloudflare’in yapay zekâ hizmetiyle okunur ve denetlenir; “Gelişmiş yapay zekâ” defteri için Anthropic’in Claude modeli kullanılır. Bu hizmetlerin sunucuları yurt dışında olabilir.</li>
+            <li><strong>Silme:</strong> yüklediğin bir sayfanın ya da adının silinmesini istersen Anıl’a söylemen yeterli; arşivden kalıcı olarak kaldırılır.</li>
+          </ul>
+        </details>
+        <label class="consent">
+          <input type="checkbox" id="consentInput" ${agreed}>
+          <span>Kuralları okudum. Fotoğraflarımın yukarıda anlatıldığı gibi işlenmesini kabul ediyorum.</span>
+        </label>
         <p class="field-error" id="nameError" role="alert" hidden></p>
         <div class="page-actions">
           <button type="button" class="btn ghost" data-act="close">Kitabı kapat</button>
@@ -3580,7 +3624,7 @@ Reply with ONLY this JSON object and nothing else:
           <circle cx="50" cy="50" r="40.5" class="sedef-ring"/>
           <g class="morph-gold" id="thanksMorph" transform="translate(14 14) scale(.72)"><path/><path/><path/><path/></g>
         </svg>
-        <h2 tabindex="-1">Teşekkürler, ${esc(state.flow.name)}!</h2>
+        <h2 tabindex="-1">Teşekkürler${state.flow.name ? ', ' + esc(state.flow.name) : ''}!</h2>
         <p>${n} sayfa <strong>${esc(secName(state.flow.section))}</strong> bölümüne eklendi. Anıl’ın defteri senin sayende biraz daha tamamlandı.</p>
         ${placed.length ? `<div class="placed"><p>MEB müfredatındaki yerleri:</p><ul>${placed.map((x) => `<li><strong>${esc(x.title || 'Sayfa')}</strong><span>${x.curriculum ? esc(placeLong(x.curriculum)) : 'Bu yılın müfredatında yeri bulunamadı'}</span></li>`).join('')}</ul></div>` : ''}
         ${faint ? `<p class="notice calm">${faint === n ? (n === 1 ? 'Sayfanın' : 'Sayfaların') : `${faint} sayfanın`} yazısı tam okunamadı. Daha net bir fotoğraf eklersen yazısı da çıkarılır.</p>` : ''}
@@ -3666,7 +3710,7 @@ Reply with ONLY this JSON object and nothing else:
     ui.hero.hidden = true;
     ui.flow.hidden = false;
     ui.book.classList.remove('is-opening');
-    const start = state.flow.name ? 2 : 1;
+    const start = state.flow.consent ? 2 : 1;
     renderStep(start);
     miniMorph.set(start === 1 ? 'kitap' : state.flow.section || 'kitap');
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -3695,13 +3739,25 @@ Reply with ONLY this JSON object and nothing else:
     const input = $('#nameInput');
     const err = $('#nameError');
     const btn = $('#nameNext');
+    const consent = $('#consentInput');
     const name = cleanText(input.value, 40);
-    if (name.length < 2) {
-      showFieldError(err, 'Adını yaz (en az 2 harf).');
+    if (!consent.checked) {
+      showFieldError(err, 'Devam etmek için kuralları okuduğunu onayla.');
+      consent.focus();
+      return;
+    }
+    if (name.length === 1) {
+      showFieldError(err, 'Adın en az 2 harf olmalı ya da boş bırak.');
       input.focus();
       return;
     }
     showFieldError(err, '');
+    state.flow.consent = true;
+    if (!name) {
+      state.flow.name = '';
+      await turnTo(2);
+      return;
+    }
     setBusy(btn, true, 'Kontrol ediliyor');
     let r;
     try { r = await api.checkName(name); } catch (ex) { r = { error: ex.message }; }
@@ -7054,6 +7110,26 @@ Reply with ONLY this JSON object and nothing else:
     $('#qrCopy').addEventListener('click', copyQr);
     $('#qrPng').addEventListener('click', downloadQrPng);
     $('#qrPrint').addEventListener('click', printQr);
+    $('#readerPwForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = $('#readerPwInput');
+      const btn = $('#readerPwBtn');
+      const pw = input.value.trim();
+      if (pw.length < 8) { toast('Yeni şifre en az 8 karakter olmalı.', true); input.focus(); return; }
+      const ok = await confirmAsk('Okuma şifresi değişsin mi?', 'Eski şifreyle defterleri okuyan herkesin oturumu kapanır. Yeni şifreyi not etmeyi unutma.', 'Şifreyi değiştir');
+      if (!ok) return;
+      setBusy(btn, true, 'Kaydediliyor');
+      try {
+        await api.setReaderPassword(pw);
+        input.value = '';
+        toast('Okuma şifresi değiştirildi.');
+      } catch (ex) {
+        if (ex.auth) { lockedOut(); return; }
+        toast(ex.message || 'Şifre değiştirilemedi.', true);
+      } finally {
+        setBusy(btn, false, 'Şifreyi değiştir');
+      }
+    });
     $('#liftBans').addEventListener('click', async () => {
       const ok = await confirmAsk('Engeller kaldırılsın mı?', 'Siteden çıkarılan herkes QR kodu yeniden okutarak girebilecek.', 'Engelleri kaldır');
       if (!ok) return;

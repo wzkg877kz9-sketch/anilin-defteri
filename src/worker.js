@@ -193,6 +193,7 @@ async function api(request, env, ctx, cfg, url) {
     if (path === '/api/yonetici/yazilar' && method === 'GET') return adminTexts(env, url);
     if (path === '/api/yonetici/mufredat' && method === 'GET') return json(mufredatAgaci());
     if (path === '/api/yonetici/engelleri-kaldir' && method === 'POST') return liftBans(env);
+    if (path === '/api/yonetici/okur-sifre' && method === 'POST') return adminSetReaderPassword(request, env);
     if (path === '/api/yonetici/yazi' && method === 'POST') return adminCreateText(request, env, cfg);
     if (path === '/api/yonetici/guzellestir' && method === 'POST') return adminBeautify(request, env, cfg);
     if (path === '/api/yonetici/geri-bildirim' && method === 'GET') return adminFeedbackList(env);
@@ -244,7 +245,7 @@ async function status(request, env, cfg) {
     isBanned(request, env),
     readCookieToken(request, env, COOKIE_ADMIN, 'a'),
     getCounts(env),
-    readCookieToken(request, env, COOKIE_READER, 'r'),
+    readReaderToken(request, env),
   ]);
   return json({
     mode: 'live',
@@ -340,7 +341,8 @@ async function checkNameRoute(request, env, cfg) {
   if (!session) return json({ error: 'Oturumun sona erdi. QR kodu yeniden okut.', gate: true }, 401);
   const body = await readJson(request);
   const name = cleanText(body?.isim, 40);
-  if (name.length < 2) return json({ error: 'Adını yaz (en az 2 harf).' }, 400);
+  if (!name) return json({ ok: true, isim: '' });
+  if (name.length < 2) return json({ error: 'Adın en az 2 harf olmalı ya da boş bırak.' }, 400);
 
   const verdict = await moderateText(env, cfg, name, null);
   if (verdict.bad) return banResponse(env, verdict.reason, 'isim');
@@ -373,7 +375,8 @@ async function upload(request, env, ctx, cfg) {
   const h = clampInt(form.get('h'), 0, 20000);
 
   if (!SECTIONS.includes(section)) return json({ error: 'Geçerli bir bölüm seç.' }, 400);
-  if (name.length < 2) return json({ error: 'Adını yaz (en az 2 harf).' }, 400);
+  if (name.length === 1) return json({ error: 'Adın en az 2 harf olmalı ya da boş bırak.' }, 400);
+  if (form.get('onay') !== '1') return json({ error: 'Yüklemeden önce kuralları okuyup onaylaman gerekiyor.' }, 400);
   if (!photo || typeof photo === 'string') return json({ error: 'Fotoğraf bulunamadı.' }, 400);
   const bytes = new Uint8Array(await photo.arrayBuffer());
   if (!bytes.length) return json({ error: 'Fotoğraf boş görünüyor.' }, 400);
@@ -382,8 +385,8 @@ async function upload(request, env, ctx, cfg) {
   if (!type) return json({ error: 'Yalnızca JPEG, PNG veya WebP fotoğraf yükleyebilirsin.' }, 415);
 
   // 1) İsim ve not denetimi. Daha önce onaylanan isim yeniden yapay zekâya sorulmaz.
-  const hash = await nameHash(name);
-  const nameToCheck = session.nh === hash ? null : name;
+  const hash = name ? await nameHash(name) : '';
+  const nameToCheck = !name || session.nh === hash ? null : name;
   const textVerdict = await moderateText(env, cfg, nameToCheck, note || null);
   if (textVerdict.bad) return banResponse(env, textVerdict.reason, textVerdict.field);
   session.nh = hash;
@@ -567,6 +570,45 @@ async function verifyReaderPassword(env, pw) {
   if (env.READER_PASSWORD) return safeEqual(input, readerPasswordKey(env.READER_PASSWORD));
   const stored = await storedHash(env, 'okur-parola');
   return stored ? pbkdf2Matches(stored, input) : false;
+}
+
+// Okuma şifresinin sürümü: şifre değişince eski okuma oturumları geçersiz olur.
+async function readerPasswordVersion(env) {
+  if (env.READER_PASSWORD) return 'env';
+  const stored = await storedHash(env, 'okur-parola');
+  return stored ? String(stored.salt).slice(0, 10) : '';
+}
+
+async function readReaderToken(request, env) {
+  const t = await readCookieToken(request, env, COOKIE_READER, 'r');
+  if (!t) return null;
+  return t.pv === (await readerPasswordVersion(env)) ? t : null;
+}
+
+// Arşivden okuma şifresini değiştirme: yeni şifrenin yalnızca tuzlu PBKDF2 özeti saklanır.
+async function adminSetReaderPassword(request, env) {
+  if (env.READER_PASSWORD) return json({ error: 'Okuma şifresi Cloudflare ayarlarından (READER_PASSWORD) belirleniyor; oradan değiştir.' }, 409);
+  if (!env.AYAR) return json({ error: 'Ayar veritabanı bağlı değil.' }, 503);
+  const body = await readJson(request);
+  const pw = typeof body?.sifre === 'string' ? body.sifre.trim() : '';
+  const key = readerPasswordKey(pw);
+  if (key.length < 8 || pw.length > 128) return json({ error: 'Yeni şifre en az 8 karakter olmalı.' }, 400);
+  if (await verifyAdminPassword(env, pw)) return json({ error: 'Okuma şifresi arşiv parolasıyla aynı olamaz.' }, 400);
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iterations = 10000;
+  const material = await crypto.subtle.importKey('raw', enc.encode(key), 'PBKDF2', false, ['deriveBits']);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations }, material, 256));
+  const value = JSON.stringify({ salt: Buffer.from(salt).toString('base64'), hash: Buffer.from(bits).toString('base64'), iterations });
+  try {
+    await env.AYAR.prepare(
+      "INSERT INTO ayarlar (anahtar, deger) VALUES ('okur-parola', ?) ON CONFLICT(anahtar) DO UPDATE SET deger = excluded.deger, guncelleme = unixepoch()",
+    ).bind(value).run();
+  } catch (e) {
+    console.warn('Okuma şifresi kaydedilemedi:', e && e.message);
+    return json({ error: 'Şifre kaydedilemedi. Biraz sonra tekrar dene.' }, 503);
+  }
+  hashCache.delete('okur-parola');
+  return json({ ok: true });
 }
 
 // Sitenin kendi adresini ayar veritabanına bir kez yazar (sahibin adresi kaybetmemesi için).
@@ -2361,7 +2403,7 @@ async function readerLogin(request, env, cfg) {
     return json({ error: 'Okuma şifresi yanlış. Anıl’ın verdiği şifreyi kontrol et.' }, 401);
   }
   const now = Date.now();
-  const token = await makeToken(env, { k: 'r', sid: randomId(12), iat: now, exp: now + cfg.readerHours * 3600e3 });
+  const token = await makeToken(env, { k: 'r', pv: await readerPasswordVersion(env), sid: randomId(12), iat: now, exp: now + cfg.readerHours * 3600e3 });
   const res = json({ ok: true });
   res.headers.append('Set-Cookie', cookieHeader(COOKIE_READER, token, { maxAge: cfg.readerHours * 3600 }));
   return res;
@@ -2375,7 +2417,7 @@ function readerLogout() {
 
 // Okuma alanına okuma şifresiyle ya da arşiv parolasıyla girilir
 async function readerOrAdmin(request, env) {
-  const r = await readCookieToken(request, env, COOKIE_READER, 'r');
+  const r = await readReaderToken(request, env);
   if (r) return { kind: 'okur', sid: String(r.sid || 'okur') };
   const a = await readCookieToken(request, env, COOKIE_ADMIN, 'a');
   if (a) return { kind: 'yonetici', sid: 'yonetici' };
